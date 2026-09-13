@@ -28,7 +28,8 @@ Requisitos: RF09, RF21 (estrutura), RF22 (config), constitution §4, §9.
 
 ## Etapa 2 — Ingestão
 - [ ] Edge Function `ingest` para Google Sheets → `facts`/`feriados` + chunks; hash por fonte
-- [ ] PDF (Storage) e URL → chunks (~800 tokens, sobreposição 100)
+- [ ] PDF (Storage) e URL → chunks (~800 tokens, sobreposição 100), contando tokens com `cl100k_base`
+- [ ] Embeddings em lote (vários chunks por request), registrando `usage.prompt_tokens`
 - [ ] `pg_cron` + `pg_net`: Sheets a cada 15 min, PDF/URL diariamente
 - [ ] Registro de custo de embeddings em `usage_logs`
 - [ ] Planilha "Calendário Infnet" como fonte de `feriados`
@@ -36,6 +37,7 @@ Requisitos: RF09, RF21 (estrutura), RF22 (config), constitution §4, §9.
 ## Etapa 3 — Recuperação
 - [ ] Função SQL `match_chunks` (vetor + FTS + RRF, filtro por metadados)
 - [ ] Calibrar `limiar_relevancia`
+- [ ] Comparar nos evals: classificação de etapa por embedding (zero-shot) vs. `gpt-5.6-luna`
 - [ ] `evals/` com perguntas-ouro e runner
 
 ## Etapa 4 — Suggest / Ask

@@ -100,6 +100,17 @@ Como a [spec](spec.md) será construída. Mudanças de arquitetura atualizam est
   - reprocessar só em mensagem do lead;
   - embeddings só quando o hash muda.
 
+## Embeddings
+Referência: guia "Vector embeddings" da OpenAI (cópia recebida em 2026-09-13).
+- **Modelo:** `text-embedding-3-small`, 1536 dimensões por padrão, igual a `vector(1536)` no banco.
+- **Preço confirmado:** 62.500 páginas de ~800 tokens por US$ 1, ou seja, US$ 0,02 por 1M tokens (bate com `precos_modelo`).
+- **Tamanho máximo:** 8.192 tokens por texto. Nossos chunks de ~800 tokens ficam bem abaixo. Contagem de tokens com o encoding `cl100k_base`.
+- **Chamadas em lote:** enviar vários chunks num único request (input em array). `usage.prompt_tokens` vai para `usage_logs.tokens_entrada`.
+- **Vetores normalizados (norma 1):** similaridade de cosseno e produto interno dão o mesmo ranking. Mantemos `vector_cosine_ops` pela clareza; trocar para `vector_ip_ops` é otimização possível se a base crescer.
+- **Parâmetro `dimensions`:** não reduzir por enquanto. Com ~6 KB por chunk, 10 mil chunks ocupam ~60 MB, dentro do plano Free (500 MB).
+- **Limite de conhecimento:** os modelos v3 não conhecem fatos posteriores a set/2021. Pouco impacto na busca, mas siglas ou nomes de cursos novos podem casar pior; a busca full-text (FTS) cobre esse caso na busca híbrida.
+- **Uso extra que avaliaremos:** classificar a etapa da conversa sem gastar chamada de chat, comparando o embedding das últimas mensagens com as descrições das etapas do playbook ("zero-shot"). Só adotar se os evals mostrarem acurácia equivalente à do `gpt-5.6-luna`.
+
 ## Lembrete de 24h (regras de cálculo)
 - Expediente: dias 1–5, 09:00–19:00, sem pausa de almoço, excluindo `feriados.conta_como_folga`.
 - `ultimoMomentoUtil` = maior instante de expediente ≤ `expiraEm`. Se for anterior a `ultimaMsgLead`, a conversa fica "sem janela útil".
