@@ -17,8 +17,8 @@ Requisitos: RF09, RF21 (estrutura), RF22 (config), constitution §4, §9.
 - [x] 1.9b Migration 0800: preços OpenAI de set/2026 (cache write, contexto longo) e modelos `gpt-5.6-luna`
 - [x] 1.10 Projeto `copiloto-atendimento` (ref `trtmyuqatmhvikfbqmkv`, org Infnet, sa-east-1). Migrations 0100–0700 rodadas pelo SQL Editor; 0800 aplicada pelo conector em 2026-09-13. Validado: 15 tabelas com RLS, 58 policies, 2 triggers em auth.users, 5 views, 18 configs, 23 feriados, custo 0.00248/0.00258, trigger de custo gravando US$ e R$
 - [x] 1.10b Security Advisor: sobram apenas avisos aceitos (funções de papel e `config_valor` usadas pela RLS; `rls_auto_enable` é o event trigger de RLS automática do próprio Supabase)
-- [~] 1.11 Configurar Google OAuth (app Internal) no Google Cloud + provider no Supabase
-- [~] 1.12 Conectar o Claude ao projeto (conector Supabase) para aplicar e consultar
+- [x] 1.11 Google OAuth: projeto `copiloto-atendimento` no Google Cloud, público Interno, escopos `openid`/`email`/`profile`, cliente Web com callback do Supabase; provider Google ativo e Email desativado. Validado em 2026-09-13: login de raphael.carneiro@infnet.edu.br criou `profiles` como `admin`; nenhum usuário fora do domínio em `auth.users`
+- [x] 1.12 Conector Supabase autorizado na organização Infnet (aplicar migrations, consultar e rodar advisors)
 
 **Aceite da etapa 1**
 - `verificacao_etapa1.sql`: todas as tabelas públicas com RLS ativo; 2 triggers em `auth.users`; `config` e `feriados` populados; `custo_estimado_usd('gpt-5-mini', 10000, 1000, 4000)` = 0.0036.
