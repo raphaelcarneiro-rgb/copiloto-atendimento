@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://copiloto.infnet.edu.br/contracts/suggestion.schema.json",
+  "title": "Sugestão do copiloto (RF05)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["etapa", "script_etapa", "sugestoes", "perguntas_para_lead", "alertas", "lacunas", "confianca"],
+  "properties": {
+    "etapa": {
+      "type": "string",
+      "description": "Chave da etapa do playbook detectada na conversa."
+    },
+    "script_etapa": {
+      "type": "string",
+      "description": "Script base da etapa, copiado do playbook."
+    },
+    "sugestoes": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["texto", "fontes"],
+        "properties": {
+          "texto": { "type": "string", "minLength": 1 },
+          "fontes": {
+            "type": "array",
+            "description": "IDs de chunks recuperados na requisição (validados no backend, RF06).",
+            "items": { "type": "integer" }
+          },
+          "verificada": {
+            "type": "boolean",
+            "description": "Preenchido pelo backend: false quando alguma fonte não pertence aos chunks recuperados."
+          }
+        }
+      }
+    },
+    "perguntas_para_lead": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "alertas": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "lacunas": {
+      "type": "array",
+      "description": "Dúvidas do lead que a base não cobre (RF15).",
+      "items": { "type": "string" }
+    },
+    "confianca": {
+      "type": "string",
+      "enum": ["alta", "media", "baixa"]
+    }
+  }
+}

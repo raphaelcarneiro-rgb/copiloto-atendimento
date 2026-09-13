@@ -1,0 +1,73 @@
+# Tasks 001 — Copiloto de Atendimento
+
+Legenda: `[x]` feito · `[ ]` a fazer · `[~]` depende do usuário
+
+## Etapa 1 — Fundação
+Requisitos: RF09, RF21 (estrutura), RF22 (config), constitution §4, §9.
+
+- [x] 1.1 Artefatos SDD: constitution, spec, plan, tasks, contrato da sugestão
+- [x] 1.2 Migration 0100: extensão `vector`, tipos enum, `config`, `config_valor()`
+- [x] 1.3 Migration 0200: `profiles`, `sources`, `documents`, `chunks`, `facts`, `feriados`, `playbook`, `objections`
+- [x] 1.4 Migration 0300: `knowledge_gaps`, `gap_proposals`, `faq_curada`, `precos_modelo`, `usage_logs` (+ cálculo de custo), `cost_alerts`
+- [x] 1.5 Migration 0400: bloqueio de domínio e criação de perfil em `auth.users`
+- [x] 1.6 Migration 0500: funções de papel + RLS em todas as tabelas
+- [x] 1.7 Migration 0600: views de relatório (`security_invoker`)
+- [x] 1.8 Migration 0700: seed de `config`, `precos_modelo` e `feriados`
+- [x] 1.9 Script de verificação e guia de setup
+- [x] 1.9b Migration 0800: preços OpenAI de set/2026 (cache write, contexto longo) e modelos `gpt-5.6-luna`
+- [~] 1.10 Criar projeto Supabase (sa-east-1) e rodar as migrations (0100–0700 rodadas pelo Raphael; 0800 pendente; validação pendente)
+- [~] 1.11 Configurar Google OAuth (app Internal) no Google Cloud + provider no Supabase
+- [~] 1.12 Conectar o Claude ao projeto (conector Supabase) para aplicar e consultar
+
+**Aceite da etapa 1**
+- `verificacao_etapa1.sql`: todas as tabelas públicas com RLS ativo; 2 triggers em `auth.users`; `config` e `feriados` populados; `custo_estimado_usd('gpt-5-mini', 10000, 1000, 4000)` = 0.0036.
+- Login com conta `@infnet.edu.br` cria `profiles` (Raphael como `admin`).
+- Login com conta de outro domínio é recusado e não cria usuário.
+- Security Advisor do Supabase sem alertas críticos.
+
+## Etapa 2 — Ingestão
+- [ ] Edge Function `ingest` para Google Sheets → `facts`/`feriados` + chunks; hash por fonte
+- [ ] PDF (Storage) e URL → chunks (~800 tokens, sobreposição 100)
+- [ ] `pg_cron` + `pg_net`: Sheets a cada 15 min, PDF/URL diariamente
+- [ ] Registro de custo de embeddings em `usage_logs`
+- [ ] Planilha "Calendário Infnet" como fonte de `feriados`
+
+## Etapa 3 — Recuperação
+- [ ] Função SQL `match_chunks` (vetor + FTS + RRF, filtro por metadados)
+- [ ] Calibrar `limiar_relevancia`
+- [ ] `evals/` com perguntas-ouro e runner
+
+## Etapa 4 — Suggest / Ask
+- [ ] Adapter OpenAI com uso de tokens
+- [ ] Prompt com prefixo estável, JSON Schema, temperatura baixa
+- [ ] Validação de citações (RF06), registro de lacunas (RF15/RF16)
+- [ ] Streaming e `usage_logs`
+
+## Etapa 5 — Extensão v0
+- [ ] Vite + TS + MV3 com `key` fixa
+- [ ] Login Google via `launchWebAuthFlow`
+- [ ] Leitor do DOM com seletores remotos + fixture HTML
+- [ ] Botão "Ativar copiloto", side panel mostrando a conversa extraída
+- [ ] Checagem de versão (RF22)
+
+## Etapa 6 — Lembrete de janela (RF10–RF14)
+- [ ] `business-hours.ts` + testes (casos da spec, incluindo quarta-feira de cinzas)
+- [ ] `window-guard.ts` com alarms, notificações e badge
+
+## Etapa 7 — Integração
+- [ ] Painel ↔ suggest/ask; copiar/inserir; aviso de 24h; feedback
+
+## Etapa 8 — Ciclo de aprendizado (RF15–RF20)
+- [ ] Propostas no painel; Edge Function `gaps`; tela de Curadoria; publicação de FAQ; avisos; inclusão em evals
+
+## Etapa 9 — Custo e relatórios (RF21–RF22)
+- [ ] Página de Relatórios sobre as views; `cost-alert` por e-mail; limpeza de retenção
+
+## Etapa 10 — Evals + piloto
+- [ ] Rodar evals; piloto com 2 atendentes por 1 semana; medir lacunas, aceite e custo médio
+
+## Etapa 11 — Distribuição
+- [ ] Script de build/zip; pasta no Drive; manual de instalação e uso
+
+## Dependências externas
+- [~] Material comercial: roteiro por etapa, objeções, planilhas de preço/convênio (Raphael)
