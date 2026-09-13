@@ -15,7 +15,8 @@ Requisitos: RF09, RF21 (estrutura), RF22 (config), constitution §4, §9.
 - [x] 1.8 Migration 0700: seed de `config`, `precos_modelo` e `feriados`
 - [x] 1.9 Script de verificação e guia de setup
 - [x] 1.9b Migration 0800: preços OpenAI de set/2026 (cache write, contexto longo) e modelos `gpt-5.6-luna`
-- [~] 1.10 Criar projeto Supabase (sa-east-1) e rodar as migrations (0100–0700 rodadas pelo Raphael; 0800 pendente; validação pendente)
+- [x] 1.10 Projeto `copiloto-atendimento` (ref `trtmyuqatmhvikfbqmkv`, org Infnet, sa-east-1). Migrations 0100–0700 rodadas pelo SQL Editor; 0800 aplicada pelo conector em 2026-09-13. Validado: 15 tabelas com RLS, 58 policies, 2 triggers em auth.users, 5 views, 18 configs, 23 feriados, custo 0.00248/0.00258, trigger de custo gravando US$ e R$
+- [x] 1.10b Security Advisor: sobram apenas avisos aceitos (funções de papel e `config_valor` usadas pela RLS; `rls_auto_enable` é o event trigger de RLS automática do próprio Supabase)
 - [~] 1.11 Configurar Google OAuth (app Internal) no Google Cloud + provider no Supabase
 - [~] 1.12 Conectar o Claude ao projeto (conector Supabase) para aplicar e consultar
 

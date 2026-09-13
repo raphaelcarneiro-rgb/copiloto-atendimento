@@ -64,8 +64,9 @@ as $$
   ) x
 $$;
 
-revoke execute on function public.custo_estimado_usd(text, integer, integer, integer, integer, date) from public, anon;
-grant execute on function public.custo_estimado_usd(text, integer, integer, integer, integer, date) to authenticated, service_role;
+-- Só o trigger e as Edge Functions calculam custo; atendentes não chamam pela API
+revoke execute on function public.custo_estimado_usd(text, integer, integer, integer, integer, date) from public, anon, authenticated;
+grant execute on function public.custo_estimado_usd(text, integer, integer, integer, integer, date) to service_role;
 
 create function public.calcular_custo_usage()
 returns trigger
@@ -101,6 +102,10 @@ $$;
 create trigger usage_logs_custo
   before insert on public.usage_logs
   for each row execute function public.calcular_custo_usage();
+
+-- Security Advisor (lints 0028/0029): funções internas não devem ser expostas via /rest/v1/rpc
+revoke execute on function public.calcular_custo_usage() from public, anon, authenticated;
+revoke execute on function public.dominio_permitido() from authenticated;
 
 -- 4. Preços: remove os valores provisórios e grava a tabela Standard de set/2026
 delete from public.precos_modelo where modelo in ('gpt-5-mini', 'gpt-5-nano');
