@@ -48,3 +48,4 @@ evals/                         (etapa 3) perguntas-ouro
 1. Siga [docs/setup/01-supabase.md](docs/setup/01-supabase.md) para criar o projeto Supabase e o login Google.
 2. Rode os arquivos de `supabase/migrations/` em ordem.
 3. Confira com `supabase/verify/verificacao_etapa1.sql`.
+4. Ao cadastrar planilhas como fonte de dados, siga [docs/setup/02-planilhas-fonte.md](docs/setup/02-planilhas-fonte.md).
