@@ -44,6 +44,8 @@ Como a [spec](spec.md) será construída. Mudanças de arquitetura atualizam est
 | Custo | `precos_modelo`, `usage_logs`, `cost_alerts` |
 | Relatórios (views) | `vw_custo_por_conversa`, `vw_custo_por_atendente`, `vw_custo_diario`, `vw_custo_mensal`, `vw_lacunas_abertas` |
 
+**Acesso ao Google Sheets:** via *domain-wide delegation* (não compartilhamento manual por arquivo — ver [docs/setup/02-planilhas-fonte.md](../../docs/setup/02-planilhas-fonte.md) para o histórico da decisão). A conta de serviço `copiloto-sheets-reader` está autorizada no Admin Console da Infnet (Client ID `102223072074030067145`, escopo `spreadsheets.readonly`) a impersonar `raphael.carneiro@infnet.edu.br`. A Edge Function `ingest` gera o JWT da conta de serviço com `subject = raphael.carneiro@infnet.edu.br`, o que dá acesso de leitura a qualquer planilha que esse usuário já tenha, sem precisar compartilhar cada arquivo individualmente.
+
 **Edge Functions** (etapas 2–9):
 - `config`: seletores, expediente, antecedência, feriados dos próximos 12 meses, versões.
 - `suggest` / `ask`:

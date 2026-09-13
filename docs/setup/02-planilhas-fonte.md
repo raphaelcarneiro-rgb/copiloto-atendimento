@@ -1,45 +1,58 @@
-# Setup 02 — Compartilhar planilhas com o copiloto
+# Setup 02 — Acesso do copiloto às planilhas (domain-wide delegation)
 
-Guia para o **admin** (Raphael) liberar uma planilha do Google Sheets como fonte de dados do copiloto (etapa 2 — Ingestão). Sem esse compartilhamento, a Edge Function `ingest` não consegue ler a planilha.
+Guia para o **admin** (Raphael) sobre como o copiloto lê planilhas do Google Sheets como fonte de dados (etapa 2 — Ingestão).
 
-## Conta de serviço
+## Como funciona (decisão final)
 
-O copiloto lê planilhas por meio de uma conta de serviço do Google Cloud, criada no projeto `copiloto-atendimento`:
+~~Inicialmente a ideia era compartilhar cada planilha manualmente com uma conta de serviço externa (`copiloto-sheets-reader@copiloto-atendimento.iam.gserviceaccount.com`).~~ Essa abordagem **não funcionou de forma confiável**: o Google passou a reverter silenciosamente compartilhamentos novos com essa identidade externa (mecanismo de proteção do Workspace/anti-abuso), mesmo com as configurações de compartilhamento externo liberadas no Admin Console.
+
+**Solução adotada: delegação em todo o domínio (domain-wide delegation).**
+
+A conta de serviço `copiloto-sheets-reader` foi autorizada, no Admin Console da Infnet, a **agir como se fosse o usuário `raphael.carneiro@infnet.edu.br`** (via "impersonation"), só para o escopo de leitura de planilhas:
 
 ```
-copiloto-sheets-reader@copiloto-atendimento.iam.gserviceaccount.com
+https://www.googleapis.com/auth/spreadsheets.readonly
 ```
 
-Esse e-mail não é secreto — é só um identificador. A chave privada dessa conta fica guardada nos Secrets do Supabase, nunca em planilhas ou documentos.
+Configuração feita em 2026-09-13 em **Segurança → Controle de dados e acesso → Controles de API → Delegação em todo o domínio**:
 
-## Como compartilhar uma planilha
-
-1. Abra a planilha no Google Sheets (ex.: "Calendário Infnet", planilha de preços, planilha de convênios).
-2. Clique em **Compartilhar** (canto superior direito).
-3. Em "Adicionar pessoas e grupos", cole o e-mail:
-   ```
-   copiloto-sheets-reader@copiloto-atendimento.iam.gserviceaccount.com
-   ```
-4. No papel de acesso, deixe como **Leitor** (o copiloto nunca precisa escrever na planilha).
-5. Desmarque "Notificar pessoas" (é uma conta de serviço, não lê e-mail).
-6. Clique em **Enviar** (ou **Compartilhar**).
-
-## Planilhas que devem ser compartilhadas
-
-| Planilha | Uso | Status |
+| Nome | ID do cliente | Escopos |
 |---|---|---|
-| Calendário Infnet | Feriados (lembrete de 24h) | a criar/compartilhar |
-| Preços e convênios | Valores de cursos, descontos | a criar/compartilhar |
-| Roteiro/objeções (se em planilha) | Playbook comercial | a definir formato |
+| Copiloto de Atendimento | `102223072074030067145` | `.../auth/spreadsheets.readonly` |
 
-Atualize esta tabela conforme novas planilhas forem cadastradas como fonte (ver `sources` no banco).
+### O que isso significa na prática
+- **Nenhuma planilha precisa ser compartilhada manualmente** com a conta de serviço.
+- O copiloto enxerga qualquer planilha que **raphael.carneiro@infnet.edu.br já tenha acesso** (como proprietário, editor ou leitor) — bastando que a URL/ID da planilha seja cadastrado como fonte (tabela `sources`).
+- O acesso é **somente leitura**. O copiloto nunca escreve nas planilhas.
+- Se amanhã quisermos que o copiloto leia uma planilha que só outra pessoa tem acesso (ex.: Thayana), soluções possíveis: (a) compartilhar essa planilha com o Raphael também, ou (b) trocar o usuário impersonado (`subject`) na credencial da Edge Function.
 
-## Depois de compartilhar
+## Implementação (etapa 2 — Ingestão)
 
-Avise para que o `id` (URL) da planilha seja cadastrado na tabela `public.sources` (`tipo = 'sheet'`, `ref` = ID da planilha). A sincronização roda a cada 15 minutos depois de cadastrada (RF08).
+Ao implementar a Edge Function `ingest` para Google Sheets, a biblioteca cliente do Google (`googleapis` ou `google-auth-library`) deve gerar o token JWT da conta de serviço com o campo `subject` (também chamado de `sub` ou "impersonated user") preenchido com:
 
-Para pegar o ID da planilha: é o trecho entre `/d/` e `/edit` na URL, por exemplo:
+```
+raphael.carneiro@infnet.edu.br
+```
+
+A chave privada da conta de serviço (arquivo JSON baixado no Cloud Console) fica guardada como Secret na Edge Function, nunca em texto plano no repositório ou em planilhas.
+
+## Planilhas já identificadas como fonte
+
+| Planilha | Uso | Acesso do Raphael | Status |
+|---|---|---|---|
+| Manual de Boas Práticas — Atendimento B2B WhatsApp (v3) | Playbook comercial (via extração de texto, não Sheets API — é um Google Doc) | proprietário | pronto para ingestão de documento |
+| Calendário das faculdades Infnet e ECDD | Datas de início de turmas | proprietário | pronto para ingestão de planilha |
+| B2B \| Empresas Conveniadas (2023 em diante) | Lista de empresas conveniadas | organizador (Drive Compartilhado) | pronto para ingestão de planilha |
+| Calendário Infnet (feriados) | Lembrete de 24h (RF10–RF14) | a criar | pendente — ver nota abaixo |
+
+**Nota sobre feriados:** o calendário de feriados (nacionais, RJ, 15/10) ainda precisa virar uma planilha própria (ou aba dedicada) para ser sincronizado como fonte estruturada (`feriados`). Os 23 feriados já estão no banco via seed manual (migration `20260913000700_seed_inicial.sql`); a planilha serve para facilitar manutenção contínua sem precisar de SQL.
+
+## Como pegar o ID de uma planilha
+
+É o trecho entre `/d/` e `/edit` na URL:
 ```
 https://docs.google.com/spreadsheets/d/1AbCdEfGhIjKlMnOpQrStUvWxYz/edit
                                         └────────── ID ──────────┘
 ```
+
+Quando uma nova planilha for identificada como fonte, avise para que seja cadastrada em `public.sources` (`tipo = 'sheet'`). A sincronização roda a cada 15 minutos depois de cadastrada (RF08).

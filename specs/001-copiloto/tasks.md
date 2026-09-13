@@ -27,7 +27,8 @@ Requisitos: RF09, RF21 (estrutura), RF22 (config), constitution §4, §9.
 - Security Advisor do Supabase sem alertas críticos.
 
 ## Etapa 2 — Ingestão
-- [ ] Edge Function `ingest` para Google Sheets → `facts`/`feriados` + chunks; hash por fonte
+- [x] Acesso ao Sheets via domain-wide delegation configurado (Admin Console → Client ID `102223072074030067145`, escopo `spreadsheets.readonly`, impersonando raphael.carneiro@infnet.edu.br) — ver [docs/setup/02-planilhas-fonte.md](../../docs/setup/02-planilhas-fonte.md)
+- [ ] Edge Function `ingest` para Google Sheets → `facts`/`feriados` + chunks; hash por fonte; JWT da service account com `subject` = usuário impersonado
 - [ ] PDF (Storage) e URL → chunks (~800 tokens, sobreposição 100), contando tokens com `cl100k_base`
 - [ ] Embeddings em lote (vários chunks por request), registrando `usage.prompt_tokens`
 - [ ] `pg_cron` + `pg_net`: Sheets a cada 15 min, PDF/URL diariamente
