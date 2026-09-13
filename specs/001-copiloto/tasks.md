@@ -28,9 +28,13 @@ Requisitos: RF09, RF21 (estrutura), RF22 (config), constitution §4, §9.
 
 ## Etapa 2 — Ingestão
 - [x] Acesso ao Sheets via domain-wide delegation configurado (Admin Console → Client ID `102223072074030067145`, escopo `spreadsheets.readonly`, impersonando raphael.carneiro@infnet.edu.br) — ver [docs/setup/02-planilhas-fonte.md](../../docs/setup/02-planilhas-fonte.md)
-- [ ] Edge Function `ingest` para Google Sheets → `facts`/`feriados` + chunks; hash por fonte; JWT da service account com `subject` = usuário impersonado
-- [ ] PDF (Storage) e URL → chunks (~800 tokens, sobreposição 100), contando tokens com `cl100k_base`
-- [ ] Embeddings em lote (vários chunks por request), registrando `usage.prompt_tokens`
+- [x] Migration `documents_source_id_key` (um documento por fonte) e seed das 3 fontes iniciais (`calendario_cursos`, `convenios`, `playbook`)
+- [x] Edge Function `ingest` implantada (`supabase/functions/ingest`): JWT RS256 próprio (sem SDK) para o token do Google com `subject` impersonado; parsers dedicados para o Calendário (→ `facts` + chunks) e Empresas Conveniadas (→ chunks agrupados de 20 em 20); exportação do Manual (Google Doc) via Drive API → chunking por parágrafo (~800 tokens, 100 de sobreposição, contagem real via `gpt-tokenizer`/cl100k_base); embeddings em lote na OpenAI com registro em `usage_logs`
+- [~] Configurar Secrets da função no dashboard (`OPENAI_API_KEY`, `GOOGLE_SERVICE_ACCOUNT_KEY`, `GOOGLE_IMPERSONATED_USER`) e rodar a primeira sincronização manual
+- [ ] `pg_cron`/`pg_net` chamando `ingest` a cada 15 min (RF08) — depende do passo acima estar validado
+- [ ] PDF de verdade no Storage (`ref="storage:<path>"`) e fontes tipo `url` — ainda não implementados; hoje só `sheet` e `pdf` com `ref="gdoc:"`
+- [ ] Planilha própria de feriados (fonte estruturada) — feriados hoje só existem via seed manual (migration 0700)
+- [ ] PDF de verdade no Storage e URL → chunks (~800 tokens, sobreposição 100), contando tokens com `cl100k_base` — código de `chunkText` já pronto e reaproveitável
 - [ ] `pg_cron` + `pg_net`: Sheets a cada 15 min, PDF/URL diariamente
 - [ ] Registro de custo de embeddings em `usage_logs`
 - [ ] Planilha "Calendário Infnet" como fonte de `feriados`
