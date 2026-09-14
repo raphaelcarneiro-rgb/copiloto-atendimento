@@ -100,6 +100,47 @@ export function parseCalendarioCursos(
 }
 
 // ---------------------------------------------------------------------------
+// Lista de páginas institucionais (fonte "lista_urls")
+// Planilha "Copiloto | Páginas Institucionais", colunas: URL, Nome.
+// Cada linha vira (ou atualiza) uma fonte tipo='url' própria — mesmo
+// mecanismo usado para as páginas de curso via o calendário (2026-09-14),
+// só que aqui a lista de URLs é o próprio propósito da planilha, não uma
+// coluna a mais dentro de outra.
+// ---------------------------------------------------------------------------
+
+export interface UrlListaRow {
+  url: string;
+  nome: string;
+}
+
+function isUrlListaHeaderRow(row: string[]): boolean {
+  return row.some((c) => normalize(c) === "url");
+}
+
+export function parseListaUrls(rows: string[][]): UrlListaRow[] {
+  const result: UrlListaRow[] = [];
+  let colIndex: Record<string, number> | null = null;
+
+  for (const row of rows) {
+    const nonEmpty = row.filter((c) => (c ?? "").trim().length > 0);
+    if (nonEmpty.length === 0) continue;
+
+    if (isUrlListaHeaderRow(row)) {
+      colIndex = buildColumnIndex(row);
+      continue;
+    }
+    if (colIndex === null) continue;
+
+    const url = cell(row, colIndex, "url");
+    if (!url) continue;
+
+    result.push({ url, nome: cell(row, colIndex, "nome") || url });
+  }
+
+  return result;
+}
+
+// ---------------------------------------------------------------------------
 // Empresas conveniadas (fonte "convenios")
 // Cabeçalho: Nome da Empresa, Domínio, Nome Alternativo, Nível do Convênio,
 // Data de Início Convênio, Data Final Convênio, Status, Semestre Captação,
