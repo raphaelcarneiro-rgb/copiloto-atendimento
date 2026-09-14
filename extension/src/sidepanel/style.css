@@ -216,6 +216,14 @@ header h1 {
   cursor: default;
 }
 
+.suggest-etapa {
+  margin: 0 0 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: #0091ae;
+}
 .suggest-status {
   margin: 4px 16px 8px;
   font-size: 11px;

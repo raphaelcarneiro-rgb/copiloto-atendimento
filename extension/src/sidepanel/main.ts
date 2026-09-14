@@ -155,9 +155,25 @@ function criarCardAcaoResposta(
   return { el: wrapper, statusEl };
 }
 
+const RÓTULOS_ETAPA: Record<string, string> = {
+  descoberta: "Descoberta",
+  qualificacao_empresa: "Qualificação da empresa",
+  apresentacao_curso_preco: "Apresentação do curso e preço",
+  tratamento_objecao: "Tratamento de objeção",
+  fechamento: "Fechamento",
+  follow_up: "Follow-up",
+};
+
 function renderSugestoes(resposta: SuggestResponse) {
   suggestStatusEl.hidden = true;
   suggestResultadoEl.innerHTML = "";
+
+  if (resposta.etapa) {
+    const etapaEl = document.createElement("p");
+    etapaEl.className = "suggest-etapa";
+    etapaEl.textContent = `Etapa do roteiro: ${RÓTULOS_ETAPA[resposta.etapa] ?? resposta.etapa}`;
+    suggestResultadoEl.appendChild(etapaEl);
+  }
 
   if (resposta.sugestoes.length === 0) {
     const vazio = document.createElement("p");

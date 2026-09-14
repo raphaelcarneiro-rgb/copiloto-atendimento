@@ -1,14 +1,18 @@
 // Edge Function `suggest` (Etapa 8 (adiantada) — US2, RF05-RF07, RF15-RF16).
-// Sugere automaticamente até 3 respostas para a última mensagem do lead,
-// fundamentadas só nos trechos recuperados nesta mesma requisição (RF06).
-// Reaproveita toda a infraestrutura de `ask` (busca híbrida, chatJSON,
-// validação de citações, lacunas, custo).
+// Sugere automaticamente até 3 respostas para as mensagens do lead ainda
+// sem resposta, fundamentadas só nos trechos recuperados nesta mesma
+// requisição (RF06). Reaproveita toda a infraestrutura de `ask` (busca
+// híbrida, chatJSON, validação de citações, lacunas, custo).
 //
-// Versão v1, deliberadamente sem classificação de etapa do playbook: o
-// Manual de Boas Práticas hoje só existe como texto corrido (etapa 2), não
-// dividido por etapa da conversa — não dava pra fingir uma classificação
-// sem dado real por trás. `etapa`/`script_etapa` ficam com valor fixo até
-// o playbook estruturado existir (ver contracts/suggestion.schema.json).
+// Classificação de etapa (RF05, US1): o LLM identifica qual etapa do
+// roteiro comercial (tabela `playbook`, 6 passos fornecidos pelo Raphael em
+// 2026-09-14) melhor descreve o momento da conversa — mas só pode escolher
+// entre as etapas que realmente existem na tabela (enum no JSON Schema,
+// construído a partir do banco). O texto do script devolvido ao atendente
+// (`script_etapa`) vem sempre da tabela, nunca é escrito pelo modelo —
+// classificar "qual etapa" não é uma afirmação factual sobre a Infnet, mas
+// o CONTEÚDO do script precisa ser o real, senão vira a mesma alucinação
+// que o projeto existe para evitar.
 //
 // POST { mensagens: {autor: "lead"|"atendente", texto: string, hora: string|null}[], thread_hash?: string, match_count?: number }
 
@@ -33,51 +37,77 @@ interface ChunkResultado {
   rrf_score: number;
 }
 
+interface PlaybookRow {
+  etapa: string;
+  ordem: number;
+  objetivo: string | null;
+  script: string;
+  perguntas_chave: string[];
+}
+
 interface SugestaoLLM {
   texto: string;
   fontes: number[];
 }
 
 interface SuggestLLMOutput {
+  etapa_atual: string;
   sugestoes: SugestaoLLM[];
   perguntas_para_lead: string[];
   lacunas: string[];
   confianca: "alta" | "media" | "baixa";
 }
 
-const SUGGEST_JSON_SCHEMA = {
-  type: "object",
-  additionalProperties: false,
-  required: ["sugestoes", "perguntas_para_lead", "lacunas", "confianca"],
-  properties: {
-    sugestoes: {
-      type: "array",
-      maxItems: 3,
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: ["texto", "fontes"],
-        properties: {
-          texto: { type: "string" },
-          fontes: { type: "array", items: { type: "integer" } },
+function buildSchema(etapasValidas: string[]) {
+  return {
+    type: "object",
+    additionalProperties: false,
+    required: ["etapa_atual", "sugestoes", "perguntas_para_lead", "lacunas", "confianca"],
+    properties: {
+      etapa_atual: { type: "string", enum: etapasValidas },
+      sugestoes: {
+        type: "array",
+        maxItems: 3,
+        items: {
+          type: "object",
+          additionalProperties: false,
+          required: ["texto", "fontes"],
+          properties: {
+            texto: { type: "string" },
+            fontes: { type: "array", items: { type: "integer" } },
+          },
         },
       },
+      perguntas_para_lead: { type: "array", items: { type: "string" } },
+      lacunas: { type: "array", items: { type: "string" } },
+      confianca: { type: "string", enum: ["alta", "media", "baixa"] },
     },
-    perguntas_para_lead: { type: "array", items: { type: "string" } },
-    lacunas: { type: "array", items: { type: "string" } },
-    confianca: { type: "string", enum: ["alta", "media", "baixa"] },
-  },
-} as const;
+  } as const;
+}
 
-function buildSystemPrompt(): string {
+function buildSystemPrompt(playbook: PlaybookRow[]): string {
+  const roteiro = playbook
+    .sort((a, b) => a.ordem - b.ordem)
+    .map(
+      (p) =>
+        `- "${p.etapa}": ${p.objetivo ?? ""}${
+          p.perguntas_chave.length > 0 ? ` (perguntas-chave: ${p.perguntas_chave.join(" / ")})` : ""
+        }`,
+    )
+    .join("\n");
+
   return [
     "Você é o copiloto de atendimento comercial da Faculdade Infnet, ajudando um atendente humano a responder um lead pelo WhatsApp.",
-    "Você vê a conversa recente; a última mensagem é do lead e ainda não foi respondida.",
+    "Você vê a conversa recente. Uma ou mais mensagens do FINAL da conversa são do lead e ainda não foram respondidas — tente cobrir TODAS elas na mesma sugestão, quando fizer sentido, não só a última.",
     "Sugira até 3 respostas curtas e diretas que o atendente poderia mandar — cada uma fundamentada SOMENTE nos trechos numerados do contexto.",
-    "Nunca invente preço, data, duração ou qualquer dado. Se a base não tiver informação suficiente para responder com segurança a algum ponto da mensagem do lead, NÃO crie uma sugestão para esse ponto — em vez disso, descreva a dúvida em 'lacunas'.",
+    "Nunca invente preço, data, duração ou qualquer dado. Se a base não tiver informação suficiente para responder com segurança a algum ponto, NÃO crie uma sugestão para esse ponto — em vez disso, descreva a dúvida em 'lacunas'.",
     'No campo "fontes" de cada sugestão, cite o(s) valor(es) exato(s) de chunk_id (o número depois de "chunk_id=" antes do trecho) — nunca invente ou adivinhe um chunk_id.',
-    "Em 'perguntas_para_lead', sugira até 2 perguntas de esclarecimento que ajudem a entender melhor a necessidade do lead — essas não precisam de fonte, são só perguntas.",
-    "Se a última mensagem do lead não pedir nenhuma informação (ex.: só um agradecimento), devolva 'sugestoes' vazio.",
+    "\n\nRoteiro comercial da Infnet, em 6 etapas (não necessariamente nessa ordem, mas todo atendimento deve tentar passar por elas):\n" +
+      roteiro,
+    "\nEm 'etapa_atual', identifique qual dessas etapas melhor descreve o momento AGORA da conversa (use exatamente uma das chaves entre aspas acima, ex.: \"descoberta\").",
+    "Se alguma informação de uma etapa anterior ainda não foi coletada (ex.: nome da empresa, nível de convênio) e isso ajudaria a responder melhor, inclua a pergunta correspondente em 'perguntas_para_lead' — mas só se ainda não tiver sido perguntada ou respondida na conversa.",
+    "Se a conversa já trouxe dados como empresa, convênio ou interesse específico (inclusive de mensagens automáticas/chatbot), USE esses dados para enriquecer a sugestão (ex.: já calcular o desconto do convênio certo) em vez de perguntar de novo.",
+    "Se nenhuma mensagem do lead pedir informação (ex.: só um agradecimento), devolva 'sugestoes' vazio.",
     "Seja direto e objetivo, em português do Brasil, como uma mensagem de WhatsApp de atendimento comercial.",
   ].join(" ");
 }
@@ -90,7 +120,7 @@ function buildUserPrompt(mensagens: MensagemEntrada[], chunks: ChunkResultado[])
     .map((c) => `--- chunk_id=${c.chunk_id} ---\n${c.conteudo}`)
     .join("\n\n");
   return (
-    `Conversa recente (a última mensagem é do lead, ainda sem resposta):\n${conversa}\n\n` +
+    `Conversa completa (as últimas mensagens do lead, se houver mais de uma seguida, ainda não têm resposta):\n${conversa}\n\n` +
     `Contexto recuperado da base de conhecimento (cite pelo chunk_id exato indicado antes de cada trecho):\n\n${contexto}`
   );
 }
@@ -115,44 +145,40 @@ Deno.serve(async (req: Request) => {
   // RF04: mascara PII em toda a conversa antes de qualquer processamento.
   const mensagens = body.mensagens.map((m) => ({ ...m, texto: maskPII(m.texto) }));
 
-  const ultimaDoLead = [...mensagens].reverse().find((m) => m.autor === "lead");
-  if (!ultimaDoLead) {
+  // RF: "sempre que o app consiga ver tudo que não foi respondido" — pega
+  // TODAS as mensagens do lead no final da conversa, não só a última. Numa
+  // sequência tipo Lead/Lead/Lead sem resposta do atendente entre elas,
+  // todas contam como pendentes.
+  const mensagensNaoRespondidas: MensagemEntrada[] = [];
+  for (let i = mensagens.length - 1; i >= 0; i--) {
+    if (mensagens[i].autor !== "lead") break;
+    mensagensNaoRespondidas.unshift(mensagens[i]);
+  }
+  if (mensagensNaoRespondidas.length === 0) {
     return jsonComCors(
-      { error: "nenhuma mensagem do lead encontrada na conversa — nada para sugerir" },
+      { error: "nenhuma mensagem do lead sem resposta encontrada — nada para sugerir" },
       { status: 400 },
     );
   }
+  const textoNaoRespondido = mensagensNaoRespondidas.map((m) => m.texto).join(" \n ");
 
   const db = createServiceClient();
 
   try {
-    const [limiarRelevancia, limiarDedup, modelos] = await Promise.all([
+    const [limiarRelevancia, limiarDedup, modelos, playbookResult] = await Promise.all([
       getConfig(db, "limiar_relevancia") as Promise<number>,
       getConfig(db, "limiar_dedup") as Promise<number>,
       getConfig(db, "modelos") as Promise<{ chat: string }>,
+      db
+        .from("playbook")
+        .select("etapa, ordem, objetivo, script, perguntas_chave")
+        .eq("ativo", true) as unknown as Promise<{ data: PlaybookRow[] | null; error: { message: string } | null }>,
     ]);
+    if (playbookResult.error) throw new Error(`playbook.select falhou: ${playbookResult.error.message}`);
+    const playbook = playbookResult.data ?? [];
+    if (playbook.length === 0) throw new Error("tabela playbook está vazia — cadastre as etapas primeiro");
+    const etapasValidas = playbook.map((p) => p.etapa);
 
-    // Busca em duas versões, sempre as duas, e depois JUNTA os resultados
-    // (não escolhe uma) — três achados reais, cada um invalidando a
-    // correção anterior:
-    // 1) só a última mensagem falha quando o assunto (ex.: nome do curso)
-    //    foi mencionado numa mensagem anterior ("quando começa a turma?"
-    //    sozinho não recupera nada com similaridade boa) → precisa do
-    //    contexto mais amplo.
-    // 2) incluir mensagens anteriores por padrão falha quando elas são
-    //    sobre OUTRO assunto — uma pergunta autossuficiente sobre desconto
-    //    de convênio não foi encontrada porque a janela de contexto vinha
-    //    carregada com uma troca anterior sobre data de turma de um curso
-    //    diferente, que diluiu o embedding → precisa da busca estreita.
-    // 3) "tenta as duas, fica com a que tiver maior similaridade no topo"
-    //    (a correção anterior) ainda falhava: a busca ampla, diluída,
-    //    pontuou 0.63 num chunk ERRADO (curso de Java), enquanto a busca
-    //    estreita tinha o chunk CERTO (convênio da Theós) mas só a 0.48 —
-    //    escolher "a lista toda com maior nota no topo" descartava o chunk
-    //    certo mesmo ele estando disponível. A correção real é não
-    //    escolher uma lista inteira: junta as duas (união, maior
-    //    similaridade por chunk_id) e deixa o LLM (com RF06 validando
-    //    depois) decidir o que usar dentre os candidatos das duas buscas.
     let tokensEmbeddingPergunta = 0;
 
     async function buscar(consultaTexto: string) {
@@ -168,6 +194,21 @@ Deno.serve(async (req: Request) => {
       return (data ?? []) as ChunkResultado[];
     }
 
+    // Busca em duas versões, sempre as duas, e depois JUNTA os resultados
+    // (não escolhe uma) — três achados reais, cada um invalidando a
+    // correção anterior:
+    // 1) só a(s) mensagem(ns) sem resposta falha quando o assunto (ex.:
+    //    nome do curso) foi mencionado numa mensagem anterior já respondida
+    //    → precisa do contexto mais amplo.
+    // 2) incluir mensagens anteriores por padrão falha quando elas são
+    //    sobre OUTRO assunto — dilui o embedding → precisa da busca
+    //    estreita (só o que está pendente).
+    // 3) "tenta as duas, fica com a que tiver maior similaridade no topo"
+    //    também falhava: a busca ampla, diluída, pode pontuar mais alto num
+    //    chunk ERRADO do que a busca estreita pontua no chunk CERTO.
+    // Correção: pega o topo de CADA busca separadamente (metade do
+    // match_count de cada) e junta os candidatos (dedup por chunk_id,
+    // maior similaridade), deixando o LLM e a validação RF06 decidirem.
     const JANELA_CONTEXTO = 6;
     const contextoRecente = mensagens
       .slice(-JANELA_CONTEXTO)
@@ -175,17 +216,10 @@ Deno.serve(async (req: Request) => {
       .join(" \n ");
 
     const [chunksEstreita, chunksAmpla] =
-      contextoRecente === ultimaDoLead.texto
-        ? [await buscar(ultimaDoLead.texto), []]
-        : await Promise.all([buscar(ultimaDoLead.texto), buscar(contextoRecente)]);
+      contextoRecente === textoNaoRespondido
+        ? [await buscar(textoNaoRespondido), []]
+        : await Promise.all([buscar(textoNaoRespondido), buscar(contextoRecente)]);
 
-    // Pega o topo de CADA busca antes de juntar — não junta tudo e trunca
-    // pela nota geral. Achado real: a busca ampla pontua mais alto em geral
-    // (frase mais longa tende a ter cosseno maior contra qualquer chunk
-    // razoavelmente parecido), então um corte único pelas 8 melhores da
-    // união inteira deixava as 8 vagas todas para a busca ampla — e o chunk
-    // certo, que só a busca estreita achou (nota mais baixa, mas era o
-    // certo), ficava de fora.
     const METADE = Math.ceil((body.match_count ?? 8) / 2);
     const melhorPorChunk = new Map<number, ChunkResultado>();
     for (const c of [...chunksEstreita.slice(0, METADE), ...chunksAmpla.slice(0, METADE)]) {
@@ -204,20 +238,23 @@ Deno.serve(async (req: Request) => {
 
     if (chunks.length === 0 || melhorSimilaridade < limiarRelevancia) {
       // Sem trechos minimamente relevantes: nem vale chamar o modelo de
-      // chat — não tem como fundamentar nada (constitution §1).
+      // chat — não tem como fundamentar nada (constitution §1). Mesmo
+      // assim precisamos de uma etapa_atual válida; "descoberta" (ordem 1)
+      // é o fallback mais seguro quando não dá pra inferir nada da base.
       resultado = {
+        etapa_atual: playbook.sort((a, b) => a.ordem - b.ordem)[0].etapa,
         sugestoes: [],
         perguntas_para_lead: [],
-        lacunas: [ultimaDoLead.texto],
+        lacunas: [textoNaoRespondido],
         confianca: "baixa",
       };
     } else {
       const chat = await chatJSON<SuggestLLMOutput>({
         model: modelos.chat,
-        system: buildSystemPrompt(),
+        system: buildSystemPrompt(playbook),
         user: buildUserPrompt(mensagens, chunks),
         schemaName: "suggest_response",
-        schema: SUGGEST_JSON_SCHEMA,
+        schema: buildSchema(etapasValidas),
       });
       resultado = chat.content;
       tokensPromptChat = chat.promptTokens;
@@ -271,12 +308,14 @@ Deno.serve(async (req: Request) => {
       }),
     }));
 
+    // O script devolvido é sempre o texto real da tabela `playbook` — o
+    // LLM só escolhe QUAL etapa (restrito por enum), nunca escreve o
+    // conteúdo do script.
+    const etapaEscolhida = playbook.find((p) => p.etapa === resultado.etapa_atual);
+
     return jsonComCors({
-      // Fixo até existir um playbook estruturado por etapa (ver comentário
-      // no topo do arquivo) — não é uma classificação real, só um placeholder
-      // consistente com contracts/suggestion.schema.json.
-      etapa: "nao_classificado",
-      script_etapa: "",
+      etapa: resultado.etapa_atual,
+      script_etapa: etapaEscolhida?.script ?? "",
       sugestoes: sugestoesDetalhadas,
       perguntas_para_lead: resultado.perguntas_para_lead,
       alertas: [],
