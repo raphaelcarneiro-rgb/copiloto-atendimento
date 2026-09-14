@@ -104,6 +104,20 @@ async function renderAuthArea() {
     const email = document.createElement("span");
     email.className = "auth-email";
     email.textContent = sessao.usuario.email;
+
+    // admin/curadoria.html e admin/relatorios.html rodam como arquivo local,
+    // sem OAuth próprio — colar esse token ali é o jeito de elas mandarem um
+    // usuário real (curador/admin) em vez da anon key pública.
+    const btnToken = document.createElement("button");
+    btnToken.type = "button";
+    btnToken.textContent = "Copiar token";
+    btnToken.title = "Cole em admin/curadoria.html ou admin/relatorios.html pra acessar como você mesmo.";
+    btnToken.onclick = async () => {
+      await navigator.clipboard.writeText(sessao.access_token);
+      btnToken.textContent = "Copiado ✓";
+      setTimeout(() => (btnToken.textContent = "Copiar token"), 2000);
+    };
+
     const btnSair = document.createElement("button");
     btnSair.type = "button";
     btnSair.textContent = "Sair";
@@ -111,7 +125,7 @@ async function renderAuthArea() {
       await logout();
       renderAuthArea();
     };
-    authAreaEl.append(email, btnSair);
+    authAreaEl.append(email, btnToken, btnSair);
   } else {
     const btnEntrar = document.createElement("button");
     btnEntrar.type = "button";

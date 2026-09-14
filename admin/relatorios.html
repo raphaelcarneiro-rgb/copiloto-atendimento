@@ -8,7 +8,10 @@
       body { font-family: -apple-system, "Segoe UI", sans-serif; background: #f5f8fa; color: #33475b; margin: 0; padding: 24px; }
       h1 { font-size: 20px; margin: 0 0 4px; }
       h2 { font-size: 15px; margin: 24px 0 8px; }
-      .aviso { background: #fef3c7; color: #92400e; padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 20px; }
+      .aviso { background: #fef3c7; color: #92400e; padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; }
+      .token-box { display: flex; gap: 8px; margin-bottom: 20px; align-items: center; }
+      .token-box input { font-family: inherit; font-size: 12px; padding: 6px 8px; border: 1px solid #cbd6e2; border-radius: 6px; flex: 1; }
+      .token-status { font-size: 12px; }
       .cartoes { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
       .cartao { background: #fff; border: 1px solid #dfe3eb; border-radius: 10px; padding: 14px 18px; min-width: 160px; }
       .cartao .valor { font-size: 22px; font-weight: 700; }
@@ -25,22 +28,38 @@
   <body>
     <h1>Relatórios — Copiloto Infnet</h1>
     <div class="aviso">
-      ⚠️ Página sem login real ainda (RF09 pendente). Protegida só por não ser divulgada — não compartilhe o link/arquivo.
+      🔒 Exige login admin: abra o side panel da extensão, clique em "Copiar token" e cole abaixo. Checado de verdade
+      no backend agora, não é mais só a anon key pública.
     </div>
-    <div id="conteudo">Carregando…</div>
+    <div class="token-box">
+      <input id="token-input" type="password" placeholder="Cole aqui o token copiado do side panel" />
+      <button id="token-salvar">Usar este token</button>
+      <span id="token-status" class="token-status"></span>
+    </div>
+    <div id="conteudo">Cole seu token de acesso acima pra carregar os relatórios.</div>
 
     <script>
       const SUPABASE_URL = "https://trtmyuqatmhvikfbqmkv.supabase.co";
       const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRydG15dXFhdG1odmlrZmJxbWt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzMzA0NTUsImV4cCI6MjEwNDkwNjQ1NX0.A1Wj9uzSgYxngeFBXAa-mtP9Xx4QMwl1r2a0F8VjiLU";
+      const TOKEN_KEY = "copiloto_relatorios_token";
+
+      const tokenInput = document.getElementById("token-input");
+      tokenInput.value = localStorage.getItem(TOKEN_KEY) || "";
+      document.getElementById("token-salvar").onclick = () => {
+        localStorage.setItem(TOKEN_KEY, tokenInput.value.trim());
+        carregar();
+      };
 
       function fmtBRL(v) { return "R$ " + Number(v ?? 0).toFixed(2).replace(".", ","); }
       function el(tag, props, ...filhos) { const e = document.createElement(tag); Object.assign(e, props || {}); for (const f of filhos) e.append(f); return e; }
 
       async function carregar() {
         const conteudo = document.getElementById("conteudo");
+        const userToken = localStorage.getItem(TOKEN_KEY) || "";
+        conteudo.textContent = "Carregando…";
         try {
           const res = await fetch(`${SUPABASE_URL}/functions/v1/relatorios`, {
-            headers: { apikey: ANON_KEY, Authorization: `Bearer ${ANON_KEY}` },
+            headers: { apikey: ANON_KEY, Authorization: `Bearer ${userToken || ANON_KEY}` },
           });
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || `erro ${res.status}`);
@@ -132,7 +151,7 @@
         return t;
       }
 
-      carregar();
+      if (localStorage.getItem(TOKEN_KEY)) carregar();
     </script>
   </body>
 </html>

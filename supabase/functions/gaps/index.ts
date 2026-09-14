@@ -8,19 +8,21 @@
 // `ask`/`suggest` — mantém consistência e evita depender de path routing do
 // gateway. GET lista a fila.
 //
-// IMPORTANTE (limitação conhecida, sem solução ainda): não existe login real
-// wired na extensão (RF09 pendente — ver plan.md). Por isso:
-//   - não há como saber QUAL atendente está chamando, então `curador_id` fica
-//     null nas aprovações e a notificação individual do RF20 ("sua dúvida
-//     agora tem resposta") não está implementada — precisa do login antes.
-//   - o endpoint não tem controle de acesso próprio (mesmo padrão de
-//     `suggest`/`ask`: protegido só pela obscuridade da anon key, que já é o
-//     modelo atual do projeto todo). Não é apropriado para múltiplos
-//     curadores sem login real.
+// RF09 (login real, ligado em 2026-09-14): GET/classificar/aprovar agora
+// exigem um usuário autenticado com papel curador ou admin — verificado de
+// verdade via `resolverChamador` (JWT + `profiles.papel`), não só a RLS do
+// Postgres (que não se aplica aqui porque esta função usa a service role).
+// `proposta` (RF17) aceita qualquer membro autenticado (atendente incluso).
+//
+// Pendência remanescente do RF20: mesmo com login, `curador_id` ainda fica
+// null nas aprovações (não usado pra nada ainda) e a notificação individual
+// "sua dúvida agora tem resposta" não está implementada — falta decidir
+// como e onde mostrar isso no side panel.
 
 import { createServiceClient, getConfig } from "../_shared/db.ts";
 import { embedTexts } from "../_shared/openai.ts";
 import { jsonComCors, respondCorsPreflight } from "../_shared/cors.ts";
+import { resolverChamador } from "../_shared/auth_context.ts";
 
 type Db = ReturnType<typeof createServiceClient>;
 
@@ -226,8 +228,14 @@ Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return respondCorsPreflight();
 
   const db = createServiceClient();
+  const chamador = await resolverChamador(db, req);
 
-  if (req.method === "GET") return listarFila(db);
+  if (req.method === "GET") {
+    if (!chamador || (chamador.papel !== "curador" && chamador.papel !== "admin")) {
+      return jsonComCors({ error: "acesso restrito a curador/admin — faça login (RF09)" }, { status: 403 });
+    }
+    return listarFila(db);
+  }
 
   if (req.method !== "POST") {
     return jsonComCors({ error: "use GET ou POST" }, { status: 405 });
@@ -240,14 +248,17 @@ Deno.serve(async (req: Request) => {
     return jsonComCors({ error: "corpo JSON inválido" }, { status: 400 });
   }
 
-  switch (body.acao) {
-    case "proposta":
-      return registrarProposta(db, body);
-    case "classificar":
-      return classificar(db, body);
-    case "aprovar":
-      return aprovarComoFaq(db, body);
-    default:
-      return jsonComCors({ error: "'acao' deve ser 'proposta', 'classificar' ou 'aprovar'" }, { status: 400 });
+  if (body.acao === "proposta") {
+    if (!chamador) return jsonComCors({ error: "é preciso estar logado pra propor uma resposta (RF09)" }, { status: 401 });
+    return registrarProposta(db, body);
   }
+
+  if (body.acao === "classificar" || body.acao === "aprovar") {
+    if (!chamador || (chamador.papel !== "curador" && chamador.papel !== "admin")) {
+      return jsonComCors({ error: "ação restrita a curador/admin — faça login (RF09)" }, { status: 403 });
+    }
+    return body.acao === "classificar" ? classificar(db, body) : aprovarComoFaq(db, body);
+  }
+
+  return jsonComCors({ error: "'acao' deve ser 'proposta', 'classificar' ou 'aprovar'" }, { status: 400 });
 });

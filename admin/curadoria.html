@@ -7,7 +7,12 @@
       * { box-sizing: border-box; }
       body { font-family: -apple-system, "Segoe UI", sans-serif; background: #f5f8fa; color: #33475b; margin: 0; padding: 24px; }
       h1 { font-size: 20px; margin: 0 0 4px; }
-      .aviso { background: #fef3c7; color: #92400e; padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 20px; }
+      .aviso { background: #fef3c7; color: #92400e; padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; }
+      .token-box { display: flex; gap: 8px; margin-bottom: 20px; align-items: center; }
+      .token-box input { margin-bottom: 0; }
+      .token-status { font-size: 12px; }
+      .token-ok { color: #14532d; }
+      .token-erro { color: #9b2c2c; }
       .card { background: #fff; border: 1px solid #dfe3eb; border-radius: 10px; padding: 16px; margin-bottom: 14px; }
       .card.destaque { border-color: #e5484d; box-shadow: 0 0 0 1px #e5484d33; }
       .pergunta { font-size: 14px; font-weight: 600; margin: 0 0 6px; }
@@ -27,22 +32,43 @@
   <body>
     <h1>Curadoria de lacunas — Copiloto Infnet</h1>
     <div class="aviso">
-      ⚠️ Página sem login real ainda (RF09 pendente). Protegida só por não ser divulgada — não compartilhe o link/arquivo.
-      Use apenas você, Raphael, até o login estar pronto.
+      🔒 Exige login: abra o side panel da extensão, clique em "Copiar token" e cole abaixo. O acesso agora é checado
+      de verdade no backend (papel curador/admin) — não é mais só a anon key pública.
     </div>
-    <div id="lista">Carregando…</div>
+    <div class="token-box">
+      <input id="token-input" type="password" placeholder="Cole aqui o token copiado do side panel" />
+      <button id="token-salvar">Usar este token</button>
+      <span id="token-status" class="token-status"></span>
+    </div>
+    <div id="lista">Cole seu token de acesso acima pra carregar a fila.</div>
 
     <script>
       const SUPABASE_URL = "https://trtmyuqatmhvikfbqmkv.supabase.co";
       const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRydG15dXFhdG1odmlrZmJxbWt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzMzA0NTUsImV4cCI6MjEwNDkwNjQ1NX0.A1Wj9uzSgYxngeFBXAa-mtP9Xx4QMwl1r2a0F8VjiLU";
+      const TOKEN_KEY = "copiloto_curadoria_token";
+
+      const tokenInput = document.getElementById("token-input");
+      const tokenStatus = document.getElementById("token-status");
+      tokenInput.value = localStorage.getItem(TOKEN_KEY) || "";
+
+      document.getElementById("token-salvar").onclick = () => {
+        localStorage.setItem(TOKEN_KEY, tokenInput.value.trim());
+        tokenStatus.textContent = "";
+        carregar();
+      };
+
+      function tokenAtual() {
+        return localStorage.getItem(TOKEN_KEY) || "";
+      }
 
       async function chamarGaps(init) {
+        const userToken = tokenAtual();
         const res = await fetch(`${SUPABASE_URL}/functions/v1/gaps`, {
           ...init,
           headers: {
             "Content-Type": "application/json",
             apikey: ANON_KEY,
-            Authorization: `Bearer ${ANON_KEY}`,
+            Authorization: `Bearer ${userToken || ANON_KEY}`,
             ...(init && init.headers),
           },
         });
@@ -145,7 +171,7 @@
         }
       }
 
-      carregar();
+      if (tokenAtual()) carregar();
     </script>
   </body>
 </html>

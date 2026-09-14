@@ -3,16 +3,22 @@
 // `security_invoker = true` (RLS: só admin lê) — a chamada direta via anon
 // key é bloqueada de propósito (testado: "permission denied for view
 // vw_custo_mensal"). Esta função usa a service role pra ler as views e
-// devolver o pacote pro painel de relatórios, mesmo padrão de acesso do
-// `gaps` (sem login real ainda — RF09 pendente, ver aviso em gaps/index.ts).
+// devolver o pacote pro painel de relatórios — mas exige um usuário
+// autenticado com papel admin de verdade (RF09, ligado em 2026-09-14),
+// verificado via `resolverChamador`, já que a service role bypassa a RLS.
 import { createServiceClient } from "../_shared/db.ts";
 import { jsonComCors, respondCorsPreflight } from "../_shared/cors.ts";
+import { resolverChamador } from "../_shared/auth_context.ts";
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return respondCorsPreflight();
   if (req.method !== "GET") return jsonComCors({ error: "use GET" }, { status: 405 });
 
   const db = createServiceClient();
+  const chamador = await resolverChamador(db, req);
+  if (!chamador || chamador.papel !== "admin") {
+    return jsonComCors({ error: "acesso restrito a admin — faça login (RF09)" }, { status: 403 });
+  }
 
   const [mensal, diario, porAtendente, lacunas] = await Promise.all([
     db.from("vw_custo_mensal").select("*").order("mes", { ascending: false }).limit(6),
