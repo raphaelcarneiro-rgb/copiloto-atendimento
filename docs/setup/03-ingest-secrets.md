@@ -54,6 +54,26 @@ select tipo_chamada, modelo, tokens_entrada, custo_usd, custo_brl from public.us
 - **"Falha ao obter token Google (403)"**: a delegação em todo o domínio (Setup 01) não está configurada, ou o escopo cadastrado no Admin Console não bate exatamente com `https://www.googleapis.com/auth/spreadsheets.readonly` ou `.../drive.readonly`. Duas delegações são necessárias: uma para cada escopo, ou uma única entrada com os dois escopos separados por vírgula.
 - **"planilha sem abas" / "nenhum curso encontrado"**: a estrutura da planilha mudou. O parser está em `supabase/functions/ingest/parsers.ts`.
 
-## Próximo passo (ainda não feito)
+## Agendamento automático (já em produção)
 
-Automatizar a chamada via `pg_cron` a cada 15 minutos (RF08), usando a `service_role key` guardada como segredo do Postgres (`vault` do Supabase), não em texto puro na definição do cron job.
+A função roda sozinha a cada 15 minutos via `pg_cron` (job `ingest-fontes-15min`). Para conferir:
+```sql
+select jobid, jobname, schedule, active from cron.job;
+select * from net._http_response order by created desc limit 5; -- últimas chamadas HTTP do pg_net
+```
+Não é preciso mais chamar manualmente — só use o `curl` acima para depurar um erro específico.
+
+## Fontes suportadas hoje
+
+| Tipo | `ref` | Uso |
+|---|---|---|
+| `sheet` | ID da planilha | categoria `calendario_cursos`, `convenios` ou `feriados` |
+| `pdf` | `gdoc:<id do Google Doc>` | exporta o Doc como texto via Drive API |
+| `pdf` | `storage:<bucket>/<caminho>` | baixa do bucket privado `fontes-pdf` no Storage e extrai texto (biblioteca `unpdf`) — **implementado, ainda sem teste com arquivo real** |
+| `url` | a URL | busca a página e limpa o HTML |
+
+Para adicionar um PDF de verdade: subir o arquivo no bucket `fontes-pdf` (Storage → New bucket já existe → Upload) e cadastrar a fonte:
+```sql
+insert into public.sources (tipo, ref, nome, categoria) values
+  ('pdf', 'storage:fontes-pdf/nome-do-arquivo.pdf', 'Nome legível', 'categoria-livre');
+```

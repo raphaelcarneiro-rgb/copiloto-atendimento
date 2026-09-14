@@ -1,8 +1,9 @@
 // Edge Function `ingest` (Etapa 2 — spec RF08, plan.md "Backend Supabase —
 // Edge Functions"). Sincroniza as fontes ativas em `public.sources`:
 //   - tipo='sheet'      → lê via Google Sheets API (domain-wide delegation)
-//   - tipo='pdf' com
-//     ref="gdoc:<id>"   → exporta um Google Doc como texto (Drive API)
+//   - tipo='pdf' com ref="gdoc:<id>"     → exporta um Google Doc (Drive API)
+//   - tipo='pdf' com ref="storage:<bkt>/<path>" → baixa do Supabase Storage
+//   - tipo='url'        → busca a página e limpa o HTML
 // Cada fonte tem um único `documents`; ao mudar o hash, os `chunks` são
 // substituídos por completo (RF08: reprocessa só quando o hash muda).
 //
@@ -20,7 +21,15 @@ import { exportGoogleDocAsText } from "../_shared/google_drive.ts";
 import { sha256Hex } from "../_shared/hash.ts";
 import { chunkText } from "../_shared/chunking.ts";
 import { EMBEDDING_MODEL, embedTexts } from "../_shared/openai.ts";
-import { convenioParaTexto, parseCalendarioCursos, parseConvenios } from "./parsers.ts";
+import { extractPdfText } from "../_shared/pdf.ts";
+import { fetchUrlAsText } from "../_shared/html.ts";
+import {
+  convenioParaTexto,
+  feriadosParaTexto,
+  parseCalendarioCursos,
+  parseConvenios,
+  parseFeriados,
+} from "./parsers.ts";
 
 type Db = ReturnType<typeof createServiceClient>;
 
@@ -197,8 +206,50 @@ async function ingestConvenios(db: Db, source: SourceRow): Promise<SyncResult> {
   return { source: source.nome, status: "ok", chunks: synced.chunks };
 }
 
-async function ingestGoogleDoc(db: Db, source: SourceRow): Promise<SyncResult> {
-  const fileId = source.ref.replace(/^gdoc:/, "");
+/** Substitui TODOS os feriados pelos da planilha (fonte única de verdade). */
+async function replaceAllFeriados(
+  db: Db,
+  sourceId: string,
+  feriados: { data: string; nome: string; tipo: string; contaComoFolga: boolean; observacao: string }[],
+) {
+  const { error: deleteErr } = await db.from("feriados").delete().neq("id", -1);
+  if (deleteErr) throw new Error(`feriados.delete falhou: ${deleteErr.message}`);
+  if (feriados.length === 0) return;
+  const { error: insertErr } = await db.from("feriados").insert(
+    feriados.map((f) => ({
+      data: f.data,
+      nome: f.nome,
+      tipo: f.tipo,
+      conta_como_folga: f.contaComoFolga,
+      observacao: f.observacao || null,
+      source_id: sourceId,
+    })),
+  );
+  if (insertErr) throw new Error(`feriados.insert falhou: ${insertErr.message}`);
+}
+
+async function ingestFeriados(db: Db, source: SourceRow): Promise<SyncResult> {
+  const token = await getGoogleAccessToken([SCOPE_SHEETS_READONLY]);
+  const tabs = await listSheetTabs(token, source.ref);
+  if (tabs.length === 0) throw new Error("planilha sem abas");
+
+  const rows = await getSheetValues(token, source.ref, tabs[0].title);
+  const feriados = parseFeriados(rows);
+  if (feriados.length === 0) throw new Error("nenhum feriado encontrado — verifique o layout da aba");
+
+  const chunkInputs: ChunkInput[] = [{ conteudo: feriadosParaTexto(feriados), metadados: { tipo: "feriados" } }];
+  const rawHashInput = JSON.stringify(feriados);
+  const synced = await syncDocumentChunks(db, source, rawHashInput, chunkInputs);
+
+  // Sempre reflete a planilha por completo (dataset pequeno; garante que
+  // remoções na planilha também removam o feriado do banco).
+  await replaceAllFeriados(db, source.id, feriados);
+
+  if (!synced) return { source: source.nome, status: "sem_alteracao" };
+  return { source: source.nome, status: "ok", chunks: synced.chunks, facts: feriados.length };
+}
+
+async function ingestGoogleDoc(db: Db, source: SourceRow, fileId: string): Promise<SyncResult> {
   const token = await getGoogleAccessToken([SCOPE_DRIVE_READONLY]);
   const text = await exportGoogleDocAsText(token, fileId);
   if (!text.trim()) throw new Error("documento vazio");
@@ -214,17 +265,74 @@ async function ingestGoogleDoc(db: Db, source: SourceRow): Promise<SyncResult> {
   return { source: source.nome, status: "ok", chunks: synced.chunks };
 }
 
+/** `ref` no formato "storage:<bucket>/<caminho/arquivo.pdf>". */
+async function ingestPdfStorage(db: Db, source: SourceRow, storageRef: string): Promise<SyncResult> {
+  const [bucket, ...pathParts] = storageRef.split("/");
+  const path = pathParts.join("/");
+  if (!bucket || !path) throw new Error(`ref inválida para PDF do Storage: "${source.ref}"`);
+
+  const { data: file, error: downloadErr } = await db.storage.from(bucket).download(path);
+  if (downloadErr) throw new Error(`Storage download falhou: ${downloadErr.message}`);
+
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const text = await extractPdfText(bytes);
+  if (!text.trim()) throw new Error("PDF sem texto extraível (pode ser digitalizado sem OCR)");
+
+  const chunks = chunkText(text);
+  const chunkInputs: ChunkInput[] = chunks.map((c) => ({
+    conteudo: c,
+    metadados: { tipo: source.categoria ?? "pdf" },
+  }));
+
+  const synced = await syncDocumentChunks(db, source, text, chunkInputs);
+  if (!synced) return { source: source.nome, status: "sem_alteracao" };
+  return { source: source.nome, status: "ok", chunks: synced.chunks };
+}
+
+async function ingestUrlSource(db: Db, source: SourceRow): Promise<SyncResult> {
+  const text = await fetchUrlAsText(source.ref);
+  if (!text.trim()) throw new Error("página sem texto extraível");
+
+  const chunks = chunkText(text);
+  const chunkInputs: ChunkInput[] = chunks.map((c) => ({
+    conteudo: c,
+    metadados: { tipo: source.categoria ?? "url", url: source.ref },
+  }));
+
+  const synced = await syncDocumentChunks(db, source, text, chunkInputs);
+  if (!synced) return { source: source.nome, status: "sem_alteracao" };
+  return { source: source.nome, status: "ok", chunks: synced.chunks };
+}
+
 async function ingestSource(db: Db, source: SourceRow): Promise<SyncResult> {
-  switch (source.categoria) {
-    case "calendario_cursos":
-      return ingestCalendarioCursos(db, source);
-    case "convenios":
-      return ingestConvenios(db, source);
-    case "playbook":
-      return ingestGoogleDoc(db, source);
-    default:
-      throw new Error(`categoria de fonte não suportada: ${source.categoria ?? "(vazia)"}`);
+  if (source.tipo === "sheet") {
+    switch (source.categoria) {
+      case "calendario_cursos":
+        return ingestCalendarioCursos(db, source);
+      case "convenios":
+        return ingestConvenios(db, source);
+      case "feriados":
+        return ingestFeriados(db, source);
+      default:
+        throw new Error(`categoria de planilha não suportada: ${source.categoria ?? "(vazia)"}`);
+    }
   }
+
+  if (source.tipo === "pdf") {
+    if (source.ref.startsWith("gdoc:")) {
+      return ingestGoogleDoc(db, source, source.ref.replace(/^gdoc:/, ""));
+    }
+    if (source.ref.startsWith("storage:")) {
+      return ingestPdfStorage(db, source, source.ref.replace(/^storage:/, ""));
+    }
+    throw new Error(`ref de PDF deve começar com "gdoc:" ou "storage:": "${source.ref}"`);
+  }
+
+  if (source.tipo === "url") {
+    return ingestUrlSource(db, source);
+  }
+
+  throw new Error(`tipo de fonte não suportado: ${source.tipo}`);
 }
 
 Deno.serve(async (req: Request) => {

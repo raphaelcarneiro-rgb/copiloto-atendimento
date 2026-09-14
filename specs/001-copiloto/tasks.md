@@ -26,19 +26,24 @@ Requisitos: RF09, RF21 (estrutura), RF22 (config), constitution §4, §9.
 - Login com conta de outro domínio é recusado e não cria usuário.
 - Security Advisor do Supabase sem alertas críticos.
 
-## Etapa 2 — Ingestão
-- [x] Acesso ao Sheets via domain-wide delegation configurado (Admin Console → Client ID `102223072074030067145`, escopo `spreadsheets.readonly`, impersonando raphael.carneiro@infnet.edu.br) — ver [docs/setup/02-planilhas-fonte.md](../../docs/setup/02-planilhas-fonte.md)
-- [x] Migration `documents_source_id_key` (um documento por fonte) e seed das 3 fontes iniciais (`calendario_cursos`, `convenios`, `playbook`)
-- [x] Edge Function `ingest` implantada (`supabase/functions/ingest`): JWT RS256 próprio (sem SDK) para o token do Google com `subject` impersonado; parsers dedicados para o Calendário (→ `facts` + chunks) e Empresas Conveniadas (→ chunks agrupados de 20 em 20); exportação do Manual (Google Doc) via Drive API → chunking por parágrafo (~800 tokens, 100 de sobreposição, contagem real via `gpt-tokenizer`/cl100k_base); embeddings em lote na OpenAI com registro em `usage_logs`
-- [x] Secrets configurados e primeira sincronização validada (2026-09-14): 3/3 fontes `ok`, 115 facts, 54 chunks, custo ~US$ 0,0004
-  - Correções feitas no caminho: import `npm:gpt-tokenizer` sem subcaminho `/cl100k_base` (não resolvia no runtime); `.trim()` no `GOOGLE_IMPERSONATED_USER` (valor colado com tab causava "Invalid impersonation sub field"); escopo `drive.readonly` somado ao `spreadsheets.readonly` na delegação (Google Doc do Manual precisa de Drive, não só Sheets); API do Google Drive ativada no Cloud Console (só a do Sheets estava ativa)
-- [ ] `pg_cron`/`pg_net` chamando `ingest` a cada 15 min (RF08) — depende do passo acima estar validado
-- [ ] PDF de verdade no Storage (`ref="storage:<path>"`) e fontes tipo `url` — ainda não implementados; hoje só `sheet` e `pdf` com `ref="gdoc:"`
-- [ ] Planilha própria de feriados (fonte estruturada) — feriados hoje só existem via seed manual (migration 0700)
-- [ ] PDF de verdade no Storage e URL → chunks (~800 tokens, sobreposição 100), contando tokens com `cl100k_base` — código de `chunkText` já pronto e reaproveitável
-- [ ] `pg_cron` + `pg_net`: Sheets a cada 15 min, PDF/URL diariamente
-- [ ] Registro de custo de embeddings em `usage_logs`
-- [ ] Planilha "Calendário Infnet" como fonte de `feriados`
+## Etapa 2 — Ingestão ✅ fechada em 2026-09-14
+- [x] Acesso ao Sheets/Drive via domain-wide delegation (Admin Console → Client ID `102223072074030067145`, escopos `spreadsheets.readonly` + `drive.readonly`, impersonando raphael.carneiro@infnet.edu.br) — ver [docs/setup/02-planilhas-fonte.md](../../docs/setup/02-planilhas-fonte.md)
+- [x] Migration `documents_source_id_key` (um documento por fonte)
+- [x] Edge Function `ingest` implantada (`supabase/functions/ingest`), com JWT RS256 próprio (sem SDK) para o Google e hash por fonte (RF08: só reprocessa quando muda). Parsers/handlers por tipo de fonte:
+  - `sheet` + categoria `calendario_cursos` → `facts` (data/frequência/horário) + 1 chunk por curso
+  - `sheet` + categoria `convenios` → chunks agrupados de 20 em 20 empresas
+  - `sheet` + categoria `feriados` → substitui `public.feriados` por completo a cada sync (fonte única de verdade) + 1 chunk resumo
+  - `pdf` com `ref="gdoc:<id>"` → exporta Google Doc via Drive API → chunking por parágrafo
+  - `pdf` com `ref="storage:<bucket>/<path>"` → baixa do Supabase Storage (bucket privado `fontes-pdf`) → extrai texto com `unpdf` → chunking
+  - `url` → busca a página, limpa o HTML, chunking
+  - Chunking: ~800 tokens com 100 de sobreposição, contagem real via `gpt-tokenizer` (cl100k_base); embeddings em lote na OpenAI com custo registrado em `usage_logs`
+- [x] Planilha "Calendário Infnet — Feriados" criada no Drive do Raphael (`1bu0o0d8fZKLhJuIc73CvTeDwrSO-5Tp6POX8CZyH0Hw`) com os 23 feriados existentes; virou a fonte oficial (RF14) — o seed manual da migration 0700 foi substituído
+- [x] `pg_cron` + `pg_net` habilitadas; job `ingest-fontes-15min` agendado (`*/15 * * * *`), chamando a função com a anon key pública (não é segredo) e timeout de 120s
+- [x] Bucket privado `fontes-pdf` no Storage, com RLS restrita a admin
+- [x] Validado de ponta a ponta em 2026-09-14: 5/5 fontes `ok` (calendário de cursos, convênios, manual, feriados, + teste de URL descartável) — 115 facts de cursos, 23 feriados, 55 chunks, custo total < US$ 0,001
+  - Correções encontradas no caminho: import `npm:gpt-tokenizer` sem subcaminho `/cl100k_base` (não resolvia no runtime); `.trim()` no `GOOGLE_IMPERSONATED_USER` (valor colado com tab quebrava a impersonação); escopo `drive.readonly` que faltava na delegação; API do Google Drive precisou ser ativada no Cloud Console
+- [~] PDF do Storage implementado mas **não testado com arquivo real** (nenhum PDF foi enviado ainda) — validar assim que houver um PDF de verdade para subir ao bucket `fontes-pdf`
+- [ ] Fonte `url` real (institucional) ainda não cadastrada em produção — só testada com uma URL descartável; cadastrar quando houver uma página específica da Infnet que valha a pena indexar
 
 ## Etapa 3 — Recuperação
 - [ ] Função SQL `match_chunks` (vetor + FTS + RRF, filtro por metadados)

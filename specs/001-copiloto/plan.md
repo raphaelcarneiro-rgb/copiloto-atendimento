@@ -61,12 +61,12 @@ Como a [spec](spec.md) será construída. Mudanças de arquitetura atualizam est
 - `ingest`: Sheets (service account), PDF (Storage), URL, FAQ → `facts`/`feriados`/`chunks`; só reprocessa quando o hash muda.
 - `cost-alert`: e-mail ao gestor em 80% e 100% do teto, uma vez por limiar/mês (`cost_alerts`).
 
-**pg_cron:**
-- Sheets e FAQ: a cada 15 min.
-- URLs e PDFs: diariamente.
-- FAQs vencidas: diariamente.
-- `cost-alert`: a cada hora.
-- Retenção de 18 meses: mensalmente.
+**pg_cron:** (`ingest-fontes-15min` já em produção; os demais entram nas etapas indicadas)
+- Sheets, feriados e FAQ: a cada 15 min — **em produção** desde 2026-09-14, chama `ingest` via `pg_net.http_post` com a anon key pública (não é segredo) e timeout de 120s.
+- URLs e PDFs: hoje sincronizados no mesmo job de 15 min (dataset pequeno); separar para diário se o volume crescer.
+- FAQs vencidas: diariamente (etapa 8).
+- `cost-alert`: a cada hora (etapa 9).
+- Retenção de 18 meses: mensalmente (etapa 9).
 
 ## Segurança e acesso
 - **Login:** Google OAuth via Supabase Auth, com três camadas:
@@ -112,6 +112,9 @@ Referência: guia "Vector embeddings" da OpenAI (cópia recebida em 2026-09-13).
 - **Parâmetro `dimensions`:** não reduzir por enquanto. Com ~6 KB por chunk, 10 mil chunks ocupam ~60 MB, dentro do plano Free (500 MB).
 - **Limite de conhecimento:** os modelos v3 não conhecem fatos posteriores a set/2021. Pouco impacto na busca, mas siglas ou nomes de cursos novos podem casar pior; a busca full-text (FTS) cobre esse caso na busca híbrida.
 - **Uso extra que avaliaremos:** classificar a etapa da conversa sem gastar chamada de chat, comparando o embedding das últimas mensagens com as descrições das etapas do playbook ("zero-shot"). Só adotar se os evals mostrarem acurácia equivalente à do `gpt-5.6-luna`.
+
+## Feriados
+A tabela `feriados` é sincronizada da planilha "Calendário Infnet — Feriados" (Google Sheet no Drive do Raphael, cadastrada como fonte tipo `sheet`/categoria `feriados`). A cada sync, o `ingest` **substitui a tabela inteira** (não é incremental) — é a fonte única de verdade; editar a planilha e aguardar até 15 min é o único jeito de atualizar feriados.
 
 ## Lembrete de 24h (regras de cálculo)
 - Expediente: dias 1–5, 09:00–19:00, sem pausa de almoço, excluindo `feriados.conta_como_folga`.

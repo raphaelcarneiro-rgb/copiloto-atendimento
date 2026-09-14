@@ -140,3 +140,76 @@ export function convenioParaTexto(c: ConvenioRow): string {
   if (c.status) partes.push(`Status: ${c.status}.`);
   return partes.join(" ");
 }
+
+// ---------------------------------------------------------------------------
+// Feriados (fonte "feriados")
+// Planilha "Calendário Infnet — Feriados", colunas:
+// data (YYYY-MM-DD), nome, tipo, conta_como_folga (sim/não), observação.
+// Usada pelo lembrete de 24h (RF10–RF14) e por chunks para perguntas gerais
+// sobre o calendário.
+// ---------------------------------------------------------------------------
+
+export interface FeriadoRow {
+  data: string;
+  nome: string;
+  tipo: string;
+  contaComoFolga: boolean;
+  observacao: string;
+}
+
+const TIPOS_FERIADO_VALIDOS = new Set([
+  "nacional",
+  "estadual",
+  "municipal",
+  "institucional",
+  "facultativo",
+]);
+
+function isFeriadoHeaderRow(row: string[]): boolean {
+  const normalized = row.map(normalize);
+  return ["data", "nome", "tipo"].every((k) => normalized.includes(k));
+}
+
+export function parseFeriados(rows: string[][]): FeriadoRow[] {
+  const result: FeriadoRow[] = [];
+  let colIndex: Record<string, number> | null = null;
+
+  for (const row of rows) {
+    const nonEmpty = row.filter((c) => (c ?? "").trim().length > 0);
+    if (nonEmpty.length === 0) continue;
+
+    if (isFeriadoHeaderRow(row)) {
+      colIndex = buildColumnIndex(row);
+      continue;
+    }
+    if (colIndex === null) continue;
+
+    const data = cell(row, colIndex, "data");
+    const nome = cell(row, colIndex, "nome");
+    if (!data || !nome) continue;
+
+    const tipoBruto = normalize(cell(row, colIndex, "tipo"));
+    const tipo = TIPOS_FERIADO_VALIDOS.has(tipoBruto) ? tipoBruto : "institucional";
+    const folgaBruto = normalize(cell(row, colIndex, "conta_como_folga"));
+
+    result.push({
+      data,
+      nome,
+      tipo,
+      contaComoFolga: folgaBruto === "" ? true : ["sim", "s", "true", "1"].includes(folgaBruto),
+      observacao: cell(row, colIndex, "observacao"),
+    });
+  }
+
+  return result;
+}
+
+export function feriadosParaTexto(feriados: FeriadoRow[]): string {
+  const linhas = feriados.map((f) => {
+    const detalhe = [f.tipo, f.observacao].filter(Boolean).join(", ");
+    return `${f.data} — ${f.nome}${detalhe ? ` (${detalhe})` : ""}${
+      f.contaComoFolga ? "" : " — não conta como folga"
+    }.`;
+  });
+  return `Calendário de feriados e pontos facultativos da Infnet:\n${linhas.join("\n")}`;
+}
