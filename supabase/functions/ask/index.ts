@@ -13,6 +13,13 @@ import { maskPII } from "../_shared/pii.ts";
 import { jsonComCors, respondCorsPreflight } from "../_shared/cors.ts";
 import { registrarLacuna } from "../_shared/lacunas.ts";
 
+// Maior que o antigo padrão (8): os evals da etapa 10 (2026-09-14)
+// mostraram que perguntas sobre uma empresa de convênio específica às
+// vezes não apareciam no top-8 porque competem com ~200 outras empresas
+// espalhadas em ~10 chunks, mais dezenas de cursos — o mesmo tipo de
+// achado que já tinha motivado o `suggest` a subir seu match_count.
+const MATCH_COUNT_PADRAO = 16;
+
 interface ChunkResultado {
   chunk_id: number;
   document_id: string;
@@ -96,7 +103,7 @@ Deno.serve(async (req: Request) => {
     const { data: chunksData, error: matchErr } = await db.rpc("match_chunks", {
       query_embedding: perguntaEmbedding,
       query_text: pergunta,
-      match_count: body.match_count ?? 8,
+      match_count: body.match_count ?? MATCH_COUNT_PADRAO,
       filtro: {},
     });
     if (matchErr) throw new Error(`match_chunks falhou: ${matchErr.message}`);

@@ -9,6 +9,11 @@
 import { createServiceClient } from "../_shared/db.ts";
 import { embedTexts } from "../_shared/openai.ts";
 
+// Mesmo valor de `ask` (subiu de 8 pra 16 na etapa 10, 2026-09-14): `search`
+// usa a mesma `match_chunks`, e os evals precisam refletir o que `ask`
+// realmente faz — ver o achado de cobertura de convênio no `ask/index.ts`.
+const MATCH_COUNT_PADRAO = 16;
+
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "use POST" }), { status: 405 });
@@ -33,7 +38,7 @@ Deno.serve(async (req: Request) => {
     const { data, error } = await db.rpc("match_chunks", {
       query_embedding: embeddings[0],
       query_text: query,
-      match_count: body.match_count ?? 8,
+      match_count: body.match_count ?? MATCH_COUNT_PADRAO,
       filtro: body.filtro ?? {},
     });
 

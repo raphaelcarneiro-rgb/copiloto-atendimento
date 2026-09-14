@@ -28,7 +28,7 @@ function normalize(s) {
     .toLowerCase();
 }
 
-async function search(query, matchCount = 8) {
+async function search(query, matchCount = 16) {
   const res = await fetch(`${SUPABASE_URL}/functions/v1/search`, {
     method: "POST",
     headers: { Authorization: `Bearer ${ANON_KEY}`, "Content-Type": "application/json" },
@@ -47,7 +47,7 @@ async function main() {
   const similaridadesNegativas = [];
 
   for (const p of perguntas) {
-    const resp = await search(p.pergunta, 8);
+    const resp = await search(p.pergunta, 16);
     const top1 = resp.resultados?.[0];
     const sim = top1?.similaridade ?? 0;
 
