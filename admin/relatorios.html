@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Relatórios — Copiloto Infnet</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { font-family: -apple-system, "Segoe UI", sans-serif; background: #f5f8fa; color: #33475b; margin: 0; padding: 24px; }
+      h1 { font-size: 20px; margin: 0 0 4px; }
+      h2 { font-size: 15px; margin: 24px 0 8px; }
+      .aviso { background: #fef3c7; color: #92400e; padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 20px; }
+      .cartoes { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+      .cartao { background: #fff; border: 1px solid #dfe3eb; border-radius: 10px; padding: 14px 18px; min-width: 160px; }
+      .cartao .valor { font-size: 22px; font-weight: 700; }
+      .cartao .rotulo { font-size: 11px; color: #7c98b6; text-transform: uppercase; }
+      .barra-teto { height: 10px; border-radius: 999px; background: #e5e9f0; overflow: hidden; margin-top: 6px; width: 240px; }
+      .barra-teto div { height: 100%; background: #00a4bd; }
+      .barra-teto.alerta div { background: #e5484d; }
+      table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; font-size: 12px; }
+      th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #eef1f5; }
+      th { background: #f5f8fa; color: #7c98b6; font-weight: 600; }
+      .destaque-lacuna { color: #e5484d; font-weight: 600; }
+    </style>
+  </head>
+  <body>
+    <h1>Relatórios — Copiloto Infnet</h1>
+    <div class="aviso">
+      ⚠️ Página sem login real ainda (RF09 pendente). Protegida só por não ser divulgada — não compartilhe o link/arquivo.
+    </div>
+    <div id="conteudo">Carregando…</div>
+
+    <script>
+      const SUPABASE_URL = "https://trtmyuqatmhvikfbqmkv.supabase.co";
+      const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRydG15dXFhdG1odmlrZmJxbWt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzMzA0NTUsImV4cCI6MjEwNDkwNjQ1NX0.A1Wj9uzSgYxngeFBXAa-mtP9Xx4QMwl1r2a0F8VjiLU";
+
+      function fmtBRL(v) { return "R$ " + Number(v ?? 0).toFixed(2).replace(".", ","); }
+      function el(tag, props, ...filhos) { const e = document.createElement(tag); Object.assign(e, props || {}); for (const f of filhos) e.append(f); return e; }
+
+      async function carregar() {
+        const conteudo = document.getElementById("conteudo");
+        try {
+          const res = await fetch(`${SUPABASE_URL}/functions/v1/relatorios`, {
+            headers: { apikey: ANON_KEY, Authorization: `Bearer ${ANON_KEY}` },
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || `erro ${res.status}`);
+          render(data);
+        } catch (err) {
+          conteudo.textContent = `Erro ao carregar: ${err.message}`;
+        }
+      }
+
+      function render(data) {
+        const conteudo = document.getElementById("conteudo");
+        conteudo.innerHTML = "";
+
+        const mesAtual = data.custo_mensal[0];
+        if (mesAtual) {
+          const pct = Math.min(100, mesAtual.pct_teto ?? 0);
+          const cartoes = el(
+            "div",
+            { className: "cartoes" },
+            el(
+              "div",
+              { className: "cartao" },
+              el("div", { className: "rotulo", textContent: "Custo do mês" }),
+              el("div", { className: "valor", textContent: fmtBRL(mesAtual.custo_brl) }),
+              el("div", { className: "barra-teto" + (pct >= 80 ? " alerta" : ""), style: undefined }, el("div", { style: `width:${pct}%` })),
+              el("div", { className: "rotulo", textContent: `${pct.toFixed(1)}% do teto de ${fmtBRL(mesAtual.teto_brl)}` }),
+            ),
+            el(
+              "div",
+              { className: "cartao" },
+              el("div", { className: "rotulo", textContent: "Projeção do mês" }),
+              el("div", { className: "valor", textContent: fmtBRL(mesAtual.projecao_mes_brl) }),
+            ),
+            el(
+              "div",
+              { className: "cartao" },
+              el("div", { className: "rotulo", textContent: "Custo médio / conversa" }),
+              el("div", { className: "valor", textContent: fmtBRL(mesAtual.custo_medio_conversa_brl) }),
+            ),
+            el(
+              "div",
+              { className: "cartao" },
+              el("div", { className: "rotulo", textContent: "Conversas / chamadas" }),
+              el("div", { className: "valor", textContent: `${mesAtual.conversas} / ${mesAtual.chamadas}` }),
+            ),
+          );
+          conteudo.append(cartoes);
+        }
+
+        conteudo.append(el("h2", { textContent: "Custo diário (últimos 30 dias, por tipo de chamada)" }));
+        conteudo.append(
+          tabela(
+            ["Dia", "Tipo", "Modelo", "Chamadas", "Custo (R$)"],
+            data.custo_diario.map((d) => [d.dia, d.tipo_chamada, d.modelo, d.chamadas, fmtBRL(d.custo_brl)]),
+          ),
+        );
+
+        conteudo.append(el("h2", { textContent: "Custo por atendente (mês atual)" }));
+        conteudo.append(
+          tabela(
+            ["Atendente", "E-mail", "Conversas", "Chamadas", "Custo (R$)", "Custo médio/conversa"],
+            data.custo_por_atendente.map((a) => [a.atendente, a.email ?? "—", a.conversas, a.chamadas, fmtBRL(a.custo_brl), fmtBRL(a.custo_medio_conversa_brl)]),
+          ),
+        );
+
+        conteudo.append(el("h2", { textContent: `Lacunas abertas (${data.lacunas_abertas.length})` }));
+        conteudo.append(
+          tabela(
+            ["Pergunta", "Vezes", "Propostas", "Última vez"],
+            data.lacunas_abertas.map((l) => [
+              l.destaque ? el("span", { className: "destaque-lacuna", textContent: l.pergunta_mascarada }) : l.pergunta_mascarada,
+              l.contagem,
+              l.propostas,
+              new Date(l.ultima_vez).toLocaleString("pt-BR"),
+            ]),
+          ),
+        );
+      }
+
+      function tabela(cabecalho, linhas) {
+        const t = el("table", {});
+        const thead = el("thead", {}, el("tr", {}, ...cabecalho.map((h) => el("th", { textContent: h }))));
+        const tbody = el("tbody", {});
+        for (const linha of linhas) {
+          tbody.append(el("tr", {}, ...linha.map((v) => el("td", {}, v instanceof Node ? v : document.createTextNode(String(v))))));
+        }
+        if (linhas.length === 0) tbody.append(el("tr", {}, el("td", { colSpan: cabecalho.length, textContent: "Sem dados." })));
+        t.append(thead, tbody);
+        return t;
+      }
+
+      carregar();
+    </script>
+  </body>
+</html>
