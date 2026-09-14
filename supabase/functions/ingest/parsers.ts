@@ -35,6 +35,13 @@ export interface CursoRow {
   dataInicio: string;
   frequencia: string;
   horario: string;
+  /**
+   * URL da página do curso, por trás do link "Clique Aqui" na coluna "Mais
+   * Informações" — vem de `getSheetHyperlinksGrid`, não de `getSheetValues`
+   * (achado real em 2026-09-14: o texto da célula não é a URL, é só o rótulo
+   * do link). `null` quando a linha não tem link.
+   */
+  linkPagina: string | null;
 }
 
 const CURSO_HEADER_KEYS = ["titulo", "data de inicio"];
@@ -44,29 +51,40 @@ function isCursoHeaderRow(row: string[]): boolean {
   return CURSO_HEADER_KEYS.every((k) => normalized.includes(k));
 }
 
-export function parseCalendarioCursos(rows: string[][]): CursoRow[] {
+/**
+ * `hyperlinks`, quando informado, deve ser a mesma faixa/forma de `rows`
+ * (linha a linha) — usado para achar a URL por trás de "Mais Informações".
+ */
+export function parseCalendarioCursos(
+  rows: string[][],
+  hyperlinks?: (string | null)[][],
+): CursoRow[] {
   const result: CursoRow[] = [];
   let colIndex: Record<string, number> | null = null;
   let grupoAtual = "";
 
-  for (const row of rows) {
+  rows.forEach((row, i) => {
     const nonEmpty = row.filter((c) => (c ?? "").trim().length > 0);
-    if (nonEmpty.length === 0) continue;
+    if (nonEmpty.length === 0) return;
 
     if (isCursoHeaderRow(row)) {
       colIndex = buildColumnIndex(row);
-      continue;
+      return;
     }
 
     // Linha "marcador de grupo": poucas células preenchidas e nenhum
     // cabeçalho ainda ativo para esse bloco, ou primeira célula isolada.
     if (colIndex === null || nonEmpty.length === 1) {
       grupoAtual = nonEmpty[0] ?? grupoAtual;
-      continue;
+      return;
     }
 
     const curso = cell(row, colIndex, "titulo");
-    if (!curso) continue;
+    if (!curso) return;
+
+    const colLink = colIndex["mais informacoes"];
+    const linkPagina =
+      colLink !== undefined ? hyperlinks?.[i]?.[colLink] ?? null : null;
 
     result.push({
       grupo: grupoAtual,
@@ -74,8 +92,9 @@ export function parseCalendarioCursos(rows: string[][]): CursoRow[] {
       dataInicio: cell(row, colIndex, "data de inicio"),
       frequencia: cell(row, colIndex, "frequencia"),
       horario: cell(row, colIndex, "horario"),
+      linkPagina,
     });
-  }
+  });
 
   return result;
 }

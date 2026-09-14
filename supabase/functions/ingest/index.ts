@@ -16,7 +16,7 @@ import {
   SCOPE_DRIVE_READONLY,
   SCOPE_SHEETS_READONLY,
 } from "../_shared/google_auth.ts";
-import { getSheetValues, listSheetTabs } from "../_shared/google_sheets.ts";
+import { getSheetHyperlinksGrid, getSheetValues, listSheetTabs } from "../_shared/google_sheets.ts";
 import { exportGoogleDocAsText } from "../_shared/google_drive.ts";
 import { sha256Hex } from "../_shared/hash.ts";
 import { chunkText } from "../_shared/chunking.ts";
@@ -30,6 +30,7 @@ import {
   parseConvenios,
   parseFeriados,
 } from "./parsers.ts";
+import type { CursoRow } from "./parsers.ts";
 
 type Db = ReturnType<typeof createServiceClient>;
 
@@ -46,6 +47,7 @@ interface SyncResult {
   status: "ok" | "sem_alteracao" | "erro";
   chunks?: number;
   facts?: number;
+  paginas_curso?: number;
   mensagem?: string;
 }
 
@@ -140,13 +142,61 @@ async function replaceFactsForSource(
   if (insertErr) throw new Error(`facts.insert falhou: ${insertErr.message}`);
 }
 
+/**
+ * Usa a própria planilha de calendário como índice oficial das páginas de
+ * curso (RF: pedido do Raphael em 2026-09-14 — "todo o conteúdo dos cursos
+ * poderia ser inputado dessa forma"). Cada curso com link na coluna "Mais
+ * Informações" vira (ou atualiza) uma fonte tipo='url' própria — o pipeline
+ * de URL já existente (ingestUrlSource) cuida de buscar a página, extrair o
+ * texto e reindexar sozinho a cada 15 min, só quando o conteúdo mudar.
+ * Cursos que saem da planilha têm a fonte desativada (RLS de `match_chunks`
+ * já filtra por `sources.ativo` — não aparecem mais em buscas, mas o
+ * histórico continua no banco).
+ */
+async function syncPaginasCursos(db: Db, cursos: CursoRow[]): Promise<number> {
+  const comLink = cursos.filter((c): c is CursoRow & { linkPagina: string } => Boolean(c.linkPagina));
+  const refsAtuais = new Set(comLink.map((c) => c.linkPagina));
+
+  for (const c of comLink) {
+    const { error } = await db
+      .from("sources")
+      .upsert(
+        { tipo: "url", ref: c.linkPagina, nome: c.curso, categoria: "pagina_curso", ativo: true },
+        { onConflict: "tipo,ref" },
+      );
+    if (error) console.error(`sources.upsert (pagina_curso) falhou para "${c.curso}":`, error.message);
+  }
+
+  const { data: existentes, error: selectErr } = await db
+    .from("sources")
+    .select("id, ref")
+    .eq("tipo", "url")
+    .eq("categoria", "pagina_curso");
+  if (selectErr) {
+    console.error("sources.select (pagina_curso) falhou:", selectErr.message);
+    return comLink.length;
+  }
+
+  const idsParaDesativar = (existentes ?? [])
+    .filter((s) => !refsAtuais.has(s.ref))
+    .map((s) => s.id);
+  if (idsParaDesativar.length > 0) {
+    await db.from("sources").update({ ativo: false }).in("id", idsParaDesativar);
+  }
+
+  return comLink.length;
+}
+
 async function ingestCalendarioCursos(db: Db, source: SourceRow): Promise<SyncResult> {
   const token = await getGoogleAccessToken([SCOPE_SHEETS_READONLY]);
   const tabs = await listSheetTabs(token, source.ref);
   if (tabs.length === 0) throw new Error("planilha sem abas");
 
-  const rows = await getSheetValues(token, source.ref, tabs[0].title);
-  const cursos = parseCalendarioCursos(rows);
+  const [rows, hyperlinks] = await Promise.all([
+    getSheetValues(token, source.ref, tabs[0].title),
+    getSheetHyperlinksGrid(token, source.ref, tabs[0].title),
+  ]);
+  const cursos = parseCalendarioCursos(rows, hyperlinks);
   if (cursos.length === 0) throw new Error("nenhum curso encontrado — verifique o layout da aba");
 
   const facts = cursos.flatMap((c) => {
@@ -173,9 +223,16 @@ async function ingestCalendarioCursos(db: Db, source: SourceRow): Promise<SyncRe
   const rawHashInput = JSON.stringify(cursos);
   const synced = await syncDocumentChunks(db, source, rawHashInput, chunkInputs);
   await replaceFactsForSource(db, source.id, facts);
+  const paginas = await syncPaginasCursos(db, cursos);
 
-  if (!synced) return { source: source.nome, status: "sem_alteracao" };
-  return { source: source.nome, status: "ok", chunks: synced.chunks, facts: facts.length };
+  if (!synced) return { source: source.nome, status: "sem_alteracao", paginas_curso: paginas };
+  return {
+    source: source.nome,
+    status: "ok",
+    chunks: synced.chunks,
+    facts: facts.length,
+    paginas_curso: paginas,
+  };
 }
 
 async function ingestConvenios(db: Db, source: SourceRow): Promise<SyncResult> {

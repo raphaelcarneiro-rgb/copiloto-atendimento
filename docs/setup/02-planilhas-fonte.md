@@ -69,3 +69,15 @@ O parser (`supabase/functions/ingest/parsers.ts`) só lê as colunas que conhece
 4. Redeploy do `ingest` + forçar uma sincronização (`POST /ingest {"source_id": "..."}`) — do contrário só reflete na próxima edição real da planilha, porque a sincronização normal só reprocessa quando o **conteúdo da planilha** muda, não quando o código muda.
 
 Exemplo real (2026-09-14): coluna "% Desconto Convênio" adicionada à planilha de convênios para o copiloto responder sobre desconto. Achado no caminho: a célula já vinha com "%" na string (ex. "10%"), e o código também acrescentava um — corrigido para não duplicar.
+
+## Páginas de curso indexadas automaticamente via o calendário
+
+A planilha "Calendário das faculdades Infnet e ECDD" já tinha uma coluna "Mais Informações" com um link "Clique Aqui" por curso — decidimos (2026-09-14) usar essa planilha como **fonte oficial da lista de páginas de curso**, em vez de criar uma planilha separada só para isso.
+
+Como funciona:
+- O texto da célula ("Clique Aqui") não é a URL — é só o rótulo de um link do tipo `=HYPERLINK(url, texto)`. A API de valores (`values.get`) não devolve isso; foi preciso usar `spreadsheets.get` com `includeGridData=true` para pegar o `hyperlink` de cada célula (`_shared/google_sheets.ts::getSheetHyperlinksGrid`).
+- Cada curso com link vira (ou atualiza) sozinho uma fonte `tipo='url'`, `categoria='pagina_curso'` em `sources` — sem precisar de SQL manual.
+- O pipeline de URL que já existia (`ingestUrlSource`) busca a página, extrai o texto (confirmado: páginas de curso são HTML estático, não SPA — extração limpa, sem JavaScript) e reindexa sozinho a cada 15 min, só quando o conteúdo realmente mudar.
+- Curso removido da planilha → a fonte correspondente é desativada (não apagada) — para de aparecer em buscas (`match_chunks` filtra por `sources.ativo`), mas o histórico fica no banco.
+
+**Na prática, para o admin:** um curso novo = uma linha nova na planilha, com link na coluna "Mais Informações". Em até ~30 min (dois ciclos de 15 min: um para registrar a fonte, outro para buscar o conteúdo) o copiloto já responde sobre ele com base na página real — disciplinas, descrição, tudo. Atualizar a página no site também atualiza o copiloto sozinho, sem nenhuma ação manual.
