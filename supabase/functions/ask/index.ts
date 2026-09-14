@@ -10,6 +10,7 @@
 import { createServiceClient, getConfig, logUsage } from "../_shared/db.ts";
 import { chatJSON, embedTexts } from "../_shared/openai.ts";
 import { maskPII } from "../_shared/pii.ts";
+import { jsonComCors, respondCorsPreflight } from "../_shared/cors.ts";
 
 type Db = ReturnType<typeof createServiceClient>;
 
@@ -103,20 +104,21 @@ async function registrarLacuna(
 }
 
 Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") return respondCorsPreflight();
   if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "use POST" }), { status: 405 });
+    return jsonComCors({ error: "use POST" }, { status: 405 });
   }
 
   let body: { pergunta?: string; thread_hash?: string; match_count?: number };
   try {
     body = await req.json();
   } catch {
-    return new Response(JSON.stringify({ error: "corpo JSON inválido" }), { status: 400 });
+    return jsonComCors({ error: "corpo JSON inválido" }, { status: 400 });
   }
 
   const perguntaOriginal = body.pergunta?.trim();
   if (!perguntaOriginal) {
-    return new Response(JSON.stringify({ error: "campo 'pergunta' é obrigatório" }), { status: 400 });
+    return jsonComCors({ error: "campo 'pergunta' é obrigatório" }, { status: 400 });
   }
   const pergunta = maskPII(perguntaOriginal);
 
@@ -204,22 +206,15 @@ Deno.serve(async (req: Request) => {
       return { chunk_id: id, trecho: c?.conteudo?.slice(0, 200) ?? null };
     });
 
-    return new Response(
-      JSON.stringify(
-        {
-          resposta: resultado.resposta,
-          encontrado: resultado.encontrado,
-          confianca: resultado.confianca,
-          fontes: fontesDetalhadas,
-          lacuna_registrada: lacunaRegistrada,
-        },
-        null,
-        2,
-      ),
-      { headers: { "Content-Type": "application/json" } },
-    );
+    return jsonComCors({
+      resposta: resultado.resposta,
+      encontrado: resultado.encontrado,
+      confianca: resultado.confianca,
+      fontes: fontesDetalhadas,
+      lacuna_registrada: lacunaRegistrada,
+    });
   } catch (err) {
     const mensagem = err instanceof Error ? err.message : String(err);
-    return new Response(JSON.stringify({ error: mensagem }), { status: 500 });
+    return jsonComCors({ error: mensagem }, { status: 500 });
   }
 });

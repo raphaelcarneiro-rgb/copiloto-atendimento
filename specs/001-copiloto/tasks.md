@@ -81,6 +81,8 @@ Requisitos: RF09, RF21 (estrutura), RF22 (config), constitution §4, §9.
 
 **Achado de ferramenta (Supabase MCP):** `deploy_edge_function` só resolve `import "../_shared/x.ts"` do entrypoint se o arquivo compartilhado for enviado com o nome `"../_shared/x.ts"` (prefixo `../` literal) — `"_shared/x.ts"` falha silenciosamente com "module not found" mesmo apontando pro mesmo caminho final. Documentado aqui para não perder tempo de novo.
 
+**Teste real carregando a extensão no Chrome (2026-09-14):** `npm run build` → `chrome://extensions` → "Carregar sem compactação" → `extension/dist`. Confirmado: botão flutuante aparece, ativa/desativa, side panel mostra a conversa extraída da thread de WhatsApp real. Bug encontrado e corrigido: **CORS** — `config` e `ask` não respondiam ao preflight `OPTIONS` nem mandavam `Access-Control-Allow-Origin`, então o fetch feito a partir do content script (origem `https://app.hubspot.com`) era bloqueado antes de chegar no Supabase (`Response to preflight request doesn't pass access control check`). Criado `_shared/cors.ts` e aplicado em `config` (usado agora) e `ask` (vai ser chamado direto do navegador na etapa 7) — `search` fica sem CORS por enquanto, só é chamado pelos evals (Node), não pelo navegador. Revalidado depois do fix: nenhum erro de CORS/Supabase no console, `ask` continua respondendo certo (testado com pergunta real sobre datas de curso).
+
 ## Etapa 6 — Lembrete de janela (RF10–RF14)
 - [ ] `business-hours.ts` + testes (casos da spec, incluindo quarta-feira de cinzas)
 - [ ] `window-guard.ts` com alarms, notificações e badge

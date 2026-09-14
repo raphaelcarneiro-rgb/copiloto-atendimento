@@ -7,10 +7,12 @@
 // GET /config
 
 import { createServiceClient, getConfig } from "../_shared/db.ts";
+import { jsonComCors, respondCorsPreflight } from "../_shared/cors.ts";
 
 Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") return respondCorsPreflight();
   if (req.method !== "GET") {
-    return new Response(JSON.stringify({ error: "use GET" }), { status: 405 });
+    return jsonComCors({ error: "use GET" }, { status: 405 });
   }
 
   const db = createServiceClient();
@@ -37,19 +39,16 @@ Deno.serve(async (req: Request) => {
       .order("data", { ascending: true });
     if (feriadosErr) throw new Error(`feriados falhou: ${feriadosErr.message}`);
 
-    return new Response(
-      JSON.stringify({
-        seletores_hubspot: seletoresHubspot,
-        expediente,
-        lembrete_antecedencia_min: lembreteAntecedenciaMin,
-        versao_minima: versaoMinima,
-        versao_atual: versaoAtual,
-        feriados: feriados ?? [],
-      }),
-      { headers: { "Content-Type": "application/json" } },
-    );
+    return jsonComCors({
+      seletores_hubspot: seletoresHubspot,
+      expediente,
+      lembrete_antecedencia_min: lembreteAntecedenciaMin,
+      versao_minima: versaoMinima,
+      versao_atual: versaoAtual,
+      feriados: feriados ?? [],
+    });
   } catch (err) {
     const mensagem = err instanceof Error ? err.message : String(err);
-    return new Response(JSON.stringify({ error: mensagem }), { status: 500 });
+    return jsonComCors({ error: mensagem }, { status: 500 });
   }
 });
