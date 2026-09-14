@@ -20,17 +20,17 @@ Como a [spec](spec.md) será construída. Mudanças de arquitetura atualizam est
 
 ## Componentes
 
-### Extensão (Chrome MV3, TypeScript + Vite) — `extension/`
-| Módulo | Responsabilidade |
-|---|---|
-| `manifest.json` | `side_panel`, `storage`, `identity`, `alarms`, `notifications`; hosts: `app.hubspot.com` e a URL do Supabase; `key` fixa para ID estável |
-| `content/hubspot-reader.ts` | `threadId` da URL; `MutationObserver` nas mensagens → `{autor, texto, hora}`; detecta tarja de 24h; injeta "Ativar copiloto"; seletores de `/config` |
-| `content/composer.ts` | Insere texto no campo de resposta |
-| `sidepanel/` | Etapa, script, sugestões, chat livre, janelas expirando, lacunas, avisos de versão |
-| `background/window-guard.ts` | Estado das conversas ativas, `chrome.alarms`, notificações, badge |
-| `lib/business-hours.ts` | `isBusinessTime`, `lastBusinessMomentBefore`, `reminderSchedule` (funções puras) |
-| `lib/pii.ts` | Mascaramento de telefone, e-mail, CPF |
-| `lib/api.ts` | Cliente autenticado (Supabase Auth via `chrome.identity.launchWebAuthFlow`) |
+### Extensão (Chrome MV3, TypeScript + Vite) — `extension/` — **construída e testada ao vivo no HubSpot real desde 2026-09-14**
+| Módulo | Responsabilidade | Status |
+|---|---|---|
+| `manifest.json` | `side_panel`, `background` (service worker), `content_scripts` em `app.hubspot.com/live-messages/*`; `key` RSA fixa para ID estável | ✅ |
+| `content/hubspot-reader.ts` | `threadId` da URL (regex); `MutationObserver` nas mensagens (`childList`+`characterData`+`attributes` — a lista do HubSpot é virtualizada e recicla nós) → `{autor, texto, hora}`; injeta botão flutuante "Ativar copiloto" (`position:fixed`, sem depender de seletor) | ✅ |
+| `content/composer.ts` | Insere texto no campo de resposta via `document.execCommand('insertText', ...)` (ProseMirror não aceita `.textContent` direto) | ✅ |
+| `sidepanel/` | Conversa extraída, sugestões automáticas (etapa do roteiro, script, perguntas, lacunas), chat livre (`ask`), feedback | ✅ |
+| `background/service-worker.ts` | Abre o side panel; retransmite mensagens do content script pro side panel (que não recebe `onMessage` de aba diretamente) | ✅ (parcial — `window-guard`/alarms da etapa 6 ainda não existem) |
+| `lib/business-hours.ts` | `isBusinessTime`, `lastBusinessMomentBefore`, `reminderSchedule` (funções puras) | ⏳ etapa 6 |
+| `lib/pii.ts`, `lib/hash.ts` | Mascaramento de telefone/e-mail/CPF; hash SHA-256 do `threadId` (nunca envia o id real do HubSpot ao backend) | ✅ |
+| `lib/api.ts` | Cliente das Edge Functions com a anon key pública; JWT de usuário anexado quando existir sessão (`chrome.identity.launchWebAuthFlow` ainda não conectado — funciona hoje sem login, RLS aberta pela anon key) | ✅ (parcial — login real adiado) |
 
 ### Backend (Supabase) — `supabase/`
 **Modelo de dados** (migrations em `supabase/migrations/`):
@@ -47,19 +47,19 @@ Como a [spec](spec.md) será construída. Mudanças de arquitetura atualizam est
 **Acesso ao Google Sheets:** via *domain-wide delegation* (não compartilhamento manual por arquivo — ver [docs/setup/02-planilhas-fonte.md](../../docs/setup/02-planilhas-fonte.md) para o histórico da decisão). A conta de serviço `copiloto-sheets-reader` está autorizada no Admin Console da Infnet (Client ID `102223072074030067145`, escopo `spreadsheets.readonly`) a impersonar `raphael.carneiro@infnet.edu.br`. A Edge Function `ingest` gera o JWT da conta de serviço com `subject = raphael.carneiro@infnet.edu.br`, o que dá acesso de leitura a qualquer planilha que esse usuário já tenha, sem precisar compartilhar cada arquivo individualmente.
 
 **Edge Functions** (etapas 2–9):
-- `config`: seletores, expediente, antecedência, feriados dos próximos 12 meses, versões.
-- `suggest` / `ask`:
-  1. classificação da etapa (modelo barato);
-  2. busca híbrida (vetor + FTS, RRF, top 8);
-  3. `facts`/`feriados`;
-  4. prompt com prefixo estável;
-  5. saída JSON Schema;
-  6. validação de citações;
-  7. registro de lacunas;
-  8. `usage_logs`.
-- `gaps`: propostas (atendente); fila, classificação e aprovação (curador).
-- `ingest`: Sheets (service account), PDF (Storage), URL, FAQ → `facts`/`feriados`/`chunks`; só reprocessa quando o hash muda.
-- `cost-alert`: e-mail ao gestor em 80% e 100% do teto, uma vez por limiar/mês (`cost_alerts`).
+- `config`: seletores, expediente, antecedência, feriados dos próximos 12 meses, versões. CORS habilitado (`_shared/cors.ts`) — chamada direto do content script/side panel, então precisa responder `OPTIONS` sem exigir JWT.
+- `suggest` (implementado 2026-09-14) / `ask` (implementado):
+  1. embute a(s) mensagem(ns) sem resposta e busca híbrida (vetor + FTS, RRF) — `suggest` roda uma busca por **cada** mensagem do lead ainda sem resposta (não só a última nem todas juntas num embedding só — ver "achados" no `tasks.md`, etapa 8) mais uma busca do contexto amplo, e junta os candidatos por `chunk_id`/maior similaridade;
+  2. `facts`/`feriados` (hoje só `feriados` é consultado de fato; preço de curso ainda não está em `facts` — ver "Dívida" abaixo);
+  3. prompt com prefixo estável, incluindo o roteiro completo do `playbook` no `suggest`;
+  4. saída JSON Schema — `suggest` também classifica `etapa_atual`, restrito por `enum` às etapas reais da tabela `playbook`; o texto do script devolvido vem sempre da tabela, nunca do LLM;
+  5. validação de citações (RF06);
+  6. registro de lacunas;
+  7. `usage_logs` (retorna `usage_log_id` para o `feedback` linkar).
+- `feedback` (implementado): `POST {usage_log_id, aceita?, feedback?, feedback_motivo?}` — atualiza a linha correspondente em `usage_logs` (sem tabela nova).
+- `gaps`: propostas (atendente); fila, classificação e aprovação (curador). **Não implementado ainda** (etapa 8 restante).
+- `ingest`: Sheets (service account), PDF (Storage), URL, FAQ → `facts`/`feriados`/`chunks`; só reprocessa quando o hash muda. Ganhou um caminho genérico de **lista de URLs** (`sources.categoria = 'lista_urls'`, planilha só com colunas URL/Nome) que registra/desativa uma `source` tipo `url` por linha — reaproveitado também para as páginas de curso descobertas automaticamente a partir do link "Mais Informações" da planilha de calendário (via `spreadsheets.get?includeGridData=true`, porque `values.get` só devolve o texto visível da fórmula `HYPERLINK`, não a URL real).
+- `cost-alert`: e-mail ao gestor em 80% e 100% do teto, uma vez por limiar/mês (`cost_alerts`). **Não implementado ainda** (etapa 9).
 
 **pg_cron:** (`ingest-fontes-15min` já em produção; os demais entram nas etapas indicadas)
 - Sheets, feriados e FAQ: a cada 15 min — **em produção** desde 2026-09-14, chama `ingest` via `pg_net.http_post` com a anon key pública (não é segredo) e timeout de 120s.
@@ -108,13 +108,19 @@ Como a [spec](spec.md) será construída. Mudanças de arquitetura atualizam est
 - **`config.limiar_relevancia` = 0.32**, calibrado com `evals/perguntas.json` (16 perguntas-ouro): perguntas relevantes tiveram similaridade top1 entre 0,41 e 0,83; perguntas fora do domínio, entre 0,22 e 0,23.
 - **Evals de recuperação:** `npm run eval` roda `evals/run.mjs`, que chama a função `search` via HTTP para cada pergunta-ouro e verifica se a informação esperada aparece em algum dos top-8 resultados (não só no 1º — é o que o LLM vai ver como contexto).
 
-## Ask (US3) — implementado; Suggest (US2) — adiado
+## Ask (US3) e Suggest (US2) — implementados
 - **Edge Function `ask`** (`supabase/functions/ask`): recebe `{pergunta, thread_hash?}`, mascara PII, embute a pergunta, chama `match_chunks`, monta um prompt com os trechos numerados **só por `chunk_id`** (sem índice de posição — ver "Achado" abaixo) e chama `chatJSON` com o modelo de `config.modelos.chat`. Valida as citações contra o conjunto recuperado nesta mesma chamada (RF06); se a similaridade do melhor trecho já estiver abaixo de `limiar_relevancia`, nem chama o LLM. Quando não encontra resposta, registra lacuna deduplicada por embedding (RF16, `limiar_dedup`).
+- **Edge Function `suggest`** (`supabase/functions/suggest`, implementada 2026-09-14 — mais cedo do que planejado, ver `tasks.md` etapa 8): reaproveita toda a infraestrutura do `ask` (`match_chunks`, `chatJSON`, validação de citações, `registrarLacuna` extraída para `_shared/lacunas.ts`, `usage_logs`). Diferenças:
+  - considera **todas** as mensagens consecutivas do lead sem resposta no fim da conversa (RF02/US2 — "ver tudo que não foi respondido"), não só a última;
+  - busca cada mensagem sem resposta **individualmente** (mais o contexto amplo das últimas 6 mensagens), e junta os resultados por `chunk_id`/maior similaridade — uma única busca com todas as mensagens juntas dilui o embedding quando o lead manda vários assuntos em sequência (ex.: "trabalho na empresa X" + "quanto fica o curso Y com desconto");
+  - classifica `etapa_atual` restrita por `enum` às etapas reais da tabela `playbook` (nunca livre) e devolve `script_etapa` sempre com o texto real da tabela, nunca escrito pelo LLM — separa "qual etapa" (classificação, baixo risco) de "conteúdo do script" (precisa ser fundamentado, mesmo padrão anti-alucinação do resto do sistema);
+  - o `playbook` foi populado com o roteiro comercial real de 6 passos do "Manual de Boas Práticas — Atendimento B2B WhatsApp" fornecido pelo Raphael (descoberta, qualificação da empresa, apresentação do curso e preço, tratamento de objeção, fechamento, follow-up), não necessariamente nessa ordem;
+  - o prompt instrui o modelo a usar dados já coletados na conversa (inclusive por mensagens automáticas/chatbot) para enriquecer a resposta em vez de perguntar de novo.
 - **Adapter `chatJSON`** (`_shared/openai.ts`): chat completions com `response_format: json_schema, strict: true`. Omite `temperature` quando não informado — `gpt-5.6-luna` só aceita o valor padrão.
 - **Achado (citação errada com resposta certa):** numerar os trechos com dois números juntos (`[1] chunk_id=8`) faz o modelo às vezes citar a posição em vez do chunk_id de verdade — uma citação que "existe" no conjunto recuperado (passa no RF06) mas não é a fonte real da resposta. Corrigido: o prompt usa só `chunk_id=N`, um único número por trecho.
 - **Achado (limiar_dedup):** duas paráfrases reais da mesma pergunta deram 0,783 de similaridade — o valor inicial (0,90) nunca deduplicaria. Recalibrado para 0,75.
-- **`suggest` (US2)** fica para depois das etapas 5/6: precisa de conversas reais da extensão e de um `playbook` estruturado por etapa (hoje só existe o Manual como texto corrido, sem uma tabela `playbook` populada). Toda a infraestrutura de `ask` (busca, chat estruturado, validação de citações, lacunas, custo) é reaproveitada — `suggest` soma a classificação da etapa e o script correspondente.
-- **Streaming:** adiado — sem a extensão para consumir, não há ganho perceptível agora, e resposta estruturada (JSON Schema) complica streaming incremental (validação só é possível com o JSON completo).
+- **Dívida de arquitetura (RF07):** a spec exige que preço/valor/data venham só de `facts`/`feriados`, nunca de texto livre. Hoje o preço dos cursos ainda não está em `facts` — está em chunks de texto (inclusive os valores hipotéticos temporários usados enquanto a planilha real não chega, ver `tasks.md` etapa 8). Quando a planilha oficial de preços for cadastrada, ela deve popular `facts` (não só `chunks`), e o prompt de `suggest`/`ask` deve puxar de lá para o cálculo final — hoje o LLM soma percentual de desconto sobre o texto do chunk, o que funciona mas não é a garantia estrutural que o RF07 pede.
+- **Streaming:** adiado — resposta estruturada (JSON Schema) complica streaming incremental (validação só é possível com o JSON completo); com a extensão em uso real, latência ainda não apareceu como problema.
 
 ## Embeddings
 Referência: guia "Vector embeddings" da OpenAI (cópia recebida em 2026-09-13).
@@ -148,3 +154,4 @@ A tabela `feriados` é sincronizada da planilha "Calendário Infnet — Feriados
 | Estouro de custo | Medição por chamada, alertas 80/100%, cache e debounce |
 | Projeto Supabase Free pausado por inatividade | Uso diário no piloto; migrar para Pro se necessário |
 | Preço/cotação desatualizados | `precos_modelo` e `cotacao_usd_brl` editáveis pelo admin; conferência mensal com o painel da OpenAI |
+| Dado de teste/placeholder aparecendo numa conversa real | Fontes de teste marcadas com `sources.categoria` distinto (nunca visível ao LLM) para rastreio; ainda assim, um caso real apareceu numa conversa de teste do Raphael no HubSpot (2026-09-14) com preço hipotético calculado corretamente sobre um dado falso — reforça que dado de preço só pode ser tratado como confiável depois de vir de `facts`, populado pela planilha oficial (ver dívida do RF07 acima) |
