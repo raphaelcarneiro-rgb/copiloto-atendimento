@@ -84,6 +84,192 @@
     "contem": "pergunta"
   },
   {
+    "id": "curso-05",
+    "pergunta": "quando começa o MBA de engenharia de cibersegurança",
+    "categoria_esperada": "calendario_cursos",
+    "contem": "Cibersegurança"
+  },
+  {
+    "id": "curso-06",
+    "pergunta": "a Infnet tem curso de jogos digitais?",
+    "categoria_esperada": "calendario_cursos",
+    "contem": "Jogos Digitais"
+  },
+  {
+    "id": "curso-07",
+    "pergunta": "qual o horário do MBA de engenharia de cloud computing",
+    "categoria_esperada": "calendario_cursos",
+    "contem": "Cloud Computing"
+  },
+  {
+    "id": "curso-08",
+    "pergunta": "quando inicia o MBA de engenharia de software com .NET",
+    "categoria_esperada": "calendario_cursos",
+    "contem": ".NET"
+  },
+  {
+    "id": "curso-09",
+    "pergunta": "curso de marketing digital, quando começa a turma",
+    "categoria_esperada": "calendario_cursos",
+    "contem": "Marketing"
+  },
+  {
+    "id": "curso-10",
+    "pergunta": "MBA de engenharia de redes de computadores, qual a data de início",
+    "categoria_esperada": "calendario_cursos",
+    "contem": "Redes de Computadores"
+  },
+  {
+    "id": "curso-11",
+    "pergunta": "faculdade de segurança da informação, qual o horário das aulas",
+    "categoria_esperada": "calendario_cursos",
+    "contem": "Segurança da Informação"
+  },
+  {
+    "id": "curso-12",
+    "pergunta": "MBA de engenharia de produtos digitais com IA, quando começa",
+    "categoria_esperada": "calendario_cursos",
+    "contem": "Produtos Digitais"
+  },
+  {
+    "id": "curso-13",
+    "pergunta": "curso de design gráfico, qual o horário",
+    "categoria_esperada": "calendario_cursos",
+    "contem": "Design Gráfico"
+  },
+  {
+    "id": "curso-14",
+    "pergunta": "MBA de engenharia de banco de dados e data warehouse, data de início",
+    "categoria_esperada": "calendario_cursos",
+    "contem": "Data Warehouse"
+  },
+  {
+    "id": "convenio-04",
+    "pergunta": "a IBM Brasil tem convênio com a Infnet?",
+    "categoria_esperada": "convenio",
+    "contem": "IBM Brasil"
+  },
+  {
+    "id": "convenio-05",
+    "pergunta": "qual o nível de convênio da Stefanini",
+    "categoria_esperada": "convenio",
+    "contem": "Stefanini"
+  },
+  {
+    "id": "convenio-06",
+    "pergunta": "a Fiocruz é conveniada com a Infnet?",
+    "categoria_esperada": "convenio",
+    "contem": "Fiocruz"
+  },
+  {
+    "id": "convenio-07",
+    "pergunta": "colaborador da Michelin tem desconto na Infnet?",
+    "categoria_esperada": "convenio",
+    "contem": "Michelin"
+  },
+  {
+    "id": "convenio-08",
+    "pergunta": "a Nokia tem convênio corporativo com a Infnet",
+    "categoria_esperada": "convenio",
+    "contem": "Nokia"
+  },
+  {
+    "id": "convenio-09",
+    "pergunta": "funcionário da TV Record tem desconto no MBA",
+    "categoria_esperada": "convenio",
+    "contem": "TV Record"
+  },
+  {
+    "id": "convenio-10",
+    "pergunta": "a empresa Casa Magalhães tem convênio ativo",
+    "categoria_esperada": "convenio",
+    "contem": "Casa Magalhães"
+  },
+  {
+    "id": "convenio-11",
+    "pergunta": "a Care Plus é conveniada com a Infnet?",
+    "categoria_esperada": "convenio",
+    "contem": "Care Plus"
+  },
+  {
+    "id": "convenio-12",
+    "pergunta": "colaborador da Eletronuclear tem direito a desconto",
+    "categoria_esperada": "convenio",
+    "contem": "Eletronuclear"
+  },
+  {
+    "id": "convenio-13",
+    "pergunta": "a Malwee tem convênio com a Infnet",
+    "categoria_esperada": "convenio",
+    "contem": "Malwee"
+  },
+  {
+    "id": "convenio-14",
+    "pergunta": "qual o nível de convênio da Sotreq",
+    "categoria_esperada": "convenio",
+    "contem": "Sotreq"
+  },
+  {
+    "id": "convenio-15",
+    "pergunta": "a Agibank tem convênio corporativo ativo",
+    "categoria_esperada": "convenio",
+    "contem": "Agibank"
+  },
+  {
+    "id": "feriado-04",
+    "pergunta": "são sebastião é feriado municipal no Rio?",
+    "categoria_esperada": "feriados",
+    "contem": "São Sebastião"
+  },
+  {
+    "id": "feriado-05",
+    "pergunta": "sexta-feira santa conta como folga no calendário da Infnet",
+    "categoria_esperada": "feriados",
+    "contem": "Sexta-feira Santa"
+  },
+  {
+    "id": "feriado-06",
+    "pergunta": "tiradentes é feriado nacional",
+    "categoria_esperada": "feriados",
+    "contem": "Tiradentes"
+  },
+  {
+    "id": "feriado-07",
+    "pergunta": "quando é o feriado da independência do Brasil",
+    "categoria_esperada": "feriados",
+    "contem": "Independência"
+  },
+  {
+    "id": "feriado-08",
+    "pergunta": "são jorge é feriado estadual no Rio de Janeiro",
+    "categoria_esperada": "feriados",
+    "contem": "São Jorge"
+  },
+  {
+    "id": "playbook-05",
+    "pergunta": "o lead respondeu o template do WhatsApp depois de 24h, o que fazer na reconexão",
+    "categoria_esperada": "playbook",
+    "contem": "reconexão"
+  },
+  {
+    "id": "playbook-06",
+    "pergunta": "quais informações preciso apresentar quando o lead pergunta o preço do curso",
+    "categoria_esperada": "playbook",
+    "contem": "cupom promocional"
+  },
+  {
+    "id": "playbook-07",
+    "pergunta": "o lead disse que vai pensar com calma, como fazer o follow-up",
+    "categoria_esperada": "playbook",
+    "contem": "próximo passo"
+  },
+  {
+    "id": "playbook-08",
+    "pergunta": "como responder quando o lead diz que o valor está acima do que ele buscava",
+    "categoria_esperada": "playbook",
+    "contem": "valor está acima"
+  },
+  {
     "id": "negativo-01",
     "pergunta": "qual a capital da França",
     "categoria_esperada": null,
@@ -92,6 +278,18 @@
   {
     "id": "negativo-02",
     "pergunta": "receita de bolo de chocolate",
+    "categoria_esperada": null,
+    "esperar_baixa_similaridade": true
+  },
+  {
+    "id": "negativo-03",
+    "pergunta": "qual a previsão do tempo para amanhã no Rio de Janeiro",
+    "categoria_esperada": null,
+    "esperar_baixa_similaridade": true
+  },
+  {
+    "id": "negativo-04",
+    "pergunta": "quem ganhou a copa do mundo de 2022",
     "categoria_esperada": null,
     "esperar_baixa_similaridade": true
   }

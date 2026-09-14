@@ -1,14 +1,14 @@
 {
-  "executado_em": "2026-09-14T00:41:45.249Z",
-  "acertos": 16,
-  "total": 16,
+  "executado_em": "2026-09-14T06:25:45.991Z",
+  "acertos": 42,
+  "total": 49,
   "resultados": [
     {
       "id": "curso-01",
       "pergunta": "quando começa o MBA de engenharia de dados",
       "ok": true,
-      "motivo": "ok (posição 1/8, sim_top1=0.699)",
-      "similaridade_top1": 0.699022268548915
+      "motivo": "ok (posição 1/8, sim_top1=0.581)",
+      "similaridade_top1": 0.580726498438501
     },
     {
       "id": "curso-02",
@@ -28,29 +28,29 @@
       "id": "curso-04",
       "pergunta": "curso de inteligência artificial e automação de processos, quando começa",
       "ok": true,
-      "motivo": "ok (posição 1/8, sim_top1=0.667)",
-      "similaridade_top1": 0.666594164590365
+      "motivo": "ok (posição 3/8, sim_top1=0.623)",
+      "similaridade_top1": 0.622868752359645
     },
     {
       "id": "convenio-01",
       "pergunta": "a empresa Nubank tem convênio com a Infnet?",
       "ok": true,
-      "motivo": "ok (posição 3/8, sim_top1=0.559)",
-      "similaridade_top1": 0.559211002400485
+      "motivo": "ok (posição 6/8, sim_top1=0.623)",
+      "similaridade_top1": 0.622820473519904
     },
     {
       "id": "convenio-02",
       "pergunta": "qual o nível de convênio da Totvs",
       "ok": true,
-      "motivo": "ok (posição 1/8, sim_top1=0.596)",
-      "similaridade_top1": 0.596007552534656
+      "motivo": "ok (posição 1/8, sim_top1=0.601)",
+      "similaridade_top1": 0.601142420491436
     },
     {
       "id": "convenio-03",
       "pergunta": "até quando vale o convênio da RD Station",
       "ok": true,
-      "motivo": "ok (posição 1/8, sim_top1=0.544)",
-      "similaridade_top1": 0.543954929415496
+      "motivo": "ok (posição 1/8, sim_top1=0.550)",
+      "similaridade_top1": 0.549776470314937
     },
     {
       "id": "feriado-01",
@@ -85,7 +85,7 @@
       "pergunta": "como tratar objeção de preço do lead",
       "ok": true,
       "motivo": "ok (posição 1/8, sim_top1=0.600)",
-      "similaridade_top1": 0.599675043527336
+      "similaridade_top1": 0.599714873321427
     },
     {
       "id": "playbook-03",
@@ -102,11 +102,228 @@
       "similaridade_top1": 0.610940480150174
     },
     {
+      "id": "curso-05",
+      "pergunta": "quando começa o MBA de engenharia de cibersegurança",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.656)",
+      "similaridade_top1": 0.656262107997087
+    },
+    {
+      "id": "curso-06",
+      "pergunta": "a Infnet tem curso de jogos digitais?",
+      "ok": false,
+      "motivo": "não encontrado contendo \"Jogos Digitais\" com categoria=\"calendario_cursos\" em nenhum dos 8 resultados",
+      "similaridade_top1": 0.639758807630696
+    },
+    {
+      "id": "curso-07",
+      "pergunta": "qual o horário do MBA de engenharia de cloud computing",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.787)",
+      "similaridade_top1": 0.786798164223187
+    },
+    {
+      "id": "curso-08",
+      "pergunta": "quando inicia o MBA de engenharia de software com .NET",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.557)",
+      "similaridade_top1": 0.556741496736894
+    },
+    {
+      "id": "curso-09",
+      "pergunta": "curso de marketing digital, quando começa a turma",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.653)",
+      "similaridade_top1": 0.652977382068744
+    },
+    {
+      "id": "curso-10",
+      "pergunta": "MBA de engenharia de redes de computadores, qual a data de início",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.705)",
+      "similaridade_top1": 0.704656510223259
+    },
+    {
+      "id": "curso-11",
+      "pergunta": "faculdade de segurança da informação, qual o horário das aulas",
+      "ok": false,
+      "motivo": "não encontrado contendo \"Segurança da Informação\" com categoria=\"calendario_cursos\" em nenhum dos 8 resultados",
+      "similaridade_top1": 0.584068772825483
+    },
+    {
+      "id": "curso-12",
+      "pergunta": "MBA de engenharia de produtos digitais com IA, quando começa",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.738)",
+      "similaridade_top1": 0.738270372377893
+    },
+    {
+      "id": "curso-13",
+      "pergunta": "curso de design gráfico, qual o horário",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.708)",
+      "similaridade_top1": 0.707774507448255
+    },
+    {
+      "id": "curso-14",
+      "pergunta": "MBA de engenharia de banco de dados e data warehouse, data de início",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.744)",
+      "similaridade_top1": 0.744338590551224
+    },
+    {
+      "id": "convenio-04",
+      "pergunta": "a IBM Brasil tem convênio com a Infnet?",
+      "ok": false,
+      "motivo": "não encontrado contendo \"IBM Brasil\" com categoria=\"convenio\" em nenhum dos 8 resultados",
+      "similaridade_top1": 0.631848720999747
+    },
+    {
+      "id": "convenio-05",
+      "pergunta": "qual o nível de convênio da Stefanini",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.575)",
+      "similaridade_top1": 0.575041447480695
+    },
+    {
+      "id": "convenio-06",
+      "pergunta": "a Fiocruz é conveniada com a Infnet?",
+      "ok": false,
+      "motivo": "não encontrado contendo \"Fiocruz\" com categoria=\"convenio\" em nenhum dos 8 resultados",
+      "similaridade_top1": 0.604710892145685
+    },
+    {
+      "id": "convenio-07",
+      "pergunta": "colaborador da Michelin tem desconto na Infnet?",
+      "ok": true,
+      "motivo": "ok (posição 2/8, sim_top1=0.538)",
+      "similaridade_top1": 0.538448259826752
+    },
+    {
+      "id": "convenio-08",
+      "pergunta": "a Nokia tem convênio corporativo com a Infnet",
+      "ok": true,
+      "motivo": "ok (posição 5/8, sim_top1=0.618)",
+      "similaridade_top1": 0.61840986655615
+    },
+    {
+      "id": "convenio-09",
+      "pergunta": "funcionário da TV Record tem desconto no MBA",
+      "ok": false,
+      "motivo": "não encontrado contendo \"TV Record\" com categoria=\"convenio\" em nenhum dos 8 resultados",
+      "similaridade_top1": 0.511353244639555
+    },
+    {
+      "id": "convenio-10",
+      "pergunta": "a empresa Casa Magalhães tem convênio ativo",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.636)",
+      "similaridade_top1": 0.635861359657756
+    },
+    {
+      "id": "convenio-11",
+      "pergunta": "a Care Plus é conveniada com a Infnet?",
+      "ok": false,
+      "motivo": "não encontrado contendo \"Care Plus\" com categoria=\"convenio\" em nenhum dos 8 resultados",
+      "similaridade_top1": 0.616717589420791
+    },
+    {
+      "id": "convenio-12",
+      "pergunta": "colaborador da Eletronuclear tem direito a desconto",
+      "ok": true,
+      "motivo": "ok (posição 2/8, sim_top1=0.494)",
+      "similaridade_top1": 0.493647563678845
+    },
+    {
+      "id": "convenio-13",
+      "pergunta": "a Malwee tem convênio com a Infnet",
+      "ok": false,
+      "motivo": "não encontrado contendo \"Malwee\" com categoria=\"convenio\" em nenhum dos 8 resultados",
+      "similaridade_top1": 0.534983331362032
+    },
+    {
+      "id": "convenio-14",
+      "pergunta": "qual o nível de convênio da Sotreq",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.563)",
+      "similaridade_top1": 0.562602366058897
+    },
+    {
+      "id": "convenio-15",
+      "pergunta": "a Agibank tem convênio corporativo ativo",
+      "ok": true,
+      "motivo": "ok (posição 4/8, sim_top1=0.555)",
+      "similaridade_top1": 0.554784639745949
+    },
+    {
+      "id": "feriado-04",
+      "pergunta": "são sebastião é feriado municipal no Rio?",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.532)",
+      "similaridade_top1": 0.531637446099238
+    },
+    {
+      "id": "feriado-05",
+      "pergunta": "sexta-feira santa conta como folga no calendário da Infnet",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.607)",
+      "similaridade_top1": 0.606851530638656
+    },
+    {
+      "id": "feriado-06",
+      "pergunta": "tiradentes é feriado nacional",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.578)",
+      "similaridade_top1": 0.578200076206945
+    },
+    {
+      "id": "feriado-07",
+      "pergunta": "quando é o feriado da independência do Brasil",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.610)",
+      "similaridade_top1": 0.609534730826292
+    },
+    {
+      "id": "feriado-08",
+      "pergunta": "são jorge é feriado estadual no Rio de Janeiro",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.488)",
+      "similaridade_top1": 0.488430926066636
+    },
+    {
+      "id": "playbook-05",
+      "pergunta": "o lead respondeu o template do WhatsApp depois de 24h, o que fazer na reconexão",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.566)",
+      "similaridade_top1": 0.565936074523217
+    },
+    {
+      "id": "playbook-06",
+      "pergunta": "quais informações preciso apresentar quando o lead pergunta o preço do curso",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.618)",
+      "similaridade_top1": 0.618153671738979
+    },
+    {
+      "id": "playbook-07",
+      "pergunta": "o lead disse que vai pensar com calma, como fazer o follow-up",
+      "ok": true,
+      "motivo": "ok (posição 2/8, sim_top1=0.538)",
+      "similaridade_top1": 0.537657680572572
+    },
+    {
+      "id": "playbook-08",
+      "pergunta": "como responder quando o lead diz que o valor está acima do que ele buscava",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.566)",
+      "similaridade_top1": 0.566070419759874
+    },
+    {
       "id": "negativo-01",
       "pergunta": "qual a capital da França",
       "ok": true,
-      "motivo": "similaridade do topo: 0.216 (esperado baixa)",
-      "similaridade_top1": 0.215515383798951
+      "motivo": "similaridade do topo: 0.217 (esperado baixa)",
+      "similaridade_top1": 0.217220381294367
     },
     {
       "id": "negativo-02",
@@ -114,6 +331,20 @@
       "ok": true,
       "motivo": "similaridade do topo: 0.228 (esperado baixa)",
       "similaridade_top1": 0.227897309328042
+    },
+    {
+      "id": "negativo-03",
+      "pergunta": "qual a previsão do tempo para amanhã no Rio de Janeiro",
+      "ok": true,
+      "motivo": "similaridade do topo: 0.352 (esperado baixa)",
+      "similaridade_top1": 0.352069071624874
+    },
+    {
+      "id": "negativo-04",
+      "pergunta": "quem ganhou a copa do mundo de 2022",
+      "ok": true,
+      "motivo": "similaridade do topo: 0.274 (esperado baixa)",
+      "similaridade_top1": 0.27354374928022
     }
   ]
 }
