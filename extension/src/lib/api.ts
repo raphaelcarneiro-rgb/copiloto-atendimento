@@ -75,6 +75,19 @@ export function suggest(
   });
 }
 
+export interface Notificacao {
+  gap_id: string;
+  pergunta_mascarada: string;
+  resolvido_em: string | null;
+  resposta: string | null;
+}
+
+/** RF20: lacunas que o usuário logado perguntou e que já viraram FAQ. Sem sessão, nem chama (401 certo). */
+export async function listarNotificacoes(): Promise<Notificacao[]> {
+  const { notificacoes } = await callFunction<{ notificacoes: Notificacao[] }>("notificacoes", { method: "GET" });
+  return notificacoes;
+}
+
 export function enviarFeedback(params: {
   usageLogId: number;
   aceita?: boolean;

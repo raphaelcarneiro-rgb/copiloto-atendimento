@@ -2,7 +2,7 @@
 // copiloto — US3). O copiloto nunca envia nada sozinho: só sugere, o
 // atendente decide copiar ou inserir (constitution §2).
 import { getConfigCached, versaoMenorQue } from "../lib/config-cache";
-import { ask, enviarFeedback, suggest } from "../lib/api";
+import { ask, enviarFeedback, listarNotificacoes, suggest } from "../lib/api";
 import type { AskResponse, SuggestResponse } from "../lib/api";
 import { hashThreadId } from "../lib/hash";
 import { maskPII } from "../lib/pii";
@@ -33,6 +33,8 @@ const askEnviarEl = document.getElementById("ask-enviar") as HTMLButtonElement;
 const suggestStatusEl = document.getElementById("suggest-status")!;
 const suggestResultadoEl = document.getElementById("suggest-resultado")!;
 const authAreaEl = document.getElementById("auth-area")!;
+const secaoNotificacoesEl = document.getElementById("secao-notificacoes")!;
+const notificacoesEl = document.getElementById("notificacoes")!;
 const banner24hEl = document.getElementById("banner-24h")!;
 const secaoJanelas24hEl = document.getElementById("secao-janelas-24h")!;
 const janelas24hEl = document.getElementById("janelas-24h")!;
@@ -148,6 +150,70 @@ async function renderAuthArea() {
 }
 
 renderAuthArea();
+
+// --- Notificações de FAQ aprovada (RF20) --------------------------------
+// Só faz sentido logado (a Edge Function precisa saber quem é "você" pra
+// filtrar as lacunas que VOCÊ perguntou). "Vistas" fica local — mais
+// simples que sincronizar timestamp de leitura com o servidor.
+const NOTIFICACOES_VISTAS_KEY = "notificacoes_vistas";
+
+async function marcarComoVista(gapId: string) {
+  const { [NOTIFICACOES_VISTAS_KEY]: vistas } = (await chrome.storage.local.get(NOTIFICACOES_VISTAS_KEY)) as {
+    [NOTIFICACOES_VISTAS_KEY]?: string[];
+  };
+  await chrome.storage.local.set({ [NOTIFICACOES_VISTAS_KEY]: [...(vistas ?? []), gapId] });
+}
+
+async function atualizarNotificacoes() {
+  const sessao = await getSessao();
+  if (!sessao) {
+    secaoNotificacoesEl.hidden = true;
+    return;
+  }
+
+  let lista;
+  try {
+    lista = await listarNotificacoes();
+  } catch (err) {
+    console.error("listarNotificacoes() falhou:", err);
+    return;
+  }
+
+  const { [NOTIFICACOES_VISTAS_KEY]: vistas } = (await chrome.storage.local.get(NOTIFICACOES_VISTAS_KEY)) as {
+    [NOTIFICACOES_VISTAS_KEY]?: string[];
+  };
+  const vistasSet = new Set(vistas ?? []);
+  const pendentes = lista.filter((n) => !vistasSet.has(n.gap_id));
+
+  if (pendentes.length === 0) {
+    secaoNotificacoesEl.hidden = true;
+    return;
+  }
+  secaoNotificacoesEl.hidden = false;
+  notificacoesEl.innerHTML = "";
+  for (const n of pendentes) {
+    const item = document.createElement("div");
+    item.className = "notificacao-item";
+    const texto = document.createElement("p");
+    const forte = document.createElement("strong");
+    forte.textContent = "Sua dúvida agora tem resposta: ";
+    texto.appendChild(forte);
+    texto.appendChild(document.createTextNode(`"${n.pergunta_mascarada}"${n.resposta ? ` — ${n.resposta}` : ""}`));
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = "Entendi";
+    btn.onclick = async () => {
+      await marcarComoVista(n.gap_id);
+      item.remove();
+      if (!notificacoesEl.children.length) secaoNotificacoesEl.hidden = true;
+    };
+    item.append(texto, btn);
+    notificacoesEl.appendChild(item);
+  }
+}
+
+atualizarNotificacoes();
+setInterval(atualizarNotificacoes, 30_000);
 
 async function abaAtivaId(): Promise<number | null> {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });

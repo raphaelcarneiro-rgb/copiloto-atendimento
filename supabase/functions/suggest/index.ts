@@ -21,6 +21,7 @@ import { chatJSON, embedTexts } from "../_shared/openai.ts";
 import { maskPII } from "../_shared/pii.ts";
 import { jsonComCors, respondCorsPreflight } from "../_shared/cors.ts";
 import { registrarLacuna } from "../_shared/lacunas.ts";
+import { resolverChamador } from "../_shared/auth_context.ts";
 
 interface MensagemEntrada {
   autor: "lead" | "atendente";
@@ -169,6 +170,9 @@ Deno.serve(async (req: Request) => {
   const textoNaoRespondido = mensagensNaoRespondidas.map((m) => m.texto).join(" \n ");
 
   const db = createServiceClient();
+  // RF20: opcional — sem login (ainda comum) continua funcionando normal,
+  // só sem ficar registrado pra receber aviso de FAQ aprovada.
+  const chamador = await resolverChamador(db, req);
 
   try {
     const [limiarRelevancia, limiarDedup, modelos, playbookResult] = await Promise.all([
@@ -304,13 +308,14 @@ Deno.serve(async (req: Request) => {
     let lacunaRegistrada = false;
     for (const lacuna of resultado.lacunas) {
       const { embeddings: lacunaEmbeddings } = await embedTexts([lacuna]);
-      const r = await registrarLacuna(db, lacuna, lacunaEmbeddings[0], limiarDedup);
+      const r = await registrarLacuna(db, lacuna, lacunaEmbeddings[0], limiarDedup, chamador?.userId ?? null);
       if (r.registrada) lacunaRegistrada = true;
     }
 
     const usageLogId = await logUsage(db, {
       tipoChamada: "suggest",
       modelo: modelos.chat,
+      userId: chamador?.userId ?? null,
       tokensEntrada: tokensPromptChat + tokensEmbeddingPergunta,
       tokensSaida: tokensCompletion,
       tokensCache,

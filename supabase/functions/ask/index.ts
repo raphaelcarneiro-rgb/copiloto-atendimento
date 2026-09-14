@@ -12,6 +12,7 @@ import { chatJSON, embedTexts } from "../_shared/openai.ts";
 import { maskPII } from "../_shared/pii.ts";
 import { jsonComCors, respondCorsPreflight } from "../_shared/cors.ts";
 import { registrarLacuna } from "../_shared/lacunas.ts";
+import { resolverChamador } from "../_shared/auth_context.ts";
 
 // Maior que o antigo padrão (8): os evals da etapa 10 (2026-09-14)
 // mostraram que perguntas sobre uma empresa de convênio específica às
@@ -89,6 +90,9 @@ Deno.serve(async (req: Request) => {
   const pergunta = maskPII(perguntaOriginal);
 
   const db = createServiceClient();
+  // RF20: opcional — quem não fez login (ainda comum) continua funcionando
+  // normalmente, só sem ficar registrado pra receber aviso de FAQ aprovada.
+  const chamador = await resolverChamador(db, req);
 
   try {
     const [limiarRelevancia, limiarDedup, modelos] = await Promise.all([
@@ -154,7 +158,7 @@ Deno.serve(async (req: Request) => {
     // RF15/RF16
     let lacunaRegistrada = false;
     if (!resultado.encontrado) {
-      const r = await registrarLacuna(db, pergunta, perguntaEmbedding, limiarDedup);
+      const r = await registrarLacuna(db, pergunta, perguntaEmbedding, limiarDedup, chamador?.userId ?? null);
       lacunaRegistrada = r.registrada;
     }
 
@@ -165,6 +169,7 @@ Deno.serve(async (req: Request) => {
       tokensSaida: tokensCompletion,
       tokensCache,
       threadHash: body.thread_hash ?? null,
+      userId: chamador?.userId ?? null,
     });
 
     // Trecho completo, não truncado: um chunk pode agrupar várias empresas/
