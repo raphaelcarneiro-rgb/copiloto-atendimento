@@ -17,6 +17,24 @@ header h1 {
   font-size: 15px;
   margin: 0;
 }
+.auth-area {
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+.auth-area button {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: 1px solid #cbd6e2;
+  background: #f5f8fa;
+  cursor: pointer;
+}
+.auth-email {
+  color: #516f90;
+}
 .thread-id {
   font-size: 11px;
   color: #7c98b6;

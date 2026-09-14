@@ -5,13 +5,21 @@
 // e-mail e grava em `cost_alerts` pra nunca mandar o mesmo alerta duas
 // vezes no mesmo mês.
 //
-// Envio de e-mail via Resend (precisa da secret RESEND_API_KEY, que este
-// projeto ainda NÃO tem configurada até onde eu sei — não posso confirmar
-// nem fabricar isso). Sem a secret, a função ainda registra o alerta em
-// `cost_alerts` (pra não perder o gatilho) mas não envia e-mail nenhum —
-// só loga um aviso. Isso precisa ser resolvido com uma chave de API real.
+// Envio de e-mail via Gmail, reaproveitando a MESMA conta de serviço com
+// domain-wide delegation já usada pra ler Google Sheets/Drive (ver
+// _shared/google_auth.ts) — impersona GOOGLE_IMPERSONATED_USER e manda o
+// e-mail em nome dele via Gmail API. Precisa que um admin do Workspace:
+//   1. habilite a Gmail API no mesmo projeto do Google Cloud da conta de
+//      serviço já existente;
+//   2. adicione o escopo gmail.send à delegação em todo o domínio dessa
+//      conta de serviço (Admin Console → Segurança → Controle de dados e
+//      acesso → Delegação em todo o domínio, mesmo Client ID já autorizado
+//      pra Sheets, só adicionar o escopo).
+// Sem isso, a função ainda registra o alerta em `cost_alerts` (não perde o
+// gatilho) mas não envia e-mail — só loga o erro do Gmail.
 
 import { createServiceClient, getConfig } from "../_shared/db.ts";
+import { getGoogleAccessToken, SCOPE_GMAIL_SEND } from "../_shared/google_auth.ts";
 import { jsonComCors, respondCorsPreflight } from "../_shared/cors.ts";
 
 type Db = ReturnType<typeof createServiceClient>;
@@ -27,22 +35,42 @@ interface CustoMensalRow {
   projecao_mes_brl: number;
 }
 
+function base64UrlEncodeUtf8(input: string): string {
+  const bytes = new TextEncoder().encode(input);
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
 async function enviarEmail(destinatario: string, assunto: string, corpo: string): Promise<{ enviado: boolean; motivo?: string }> {
-  const apiKey = Deno.env.get("RESEND_API_KEY");
-  if (!apiKey) {
-    console.warn("cost-alert: RESEND_API_KEY ausente — alerta registrado mas e-mail NÃO enviado.");
-    return { enviado: false, motivo: "RESEND_API_KEY não configurada (Secret da Edge Function)" };
+  let token: string;
+  try {
+    token = await getGoogleAccessToken([SCOPE_GMAIL_SEND]);
+  } catch (err) {
+    const mensagem = err instanceof Error ? err.message : String(err);
+    console.warn(`cost-alert: não consegui obter token do Gmail — alerta registrado mas e-mail NÃO enviado (${mensagem}).`);
+    return { enviado: false, motivo: mensagem };
   }
-  const remetente = Deno.env.get("RESEND_FROM") ?? "onboarding@resend.dev";
-  const res = await fetch("https://api.resend.com/emails", {
+
+  // Assunto com caracteres não-ASCII precisa de encoded-word (RFC 2047).
+  const assuntoCodificado = `=?UTF-8?B?${btoa(unescape(encodeURIComponent(assunto)))}?=`;
+  const mime = [
+    `To: ${destinatario}`,
+    `Subject: ${assuntoCodificado}`,
+    "Content-Type: text/plain; charset=UTF-8",
+    "",
+    corpo,
+  ].join("\r\n");
+
+  const res = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", {
     method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: remetente, to: [destinatario], subject: assunto, text: corpo }),
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ raw: base64UrlEncodeUtf8(mime) }),
   });
   if (!res.ok) {
     const texto = await res.text();
     console.error(`cost-alert: envio de e-mail falhou (${res.status}): ${texto}`);
-    return { enviado: false, motivo: `Resend respondeu ${res.status}` };
+    return { enviado: false, motivo: `Gmail respondeu ${res.status}: ${texto.slice(0, 200)}` };
   }
   return { enviado: true };
 }

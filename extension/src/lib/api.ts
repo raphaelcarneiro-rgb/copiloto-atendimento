@@ -1,16 +1,16 @@
 // Cliente das Edge Functions do Supabase. A anon key é pública por design do
 // Supabase (equivalente a uma chave de projeto, não a um segredo — o mesmo
 // valor já é usado pelo job pg_cron); a autorização de verdade vem do RLS e
-// do JWT do usuário logado, que é anexado aqui quando existir.
+// do JWT do usuário logado, que é anexado aqui quando existir (RF09).
 import type { ConfigRemota, MensagemExtraida } from "./types";
+import { SUPABASE_ANON_KEY, SUPABASE_URL } from "./supabase-config";
+import { getSessao } from "./auth";
 
-const SUPABASE_URL = "https://trtmyuqatmhvikfbqmkv.supabase.co";
-const SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRydG15dXFhdG1odmlrZmJxbWt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzMzA0NTUsImV4cCI6MjEwNDkwNjQ1NX0.A1Wj9uzSgYxngeFBXAa-mtP9Xx4QMwl1r2a0F8VjiLU";
+export { SUPABASE_URL, SUPABASE_ANON_KEY };
 
 async function getUserJwt(): Promise<string | null> {
-  const { supabase_session } = await chrome.storage.local.get("supabase_session");
-  return supabase_session?.access_token ?? null;
+  const sessao = await getSessao();
+  return sessao?.access_token ?? null;
 }
 
 async function callFunction<T>(path: string, init?: RequestInit): Promise<T> {

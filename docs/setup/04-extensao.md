@@ -69,11 +69,9 @@ preencher isso com o time — sem precisar chutar nada.
 
 ## Login (OAuth da extensão)
 
-`chrome.identity.launchWebAuthFlow` ainda não foi ligado ao Supabase Auth
-nesta etapa — a extensão hoje chama as Edge Functions com a anon key pública
-(mesma usada pelo `pg_cron`) quando não há sessão. Antes de ligar o login de
-verdade, é preciso cadastrar a URL de redirect da extensão
-(`https://<ID-DA-EXTENSAO>.chromiumapp.org/`) em Supabase → Authentication →
-URL Configuration → Redirect URLs. O ID da extensão só existe depois de
-carregá-la pela primeira vez (`chrome://extensions`) — por isso isso ficou
-para depois de o Raphael carregar o build local.
+Implementado em `src/lib/auth.ts` (`chrome.identity.launchWebAuthFlow` contra
+o Supabase Auth). Falta só configuração externa (Google Cloud Console +
+Supabase Dashboard) — ver [05-login-google.md](05-login-google.md) para o
+passo a passo completo, incluindo o ID da extensão já calculado
+(`jjmgolbihcfannlmalhmklmfcpoeahcm`, determinístico a partir da `key` fixa
+do manifest — não precisa carregar a extensão pra descobrir).

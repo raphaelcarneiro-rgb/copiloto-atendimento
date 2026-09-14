@@ -8,6 +8,7 @@ import { hashThreadId } from "../lib/hash";
 import { maskPII } from "../lib/pii";
 import { extrairThreadId } from "../content/parse-conversa";
 import { listarJanelasExpirando } from "../background/window-guard";
+import { getSessao, login, logout } from "../lib/auth";
 import type {
   ConversaExtraida,
   InserirTextoRequest,
@@ -31,6 +32,7 @@ const askInputEl = document.getElementById("ask-input") as HTMLTextAreaElement;
 const askEnviarEl = document.getElementById("ask-enviar") as HTMLButtonElement;
 const suggestStatusEl = document.getElementById("suggest-status")!;
 const suggestResultadoEl = document.getElementById("suggest-resultado")!;
+const authAreaEl = document.getElementById("auth-area")!;
 const banner24hEl = document.getElementById("banner-24h")!;
 const secaoJanelas24hEl = document.getElementById("secao-janelas-24h")!;
 const janelas24hEl = document.getElementById("janelas-24h")!;
@@ -88,6 +90,50 @@ async function checarVersao() {
 }
 
 checarVersao();
+
+// --- Login (RF09) ------------------------------------------------------
+// Enquanto o provedor Google não estiver configurado no Supabase Auth, a
+// extensão continua funcionando sem login (anon key pública) — ver
+// docs/setup/04-extensao.md. Fazer login passa a anexar o JWT do usuário
+// nas chamadas (api.ts), o que habilita RLS por papel real no backend.
+
+async function renderAuthArea() {
+  const sessao = await getSessao();
+  authAreaEl.innerHTML = "";
+  if (sessao) {
+    const email = document.createElement("span");
+    email.className = "auth-email";
+    email.textContent = sessao.usuario.email;
+    const btnSair = document.createElement("button");
+    btnSair.type = "button";
+    btnSair.textContent = "Sair";
+    btnSair.onclick = async () => {
+      await logout();
+      renderAuthArea();
+    };
+    authAreaEl.append(email, btnSair);
+  } else {
+    const btnEntrar = document.createElement("button");
+    btnEntrar.type = "button";
+    btnEntrar.textContent = "Entrar com Google";
+    btnEntrar.onclick = async () => {
+      btnEntrar.disabled = true;
+      btnEntrar.textContent = "Entrando…";
+      try {
+        await login();
+        renderAuthArea();
+      } catch (err) {
+        btnEntrar.disabled = false;
+        btnEntrar.textContent = "Entrar com Google";
+        console.error("login() falhou:", err);
+        alert(`Não consegui entrar: ${err instanceof Error ? err.message : err}`);
+      }
+    };
+    authAreaEl.append(btnEntrar);
+  }
+}
+
+renderAuthArea();
 
 async function abaAtivaId(): Promise<number | null> {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });

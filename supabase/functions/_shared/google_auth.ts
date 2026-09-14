@@ -111,3 +111,12 @@ export async function getGoogleAccessToken(scopes: string[]): Promise<string> {
 
 export const SCOPE_SHEETS_READONLY = "https://www.googleapis.com/auth/spreadsheets.readonly";
 export const SCOPE_DRIVE_READONLY = "https://www.googleapis.com/auth/drive.readonly";
+// Envio de e-mail do cost-alert (RF21) via Gmail, impersonando
+// GOOGLE_IMPERSONATED_USER (raphael.carneiro@infnet.edu.br) — reaproveita a
+// mesma conta de serviço com domain-wide delegation já usada pra Sheets/Drive,
+// em vez de depender de um provedor de e-mail terceiro (Resend etc.).
+// Precisa que um admin do Workspace adicione este escopo à delegação em
+// todo o domínio dessa conta de serviço (Admin Console → Segurança →
+// Controle de dados e acesso → Delegação em todo o domínio) e habilite a
+// Gmail API no mesmo projeto do Google Cloud.
+export const SCOPE_GMAIL_SEND = "https://www.googleapis.com/auth/gmail.send";
