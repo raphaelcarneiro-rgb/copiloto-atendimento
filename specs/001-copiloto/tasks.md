@@ -160,8 +160,12 @@ Requisitos: RF09, RF21 (estrutura), RF22 (config), constitution §4, §9.
 - [x] `limiar_relevancia` (0,32) confirmado seguro com a amostra maior: perguntas relevantes tiveram similaridade mínima 0,412, fora do domínio no máximo 0,352 — separação clara, threshold sugerido pelo script (0,382) ficaria ainda mais folgado, mas não há necessidade de mudar agora.
 - **Não fiz (e não dá pra automatizar):** o piloto real de "2 atendentes por 1 semana" com o Raphael como curador exige pessoas de verdade usando o sistema ao longo de dias — isso não é algo que eu possa executar sozinho de madrugada. Fica como o próximo passo humano depois que a planilha de preços real chegar.
 
-## Etapa 11 — Distribuição
-- [ ] Script de build/zip; pasta no Drive; manual de instalação e uso
+## Etapa 11 — Distribuição ✅ (parcial) fechada em 2026-09-14 (madrugada, sessão autônoma)
+- [x] `npm run build` gera `extension/dist`; empacotado como `copiloto-infnet-v0.1.0.zip` (versão lida do `manifest.json`).
+- [x] Manual de instalação e uso: `docs/manual/README.md` no repo, e a mesma versão como Google Doc na pasta de distribuição.
+- [x] Pasta "Copiloto Infnet — Distribuição" criada no Google Drive do Raphael; `config.link_pasta_drive` atualizado com o link real (estava vazio).
+- **Zip não subiu pro Drive automaticamente:** tentei subir o binário direto (base64 de ~19 mil caracteres) e a primeira tentativa corrompeu (erro "not a valid base64 string") — um caractere errado no meio de um blob desse tamanho quebra o arquivo inteiro. Em vez de arriscar deixar um zip corrompido em produção, mandei o zip direto pelo chat (`SendUserFile`) — é só arrastar pra pasta do Drive.
+- [x] `npm run package` (novo script): builda e gera o zip com o nome versionado automaticamente — testado, gera `copiloto-infnet-v0.1.0.zip`.
 
 ## Dependências externas
 - [~] Material comercial: roteiro por etapa, objeções, planilhas de preço/convênio (Raphael)

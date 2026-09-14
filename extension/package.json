@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "test": "vitest run"
+    "test": "vitest run",
+    "package": "npm run build && powershell -NoProfile -Command \"$v=(Get-Content manifest.json|ConvertFrom-Json).version; $z=\\\"copiloto-infnet-v$v.zip\\\"; if (Test-Path $z) { Remove-Item $z }; Compress-Archive -Path dist/* -DestinationPath $z; Write-Host \\\"Gerado $z\\\"\""
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "^2.0.0",
