@@ -132,30 +132,68 @@ Deno.serve(async (req: Request) => {
       getConfig(db, "modelos") as Promise<{ chat: string }>,
     ]);
 
-    // Achado real testando: usar só a última mensagem do lead na busca
-    // falha quando o assunto (ex.: nome do curso) foi mencionado numa
-    // mensagem anterior — "quando começa a turma?" sozinho não recupera
-    // nada. Por isso a consulta usa as últimas mensagens da conversa, não
-    // só a mais recente (o prompt do LLM já mostra a conversa inteira de
-    // qualquer forma).
+    // Busca em duas versões, sempre as duas, e depois JUNTA os resultados
+    // (não escolhe uma) — três achados reais, cada um invalidando a
+    // correção anterior:
+    // 1) só a última mensagem falha quando o assunto (ex.: nome do curso)
+    //    foi mencionado numa mensagem anterior ("quando começa a turma?"
+    //    sozinho não recupera nada com similaridade boa) → precisa do
+    //    contexto mais amplo.
+    // 2) incluir mensagens anteriores por padrão falha quando elas são
+    //    sobre OUTRO assunto — uma pergunta autossuficiente sobre desconto
+    //    de convênio não foi encontrada porque a janela de contexto vinha
+    //    carregada com uma troca anterior sobre data de turma de um curso
+    //    diferente, que diluiu o embedding → precisa da busca estreita.
+    // 3) "tenta as duas, fica com a que tiver maior similaridade no topo"
+    //    (a correção anterior) ainda falhava: a busca ampla, diluída,
+    //    pontuou 0.63 num chunk ERRADO (curso de Java), enquanto a busca
+    //    estreita tinha o chunk CERTO (convênio da Theós) mas só a 0.48 —
+    //    escolher "a lista toda com maior nota no topo" descartava o chunk
+    //    certo mesmo ele estando disponível. A correção real é não
+    //    escolher uma lista inteira: junta as duas (união, maior
+    //    similaridade por chunk_id) e deixa o LLM (com RF06 validando
+    //    depois) decidir o que usar dentre os candidatos das duas buscas.
+    let tokensEmbeddingPergunta = 0;
+
+    async function buscar(consultaTexto: string) {
+      const { embeddings, promptTokens } = await embedTexts([consultaTexto]);
+      tokensEmbeddingPergunta += promptTokens;
+      const { data, error } = await db.rpc("match_chunks", {
+        query_embedding: embeddings[0],
+        query_text: consultaTexto,
+        match_count: body.match_count ?? 8,
+        filtro: {},
+      });
+      if (error) throw new Error(`match_chunks falhou: ${error.message}`);
+      return (data ?? []) as ChunkResultado[];
+    }
+
     const JANELA_CONTEXTO = 6;
     const contextoRecente = mensagens
       .slice(-JANELA_CONTEXTO)
       .map((m) => m.texto)
       .join(" \n ");
 
-    const { embeddings, promptTokens: tokensEmbeddingPergunta } = await embedTexts([contextoRecente]);
-    const consultaEmbedding = embeddings[0];
+    const [chunksEstreita, chunksAmpla] =
+      contextoRecente === ultimaDoLead.texto
+        ? [await buscar(ultimaDoLead.texto), []]
+        : await Promise.all([buscar(ultimaDoLead.texto), buscar(contextoRecente)]);
 
-    const { data: chunksData, error: matchErr } = await db.rpc("match_chunks", {
-      query_embedding: consultaEmbedding,
-      query_text: contextoRecente,
-      match_count: body.match_count ?? 8,
-      filtro: {},
-    });
-    if (matchErr) throw new Error(`match_chunks falhou: ${matchErr.message}`);
+    // Pega o topo de CADA busca antes de juntar — não junta tudo e trunca
+    // pela nota geral. Achado real: a busca ampla pontua mais alto em geral
+    // (frase mais longa tende a ter cosseno maior contra qualquer chunk
+    // razoavelmente parecido), então um corte único pelas 8 melhores da
+    // união inteira deixava as 8 vagas todas para a busca ampla — e o chunk
+    // certo, que só a busca estreita achou (nota mais baixa, mas era o
+    // certo), ficava de fora.
+    const METADE = Math.ceil((body.match_count ?? 8) / 2);
+    const melhorPorChunk = new Map<number, ChunkResultado>();
+    for (const c of [...chunksEstreita.slice(0, METADE), ...chunksAmpla.slice(0, METADE)]) {
+      const atual = melhorPorChunk.get(c.chunk_id);
+      if (!atual || c.similaridade > atual.similaridade) melhorPorChunk.set(c.chunk_id, c);
+    }
+    const chunks = [...melhorPorChunk.values()].sort((a, b) => b.similaridade - a.similaridade);
 
-    const chunks = (chunksData ?? []) as ChunkResultado[];
     const idsRecuperados = new Set(chunks.map((c) => c.chunk_id));
     const melhorSimilaridade = chunks[0]?.similaridade ?? 0;
 
