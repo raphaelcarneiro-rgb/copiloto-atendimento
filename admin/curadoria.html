@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Curadoria — Copiloto Infnet</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { font-family: -apple-system, "Segoe UI", sans-serif; background: #f5f8fa; color: #33475b; margin: 0; padding: 24px; }
+      h1 { font-size: 20px; margin: 0 0 4px; }
+      .aviso { background: #fef3c7; color: #92400e; padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 20px; }
+      .card { background: #fff; border: 1px solid #dfe3eb; border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+      .card.destaque { border-color: #e5484d; box-shadow: 0 0 0 1px #e5484d33; }
+      .pergunta { font-size: 14px; font-weight: 600; margin: 0 0 6px; }
+      .meta { font-size: 11px; color: #7c98b6; margin-bottom: 10px; }
+      .proposta { background: #f5f8fa; border-radius: 6px; padding: 8px 10px; font-size: 12px; margin-bottom: 6px; }
+      .acoes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+      textarea, input { width: 100%; font-family: inherit; font-size: 12px; padding: 6px 8px; border: 1px solid #cbd6e2; border-radius: 6px; margin-bottom: 6px; }
+      button { font-size: 12px; padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd6e2; background: #f5f8fa; cursor: pointer; }
+      button.primario { background: #00a4bd; color: #fff; border: none; }
+      button.perigo { background: #fde2e2; color: #9b2c2c; border: none; }
+      .status { font-size: 11px; color: #7c98b6; margin-left: 6px; }
+      #vazio { color: #7c98b6; font-size: 13px; }
+      details { margin-top: 8px; }
+      details summary { cursor: pointer; font-size: 12px; color: #0091ae; }
+    </style>
+  </head>
+  <body>
+    <h1>Curadoria de lacunas — Copiloto Infnet</h1>
+    <div class="aviso">
+      ⚠️ Página sem login real ainda (RF09 pendente). Protegida só por não ser divulgada — não compartilhe o link/arquivo.
+      Use apenas você, Raphael, até o login estar pronto.
+    </div>
+    <div id="lista">Carregando…</div>
+
+    <script>
+      const SUPABASE_URL = "https://trtmyuqatmhvikfbqmkv.supabase.co";
+      const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRydG15dXFhdG1odmlrZmJxbWt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzMzA0NTUsImV4cCI6MjEwNDkwNjQ1NX0.A1Wj9uzSgYxngeFBXAa-mtP9Xx4QMwl1r2a0F8VjiLU";
+
+      async function chamarGaps(init) {
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/gaps`, {
+          ...init,
+          headers: {
+            "Content-Type": "application/json",
+            apikey: ANON_KEY,
+            Authorization: `Bearer ${ANON_KEY}`,
+            ...(init && init.headers),
+          },
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || `erro ${res.status}`);
+        return data;
+      }
+
+      function el(tag, props, ...filhos) {
+        const e = document.createElement(tag);
+        Object.assign(e, props || {});
+        for (const f of filhos) e.append(f);
+        return e;
+      }
+
+      async function carregar() {
+        const listaEl = document.getElementById("lista");
+        listaEl.textContent = "Carregando…";
+        try {
+          const { fila } = await chamarGaps({ method: "GET" });
+          renderFila(fila);
+        } catch (err) {
+          listaEl.textContent = `Erro ao carregar: ${err.message}`;
+        }
+      }
+
+      function renderFila(fila) {
+        const listaEl = document.getElementById("lista");
+        listaEl.innerHTML = "";
+        if (fila.length === 0) {
+          listaEl.append(el("p", { id: "vazio", textContent: "Nenhuma lacuna aberta. 🎉" }));
+          return;
+        }
+        for (const gap of fila) {
+          listaEl.append(renderCard(gap));
+        }
+      }
+
+      function renderCard(gap) {
+        const card = el("div", { className: "card" + (gap.destaque ? " destaque" : "") });
+        card.append(el("p", { className: "pergunta", textContent: gap.pergunta_mascarada }));
+        card.append(
+          el("p", {
+            className: "meta",
+            textContent: `Perguntada ${gap.contagem}x — primeira vez ${new Date(gap.primeira_vez).toLocaleString("pt-BR")}, última ${new Date(gap.ultima_vez).toLocaleString("pt-BR")}`,
+          }),
+        );
+
+        if (gap.propostas.length > 0) {
+          const det = el("details", {}, el("summary", { textContent: `${gap.propostas.length} proposta(s) de atendente` }));
+          for (const p of gap.propostas) {
+            det.append(el("div", { className: "proposta", textContent: `"${p.resposta_mascarada}"${p.fonte_url ? " — fonte: " + p.fonte_url : ""}` }));
+          }
+          card.append(det);
+        }
+
+        const respostaInput = el("textarea", { rows: 2, placeholder: "Resposta pra virar FAQ (sem preço/data — isso é bloqueado)" });
+        const perguntaInput = el("input", { type: "text", placeholder: "Pergunta (como o lead perguntaria)", value: gap.pergunta_mascarada });
+        card.append(perguntaInput, respostaInput);
+
+        const statusEl = el("span", { className: "status" });
+
+        const btnAprovar = el("button", { className: "primario", textContent: "Aprovar como FAQ" });
+        btnAprovar.onclick = async () => {
+          if (!respostaInput.value.trim()) { statusEl.textContent = "Escreva uma resposta primeiro."; return; }
+          btnAprovar.disabled = true;
+          try {
+            await chamarGaps({
+              method: "POST",
+              body: JSON.stringify({ acao: "aprovar", gap_id: gap.id, pergunta: perguntaInput.value, resposta: respostaInput.value }),
+            });
+            statusEl.textContent = "Aprovada! Lembre de incluir em evals/perguntas.json.";
+            card.remove();
+          } catch (err) {
+            statusEl.textContent = `Erro: ${err.message}`;
+            btnAprovar.disabled = false;
+          }
+        };
+
+        const btnJaExistia = el("button", { textContent: "Já existia na fonte" });
+        btnJaExistia.onclick = () => classificarRapido(gap.id, "ja_existia", statusEl, card);
+
+        const btnAtualizarFonte = el("button", { textContent: "Precisa atualizar fonte oficial" });
+        btnAtualizarFonte.onclick = () => classificarRapido(gap.id, "atualizar_fonte", statusEl, card);
+
+        const btnDescartar = el("button", { className: "perigo", textContent: "Descartar" });
+        btnDescartar.onclick = () => classificarRapido(gap.id, "descartada", statusEl, card);
+
+        const acoes = el("div", { className: "acoes" }, btnAprovar, btnJaExistia, btnAtualizarFonte, btnDescartar, statusEl);
+        card.append(acoes);
+        return card;
+      }
+
+      async function classificarRapido(gapId, status, statusEl, card) {
+        try {
+          await chamarGaps({ method: "POST", body: JSON.stringify({ acao: "classificar", gap_id: gapId, status }) });
+          card.remove();
+        } catch (err) {
+          statusEl.textContent = `Erro: ${err.message}`;
+        }
+      }
+
+      carregar();
+    </script>
+  </body>
+</html>
