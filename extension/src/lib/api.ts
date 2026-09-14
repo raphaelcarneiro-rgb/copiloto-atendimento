@@ -34,9 +34,33 @@ export function fetchConfig(): Promise<ConfigRemota> {
   return callFunction<ConfigRemota>("config", { method: "GET" });
 }
 
-export function ask(pergunta: string, threadHash?: string) {
-  return callFunction("ask", {
+export interface AskResponse {
+  resposta: string;
+  encontrado: boolean;
+  confianca: "alta" | "media" | "baixa";
+  fontes: Array<{ chunk_id: number; trecho: string | null }>;
+  lacuna_registrada: boolean;
+  usage_log_id: number | null;
+}
+
+export function ask(pergunta: string, threadHash?: string): Promise<AskResponse> {
+  return callFunction<AskResponse>("ask", {
     method: "POST",
     body: JSON.stringify({ pergunta, thread_hash: threadHash }),
+  });
+}
+
+export function enviarFeedback(params: {
+  usageLogId: number;
+  aceita?: boolean;
+  feedback?: "positivo" | "negativo";
+}): Promise<{ ok: boolean }> {
+  return callFunction("feedback", {
+    method: "POST",
+    body: JSON.stringify({
+      usage_log_id: params.usageLogId,
+      aceita: params.aceita,
+      feedback: params.feedback,
+    }),
   });
 }

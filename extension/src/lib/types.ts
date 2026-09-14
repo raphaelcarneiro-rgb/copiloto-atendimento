@@ -13,8 +13,13 @@ export interface SeletoresMensagens {
   mensagem_hora?: string;
 }
 
+export interface SeletorComposer {
+  /** Selector do campo de resposta (contenteditable) onde inserir texto. */
+  composer_texto: string;
+}
+
 /** `{}` (todas as chaves ausentes) significa "ainda não calibrado" — ver docs/setup/04-extensao.md. */
-export type SeletoresHubspot = Partial<SeletoresMensagens>;
+export type SeletoresHubspot = Partial<SeletoresMensagens> & Partial<SeletorComposer>;
 
 export interface Expediente {
   dias: number[];
@@ -56,3 +61,14 @@ export type MensagemRuntime =
   | { tipo: "seletores-nao-calibrados"; threadId: string }
   | { tipo: "ativacao-mudou"; threadId: string; ativo: boolean }
   | { tipo: "pedir-estado"; threadId: string };
+
+/** Enviada do side panel para o content script da aba ativa do HubSpot (RF: copiar/inserir). */
+export interface InserirTextoRequest {
+  tipo: "inserir-texto";
+  texto: string;
+}
+
+export interface InserirTextoResponse {
+  ok: boolean;
+  motivo?: "composer-nao-calibrado" | "composer-nao-encontrado";
+}

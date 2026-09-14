@@ -39,19 +39,29 @@ export async function logUsage(
     etapa?: string | null;
     aceita?: boolean | null;
   },
-) {
-  const { error } = await db.from("usage_logs").insert({
-    user_id: params.userId ?? null,
-    thread_hash: params.threadHash ?? null,
-    tipo_chamada: params.tipoChamada,
-    modelo: params.modelo,
-    tokens_entrada: params.tokensEntrada,
-    tokens_saida: params.tokensSaida,
-    tokens_cache: params.tokensCache ?? 0,
-    etapa: params.etapa ?? null,
-    aceita: params.aceita ?? null,
-  });
-  if (error) console.error("Falha ao registrar usage_logs:", error.message);
+): Promise<number | null> {
+  // Devolve o id da linha para o chamador poder anexar feedback depois
+  // (etapa 7, RF US5) sem precisar de outra tabela de correlação.
+  const { data, error } = await db
+    .from("usage_logs")
+    .insert({
+      user_id: params.userId ?? null,
+      thread_hash: params.threadHash ?? null,
+      tipo_chamada: params.tipoChamada,
+      modelo: params.modelo,
+      tokens_entrada: params.tokensEntrada,
+      tokens_saida: params.tokensSaida,
+      tokens_cache: params.tokensCache ?? 0,
+      etapa: params.etapa ?? null,
+      aceita: params.aceita ?? null,
+    })
+    .select("id")
+    .single();
+  if (error) {
+    console.error("Falha ao registrar usage_logs:", error.message);
+    return null;
+  }
+  return data.id;
 }
 
 export async function getConfig(

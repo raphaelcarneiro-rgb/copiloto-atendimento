@@ -192,7 +192,7 @@ Deno.serve(async (req: Request) => {
       lacunaRegistrada = r.registrada;
     }
 
-    await logUsage(db, {
+    const usageLogId = await logUsage(db, {
       tipoChamada: "ask",
       modelo: modelos.chat,
       tokensEntrada: tokensPromptChat + tokensEmbeddingPergunta,
@@ -201,9 +201,13 @@ Deno.serve(async (req: Request) => {
       threadHash: body.thread_hash ?? null,
     });
 
+    // Trecho completo, não truncado: um chunk pode agrupar várias empresas/
+    // cursos (ex.: convênios, 20 por chunk) e um corte fixo em N caracteres
+    // quase sempre mostra a linha errada para quem está tentando verificar a
+    // citação — indo contra o próprio motivo de existir o campo `fontes`.
     const fontesDetalhadas = resultado.fontes.map((id) => {
       const c = chunks.find((ch) => ch.chunk_id === id);
-      return { chunk_id: id, trecho: c?.conteudo?.slice(0, 200) ?? null };
+      return { chunk_id: id, trecho: c?.conteudo ?? null };
     });
 
     return jsonComCors({
@@ -212,6 +216,7 @@ Deno.serve(async (req: Request) => {
       confianca: resultado.confianca,
       fontes: fontesDetalhadas,
       lacuna_registrada: lacunaRegistrada,
+      usage_log_id: usageLogId,
     });
   } catch (err) {
     const mensagem = err instanceof Error ? err.message : String(err);

@@ -21,7 +21,23 @@
       para começar.
     </div>
 
-    <main id="conversa" class="conversa"></main>
+    <section>
+      <h2 class="section-title">Conversa extraída</h2>
+      <div id="conversa" class="conversa"></div>
+    </section>
+
+    <section>
+      <h2 class="section-title">Perguntar ao copiloto</h2>
+      <div id="ask-historico" class="ask-historico"></div>
+      <form id="ask-form" class="ask-form">
+        <textarea
+          id="ask-input"
+          rows="2"
+          placeholder="Ex.: tem desconto para convênio Clinicorp?"
+        ></textarea>
+        <button id="ask-enviar" type="submit">Perguntar</button>
+      </form>
+    </section>
 
     <script type="module" src="main.ts"></script>
   </body>

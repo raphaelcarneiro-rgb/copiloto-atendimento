@@ -4,7 +4,14 @@
 import { getConfigCached, seletoresCalibrados } from "../lib/config-cache";
 import { maskPII } from "../lib/pii";
 import { extrairConversa, extrairThreadId } from "./parse-conversa";
-import type { AtivacaoState, ConversaExtraida, MensagemRuntime } from "../lib/types";
+import { inserirNoComposer } from "./composer";
+import type {
+  AtivacaoState,
+  ConversaExtraida,
+  InserirTextoRequest,
+  InserirTextoResponse,
+  MensagemRuntime,
+} from "../lib/types";
 
 const BOTAO_ID = "copiloto-ativar-btn";
 let observer: MutationObserver | null = null;
@@ -121,7 +128,16 @@ function observarContainer(threadId: string) {
     if (!container) return;
 
     observer = new MutationObserver(() => processarConversaComDebounce(threadId));
-    observer.observe(container, { childList: true, subtree: true });
+    // A lista de mensagens é virtualizada e recicla os mesmos nós de DOM ao
+    // invés de sempre inserir/remover (achado real testando com o Raphael:
+    // uma mensagem nova do lead não disparava childList). Por isso observa
+    // também mudança de texto (characterData) e atributos, não só filhos.
+    observer.observe(container, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+      attributes: true,
+    });
   });
 }
 
@@ -167,8 +183,21 @@ new MutationObserver(() => verificarUrl()).observe(document.body, {
 });
 verificarUrl();
 
-chrome.runtime.onMessage.addListener((msg: MensagemRuntime) => {
-  if (msg.tipo === "pedir-estado" && threadIdAtual) {
-    processarConversa(threadIdAtual);
-  }
-});
+chrome.runtime.onMessage.addListener(
+  (
+    msg: MensagemRuntime | InserirTextoRequest,
+    _sender,
+    sendResponse: (resposta: InserirTextoResponse) => void,
+  ) => {
+    if (msg.tipo === "pedir-estado" && threadIdAtual) {
+      processarConversa(threadIdAtual);
+      return;
+    }
+    if (msg.tipo === "inserir-texto") {
+      getConfigCached().then((config) => {
+        sendResponse(inserirNoComposer(msg.texto, config.seletores_hubspot));
+      });
+      return true; // mantém o canal aberto para a resposta assíncrona
+    }
+  },
+);

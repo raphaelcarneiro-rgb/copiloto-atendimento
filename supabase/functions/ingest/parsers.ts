@@ -83,7 +83,9 @@ export function parseCalendarioCursos(rows: string[][]): CursoRow[] {
 // ---------------------------------------------------------------------------
 // Empresas conveniadas (fonte "convenios")
 // Cabeçalho: Nome da Empresa, Domínio, Nome Alternativo, Nível do Convênio,
-// Data de Início Convênio, Data Final Convênio, Status, Semestre Captação.
+// Data de Início Convênio, Data Final Convênio, Status, Semestre Captação,
+// % Desconto Convênio (adicionada em 2026-09-14 — RF07: desconto é um valor
+// numérico, só pode vir de coluna estruturada, nunca de texto livre).
 // Colunas opcionais nem sempre vêm preenchidas nem na mesma posição relativa
 // quando vazias — por isso o mapeamento é sempre por nome de cabeçalho.
 // ---------------------------------------------------------------------------
@@ -95,6 +97,7 @@ export interface ConvenioRow {
   dataInicio: string;
   dataFim: string;
   status: string;
+  descontoPercentual: string;
 }
 
 function isConvenioHeaderRow(row: string[]): boolean {
@@ -125,6 +128,7 @@ export function parseConvenios(rows: string[][]): ConvenioRow[] {
       dataInicio: cell(row, colIndex, "data de inicio convenio"),
       dataFim: cell(row, colIndex, "data final convenio"),
       status: cell(row, colIndex, "status"),
+      descontoPercentual: cell(row, colIndex, "% desconto convenio"),
     });
   }
 
@@ -135,6 +139,11 @@ export function convenioParaTexto(c: ConvenioRow): string {
   const partes = [`Empresa conveniada: ${c.empresa}.`];
   if (c.dominio) partes.push(`Domínio: ${c.dominio}.`);
   if (c.nivel) partes.push(`Nível do convênio: ${c.nivel}.`);
+  // A célula já pode vir com "%" (ex.: "10%") — tira antes de acrescentar o
+  // nosso, senão dá "10%%." (achado real testando com dado de verdade).
+  if (c.descontoPercentual) {
+    partes.push(`Desconto do convênio: ${c.descontoPercentual.replace(/%\s*$/, "")}%.`);
+  }
   if (c.dataInicio) partes.push(`Convênio vigente desde ${c.dataInicio}.`);
   if (c.dataFim) partes.push(`Válido até ${c.dataFim}.`);
   if (c.status) partes.push(`Status: ${c.status}.`);

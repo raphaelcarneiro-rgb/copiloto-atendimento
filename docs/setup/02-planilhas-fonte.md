@@ -58,3 +58,14 @@ https://docs.google.com/spreadsheets/d/1AbCdEfGhIjKlMnOpQrStUvWxYz/edit
 ```
 
 Quando uma nova planilha for identificada como fonte, avise para que seja cadastrada em `public.sources` (`tipo = 'sheet'`). A sincronização roda a cada 15 minutos depois de cadastrada (RF08).
+
+## Adicionando uma coluna nova numa planilha já cadastrada
+
+O parser (`supabase/functions/ingest/parsers.ts`) só lê as colunas que conhece pelo nome do cabeçalho — uma coluna nova na planilha não aparece na base sozinha, precisa de uma pequena mudança de código:
+
+1. Adicione a coluna na planilha, com um nome de cabeçalho claro (ex.: "% Desconto Convênio").
+2. Avise o nome exato do cabeçalho — o parser normaliza (minúsculas, sem acento) mas precisa saber a chave.
+3. O código é ajustado para ler essa coluna e incluir no texto do chunk (nunca em `facts` para valores que não sejam curso/data — hoje só `calendario_cursos` e `feriados` alimentam `facts`; `convenios` vira só chunk, mas ainda assim é dado estruturado, não texto livre inventado).
+4. Redeploy do `ingest` + forçar uma sincronização (`POST /ingest {"source_id": "..."}`) — do contrário só reflete na próxima edição real da planilha, porque a sincronização normal só reprocessa quando o **conteúdo da planilha** muda, não quando o código muda.
+
+Exemplo real (2026-09-14): coluna "% Desconto Convênio" adicionada à planilha de convênios para o copiloto responder sobre desconto. Achado no caminho: a célula já vinha com "%" na string (ex. "10%"), e o código também acrescentava um — corrigido para não duplicar.

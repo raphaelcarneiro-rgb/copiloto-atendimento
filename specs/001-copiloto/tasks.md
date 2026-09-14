@@ -87,8 +87,24 @@ Requisitos: RF09, RF21 (estrutura), RF22 (config), constitution §4, §9.
 - [ ] `business-hours.ts` + testes (casos da spec, incluindo quarta-feira de cinzas)
 - [ ] `window-guard.ts` com alarms, notificações e badge
 
-## Etapa 7 — Integração
-- [ ] Painel ↔ suggest/ask; copiar/inserir; aviso de 24h; feedback
+## Etapa 7 — Integração ✅ (parcial — aviso de 24h e `suggest` adiados) fechada em 2026-09-14
+- [x] Side panel ↔ `ask`: seção "Perguntar ao copiloto" (US3) — pergunta livre, resposta com badge de confiança, fontes (trecho completo, expansível), aviso de "não encontrado" quando vira lacuna
+- [x] Copiar (clipboard) e Inserir na conversa — seletor real do composer calibrado inspecionando o inbox (`[data-test-id="rte-content"]`, editor ProseMirror); inserção via `execCommand('insertText', ...)` para disparar os eventos que o ProseMirror escuta (setar `.textContent` direto não teria funcionado)
+- [x] Feedback (👍/👎, US5): `ask` agora devolve `usage_log_id`; nova Edge Function `feedback` atualiza `aceita`/`feedback` na mesma linha de `usage_logs` (sem tabela nova)
+- [x] PII mascarada no cliente antes de sair do navegador (`lib/pii.ts`, igual ao backend) e `threadId` hasheado (SHA-256) antes de virar `thread_hash` — nunca manda o id bruto do HubSpot pro backend
+- [x] Testes: 3 novos para `composer.ts` (calibrado/não calibrado/elemento ausente) — 9/9 no total
+- [x] Validado de ponta a ponta na extensão de verdade, carregada no Chrome do Raphael, contra o inbox real: pergunta → resposta com fonte → inserção real no campo do WhatsApp → envio manual pelo Raphael → mensagem chegou ao lead
+
+**5 bugs reais encontrados e corrigidos testando com o Raphael (nenhum foi hipotético — todos só apareceram no uso real):**
+1. Preview de `fontes[].trecho` cortava em 200 caracteres. Um chunk de convênios agrupa até 20 empresas, então a citação quase sempre mostrava a linha de uma empresa diferente da que sustentava a resposta (ex.: pergunta sobre Nubank, trecho mostrado começava com RD Station/Totvs) — não era alucinação (o dado do Nubank realmente estava mais adiante no mesmo chunk), mas quebrava a verificação, que é o motivo do campo `fontes` existir. Corrigido devolvendo o chunk inteiro, sem corte.
+2. Botão "Inserir na conversa" não dava feedback visual claro — o texto pequeno ao lado passava despercebido. Corrigido: o próprio botão muda para "Inserido ✓" e desabilita.
+3. A "Conversa extraída" não atualizava sozinha com mensagens novas do lead. Causa: a lista do HubSpot é virtualizada e **recicla os mesmos nós de DOM** (só troca o texto) em vez de sempre inserir/remover elementos — o `MutationObserver` só escutava `childList`, que não dispara nesse caso. Corrigido observando também `characterData` e `attributes`.
+4. Quando `encontrado: false`, o painel ainda oferecia Copiar/Inserir para o texto de fallback ("não encontrei..."), sugerindo que essa frase fosse uma resposta pronta pra mandar ao lead — contra a intenção do aviso. Corrigido: sem fonte, sem copiar/inserir, só o aviso e o feedback.
+5. Nova coluna "% Desconto Convênio" na planilha de convênios (pedida pelo Raphael para o copiloto responder sobre desconto): a célula já vinha com "%" no valor, e o texto gerado também acrescentava um, dando "10%%." Corrigido removendo o "%" da célula antes de formatar.
+- [ ] Aviso de 24h no painel — **adiado**: depende de `business-hours.ts`/`window-guard.ts` da etapa 6, que ainda não existem. Não dava pra fazer uma versão simplificada sem duplicar essa lógica depois.
+- [~] `suggest` continua adiado (mesmo motivo da etapa 4: precisa do playbook estruturado por etapa)
+
+**Achado de processo (não é bug):** ao recarregar a extensão em `chrome://extensions`, a aba do HubSpot que já estava aberta precisa de F5 completo — senão o content script antigo fica "órfão" e lança "Extension context invalidated" ao tentar usar qualquer API do Chrome.
 
 ## Etapa 8 — Ciclo de aprendizado (RF15–RF20)
 - [ ] Propostas no painel; Edge Function `gaps`; tela de Curadoria; publicação de FAQ; avisos; inclusão em evals
