@@ -50,6 +50,12 @@ interface SugestaoLLM {
   fontes: number[];
 }
 
+// Maior que o padrão do `ask` (8): `suggest` frequentemente precisa de
+// vários fatos ao mesmo tempo (curso + preço + nível de convênio), e cada
+// um desses concorre por vaga nas metades da busca estreita/ampla — achado
+// real testando o cálculo de preço com desconto (etapa 8, 2026-09-14).
+const MATCH_COUNT_PADRAO = 12;
+
 interface SuggestLLMOutput {
   etapa_atual: string;
   sugestoes: SugestaoLLM[];
@@ -187,7 +193,7 @@ Deno.serve(async (req: Request) => {
       const { data, error } = await db.rpc("match_chunks", {
         query_embedding: embeddings[0],
         query_text: consultaTexto,
-        match_count: body.match_count ?? 8,
+        match_count: body.match_count ?? MATCH_COUNT_PADRAO,
         filtro: {},
       });
       if (error) throw new Error(`match_chunks falhou: ${error.message}`);
@@ -206,25 +212,36 @@ Deno.serve(async (req: Request) => {
     // 3) "tenta as duas, fica com a que tiver maior similaridade no topo"
     //    também falhava: a busca ampla, diluída, pode pontuar mais alto num
     //    chunk ERRADO do que a busca estreita pontua no chunk CERTO.
-    // Correção: pega o topo de CADA busca separadamente (metade do
-    // match_count de cada) e junta os candidatos (dedup por chunk_id,
-    // maior similaridade), deixando o LLM e a validação RF06 decidirem.
+    // 4) juntar TODAS as mensagens não respondidas numa única busca "estreita"
+    //    tem o mesmo problema do item 2 quando o lead manda várias mensagens
+    //    seguidas sobre assuntos diferentes (ex.: "Trabalho na Theos" +
+    //    "quanto fica o MBA com desconto") — cada fato precisa da sua própria
+    //    busca, senão o embedding combinado dilui os dois. Achado real
+    //    testando curso+preço+convênio juntos (etapa 8, 2026-09-14).
+    // Correção: busca cada mensagem não respondida individualmente, além do
+    // contexto mais amplo, pega o topo de CADA busca separadamente e junta
+    // os candidatos (dedup por chunk_id, maior similaridade), deixando o LLM
+    // e a validação RF06 decidirem o que é relevante.
     const JANELA_CONTEXTO = 6;
     const contextoRecente = mensagens
       .slice(-JANELA_CONTEXTO)
       .map((m) => m.texto)
       .join(" \n ");
 
-    const [chunksEstreita, chunksAmpla] =
-      contextoRecente === textoNaoRespondido
-        ? [await buscar(textoNaoRespondido), []]
-        : await Promise.all([buscar(textoNaoRespondido), buscar(contextoRecente)]);
+    const consultasIndividuais = [...new Set(mensagensNaoRespondidas.map((m) => m.texto))];
+    const [resultadosIndividuais, chunksAmpla] = await Promise.all([
+      Promise.all(consultasIndividuais.map((texto) => buscar(texto))),
+      contextoRecente === textoNaoRespondido ? Promise.resolve([]) : buscar(contextoRecente),
+    ]);
 
-    const METADE = Math.ceil((body.match_count ?? 8) / 2);
+    const matchCount = body.match_count ?? MATCH_COUNT_PADRAO;
+    const fatiaPorBusca = Math.max(3, Math.ceil(matchCount / (consultasIndividuais.length + 1)));
     const melhorPorChunk = new Map<number, ChunkResultado>();
-    for (const c of [...chunksEstreita.slice(0, METADE), ...chunksAmpla.slice(0, METADE)]) {
-      const atual = melhorPorChunk.get(c.chunk_id);
-      if (!atual || c.similaridade > atual.similaridade) melhorPorChunk.set(c.chunk_id, c);
+    for (const lista of [...resultadosIndividuais, chunksAmpla]) {
+      for (const c of lista.slice(0, fatiaPorBusca)) {
+        const atual = melhorPorChunk.get(c.chunk_id);
+        if (!atual || c.similaridade > atual.similaridade) melhorPorChunk.set(c.chunk_id, c);
+      }
     }
     const chunks = [...melhorPorChunk.values()].sort((a, b) => b.similaridade - a.similaridade);
 
