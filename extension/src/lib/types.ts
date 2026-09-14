@@ -60,7 +60,8 @@ export type MensagemRuntime =
   | { tipo: "conversa-atualizada"; conversa: ConversaExtraida }
   | { tipo: "seletores-nao-calibrados"; threadId: string }
   | { tipo: "ativacao-mudou"; threadId: string; ativo: boolean }
-  | { tipo: "pedir-estado"; threadId: string };
+  | { tipo: "pedir-estado"; threadId: string }
+  | { tipo: "dispensar-lembrete-24h"; threadId: string };
 
 /** Enviada do side panel para o content script da aba ativa do HubSpot (RF: copiar/inserir). */
 export interface InserirTextoRequest {

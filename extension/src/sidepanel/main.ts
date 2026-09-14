@@ -7,6 +7,7 @@ import type { AskResponse, SuggestResponse } from "../lib/api";
 import { hashThreadId } from "../lib/hash";
 import { maskPII } from "../lib/pii";
 import { extrairThreadId } from "../content/parse-conversa";
+import { listarJanelasExpirando } from "../background/window-guard";
 import type {
   ConversaExtraida,
   InserirTextoRequest,
@@ -30,6 +31,9 @@ const askInputEl = document.getElementById("ask-input") as HTMLTextAreaElement;
 const askEnviarEl = document.getElementById("ask-enviar") as HTMLButtonElement;
 const suggestStatusEl = document.getElementById("suggest-status")!;
 const suggestResultadoEl = document.getElementById("suggest-resultado")!;
+const banner24hEl = document.getElementById("banner-24h")!;
+const secaoJanelas24hEl = document.getElementById("secao-janelas-24h")!;
+const janelas24hEl = document.getElementById("janelas-24h")!;
 
 let threadIdAtual: string | null = null;
 let ultimaMensagemSugerida: string | null = null; // dedupe: threadId+texto da última msg do lead já processada
@@ -112,6 +116,63 @@ async function abaAtivaId(): Promise<number | null> {
       // Aba não é do HubSpot ou content script ainda não carregou — sem problema.
     });
 })();
+
+// --- Lembrete de janela de 24h (etapa 6, RF10-RF14) --------------------
+
+function formatarHorario(iso: string): string {
+  return new Date(iso).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+}
+
+async function dispensar24h(threadId: string) {
+  chrome.runtime.sendMessage({ tipo: "dispensar-lembrete-24h", threadId } satisfies MensagemRuntime);
+  await atualizarJanelas24h();
+}
+
+async function atualizarJanelas24h() {
+  const lista = await listarJanelasExpirando();
+  const visiveis = lista.filter((j) => j.deveExibir);
+
+  // Banner específico da conversa aberta agora no painel.
+  const daConversaAtual = threadIdAtual ? visiveis.find((j) => j.threadId === threadIdAtual) : undefined;
+  if (daConversaAtual) {
+    banner24hEl.hidden = false;
+    banner24hEl.innerHTML = "";
+    const texto = document.createElement("span");
+    texto.textContent = `${daConversaAtual.mensagem} (expira ${formatarHorario(daConversaAtual.expiraEm)}, última msg foi do ${daConversaAtual.ultimoAutor === "lead" ? "lead" : "atendente"}). `;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = "Dispensar";
+    btn.onclick = () => dispensar24h(daConversaAtual.threadId);
+    banner24hEl.append(texto, btn);
+  } else {
+    banner24hEl.hidden = true;
+  }
+
+  // Lista geral — todas as conversas ativas com lembrete pendente, mesmo as
+  // que não são a aba aberta agora (US8: gestão de várias conversas).
+  const outras = visiveis;
+  if (outras.length === 0) {
+    secaoJanelas24hEl.hidden = true;
+    return;
+  }
+  secaoJanelas24hEl.hidden = false;
+  janelas24hEl.innerHTML = "";
+  for (const j of outras) {
+    const item = document.createElement("div");
+    item.className = "janela-item";
+    const texto = document.createElement("span");
+    texto.textContent = `Conversa #${j.threadId} — ${j.mensagem} (expira ${formatarHorario(j.expiraEm)})`;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = "Dispensar";
+    btn.onclick = () => dispensar24h(j.threadId);
+    item.append(texto, btn);
+    janelas24hEl.appendChild(item);
+  }
+}
+
+atualizarJanelas24h();
+setInterval(atualizarJanelas24h, 30_000);
 
 // --- Sugestões automáticas (US2) ---------------------------------------
 // Dispara sozinho quando a última mensagem da conversa extraída é do lead

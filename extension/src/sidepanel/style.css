@@ -250,6 +250,42 @@ header h1 {
   font-size: 11px;
   color: #7c98b6;
 }
+.banner-aviso button {
+  margin-left: 6px;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid #cbd6e2;
+  background: #fff;
+  cursor: pointer;
+}
+.janelas-24h {
+  padding: 0 16px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.janela-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #fef3c7;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #92400e;
+}
+.janela-item button {
+  flex-shrink: 0;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid #cbd6e2;
+  background: #fff;
+  cursor: pointer;
+}
+
 .suggest-perguntas button {
   text-align: left;
   font-size: 12px;
