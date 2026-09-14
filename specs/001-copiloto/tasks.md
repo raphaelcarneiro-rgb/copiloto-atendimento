@@ -68,12 +68,18 @@ Requisitos: RF09, RF21 (estrutura), RF22 (config), constitution §4, §9.
 2. **Citação errada mesmo com resposta certa:** o prompt numerava os trechos com `[1] (chunk_id=8) ...`, e o modelo citava o `[1]` (posição) em vez do `chunk_id=8` real — uma citação "válida" (existe no conjunto recuperado) mas que aponta pro trecho errado. RF06 não pega esse caso (só verifica se o ID existe, não se é o certo). Corrigido removendo a numeração dupla do prompt — só o `chunk_id` aparece, sem índice de posição.
 3. **Limiar de dedup de lacunas era severo demais na prática:** duas perguntas com o mesmo sentido ("aceita dogecoin?" / "aceitam pagar com dogecoin?") tiveram só 0,783 de similaridade real — bem abaixo dos 0,90 do seed inicial. Recalibrado para 0,75 com base nesse teste real; revisar com mais dados na etapa 8.
 
-## Etapa 5 — Extensão v0
-- [ ] Vite + TS + MV3 com `key` fixa
-- [ ] Login Google via `launchWebAuthFlow`
-- [ ] Leitor do DOM com seletores remotos + fixture HTML
-- [ ] Botão "Ativar copiloto", side panel mostrando a conversa extraída
-- [ ] Checagem de versão (RF22)
+## Etapa 5 — Extensão v0 ✅ (parcial — login e calibração real adiados) fechada em 2026-09-13
+- [x] `extension/`: Vite + TS + MV3 (`@crxjs/vite-plugin`) com `key` fixa gerada localmente (par RSA real via `node:crypto`, não um valor inventado — chave privada em `extension/dev-key.pem`, fora do bundle)
+- [x] Nova Edge Function `config` (RF22 + apoio a RF10-RF14): devolve `seletores_hubspot`, `expediente`, `lembrete_antecedencia_min`, `versao_minima`/`versao_atual` e feriados dos próximos 12 meses. Testada de verdade contra o projeto.
+- [x] Leitor do DOM (`src/content/hubspot-reader.ts` + `src/content/parse-conversa.ts`): extrai `threadId` da URL (regex, documentado no plan), observa o container de mensagens via `MutationObserver` com debounce de 2s (RF02), só processa se a conversa estiver ativa (RF03), mascara PII antes de repassar ao side panel (RF04)
+- [x] Botão flutuante "Ativar copiloto" — fixo no canto da tela, não depende de nenhum seletor calibrado (mais resiliente que injetar perto de uma barra de ferramentas do HubSpot)
+- [x] Side panel v0 (`src/sidepanel/`): mostra a conversa extraída, aviso "não consegui ler esta conversa" quando os seletores não estão calibrados, aviso de versão abaixo da mínima (RF22)
+- [x] Testes unitários do parser (`vitest` + `jsdom`, 5/5 passando) contra fixture sintética em `extension/fixtures/` — achado real: `querySelector` não pega a classe da própria bolha (`.from-visitor`), só de descendentes; corrigido checando `matches()` também
+- [x] Build de produção validado (`npm run build` → `extension/dist/`, carregável via "Carregar sem compactação")
+- [~] Seletores de produção (`config.seletores_hubspot`) continuam vazios — **nunca chutamos valores**: precisam vir de alguém inspecionando uma conversa real no HubSpot (ver [docs/setup/04-extensao.md](../../docs/setup/04-extensao.md)). Até lá a extensão degrada com aviso, como previsto na constitution §6.
+- [~] Login Google via `launchWebAuthFlow` — implementado o suficiente para funcionar sem sessão (usa a anon key pública, mesma do `pg_cron`), mas a ligação real com Supabase Auth depende de cadastrar a URL de redirect da extensão no dashboard **depois** que ela for carregada pela primeira vez (o ID da extensão só existe nesse momento) — ver docs/setup/04-extensao.md
+
+**Achado de ferramenta (Supabase MCP):** `deploy_edge_function` só resolve `import "../_shared/x.ts"` do entrypoint se o arquivo compartilhado for enviado com o nome `"../_shared/x.ts"` (prefixo `../` literal) — `"_shared/x.ts"` falha silenciosamente com "module not found" mesmo apontando pro mesmo caminho final. Documentado aqui para não perder tempo de novo.
 
 ## Etapa 6 — Lembrete de janela (RF10–RF14)
 - [ ] `business-hours.ts` + testes (casos da spec, incluindo quarta-feira de cinzas)

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Copiloto de Atendimento</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Copiloto de Atendimento</h1>
+      <span id="thread-id" class="thread-id"></span>
+    </header>
+
+    <div id="banner-versao" class="banner banner-erro" hidden></div>
+    <div id="banner-seletores" class="banner banner-aviso" hidden>
+      Não consegui ler esta conversa — os seletores do HubSpot ainda não foram calibrados. Avise o
+      admin.
+    </div>
+    <div id="banner-inativo" class="banner banner-neutro">
+      Copiloto desativado nesta conversa. Clique em "Ativar copiloto" no canto da tela do HubSpot
+      para começar.
+    </div>
+
+    <main id="conversa" class="conversa"></main>
+
+    <script type="module" src="main.ts"></script>
+  </body>
+</html>

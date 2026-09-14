@@ -1,0 +1,68 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font-family: -apple-system, "Segoe UI", sans-serif;
+  font-size: 13px;
+  color: #33475b;
+  background: #f5f8fa;
+}
+header {
+  padding: 12px 16px;
+  background: #fff;
+  border-bottom: 1px solid #dfe3eb;
+}
+header h1 {
+  font-size: 15px;
+  margin: 0;
+}
+.thread-id {
+  font-size: 11px;
+  color: #7c98b6;
+}
+.banner {
+  margin: 10px 16px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+.banner-erro {
+  background: #fde2e2;
+  color: #9b2c2c;
+}
+.banner-aviso {
+  background: #fef3c7;
+  color: #92400e;
+}
+.banner-neutro {
+  background: #e5e9f0;
+  color: #516f90;
+}
+.conversa {
+  padding: 8px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.msg {
+  max-width: 85%;
+  padding: 8px 10px;
+  border-radius: 10px;
+  line-height: 1.4;
+}
+.msg-lead {
+  align-self: flex-start;
+  background: #fff;
+  border: 1px solid #dfe3eb;
+}
+.msg-atendente {
+  align-self: flex-end;
+  background: #cbf4c9;
+}
+.msg-hora {
+  display: block;
+  font-size: 10px;
+  color: #99acc2;
+  margin-top: 2px;
+}

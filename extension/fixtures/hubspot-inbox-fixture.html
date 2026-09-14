@@ -1,0 +1,25 @@
+<!--
+  Fixture SINTÉTICA para testar a lógica de extração (parse-conversa.ts).
+
+  IMPORTANTE: esta estrutura e essas classes (`.thread-messages`, `.msg-bubble`,
+  `.from-visitor`) são inventadas por nós para o teste — NÃO são o HTML real
+  do inbox do HubSpot, que não temos acesso para inspecionar ainda. Os
+  seletores de produção em `config.seletores_hubspot` só devem ser
+  preenchidos depois de alguém inspecionar uma conversa real (ver
+  docs/setup/04-extensao.md). Este fixture só garante que o código que
+  percorre o DOM e monta as mensagens está correto.
+-->
+<div class="thread-messages">
+  <div class="msg-bubble from-visitor">
+    <div class="msg-text">Oi, boa tarde! Queria saber mais sobre a pós de dados.</div>
+    <time class="msg-time" datetime="2026-09-13T14:02:00-03:00">14:02</time>
+  </div>
+  <div class="msg-bubble from-agent">
+    <div class="msg-text">Boa tarde! Claro, posso te ajudar. Você já é graduado em qual área?</div>
+    <time class="msg-time" datetime="2026-09-13T14:03:10-03:00">14:03</time>
+  </div>
+  <div class="msg-bubble from-visitor">
+    <div class="msg-text">Sou formado em administração.</div>
+    <time class="msg-time" datetime="2026-09-13T14:05:00-03:00">14:05</time>
+  </div>
+</div>
