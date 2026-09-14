@@ -64,7 +64,9 @@ export async function getGoogleAccessToken(scopes: string[]): Promise<string> {
   }
 
   const serviceAccount = loadServiceAccount();
-  const impersonatedUser = Deno.env.get("GOOGLE_IMPERSONATED_USER");
+  // .trim() por segurança: um espaço/tab colado ao copiar o valor do Secret
+  // já foi visto causar "Invalid impersonation sub field" no Google.
+  const impersonatedUser = Deno.env.get("GOOGLE_IMPERSONATED_USER")?.trim();
   if (!impersonatedUser) {
     throw new Error("GOOGLE_IMPERSONATED_USER não configurada (Secret da Edge Function).");
   }

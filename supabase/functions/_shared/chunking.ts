@@ -2,7 +2,9 @@
 // plan.md, seção "Backend Supabase — Edge Functions"). Contagem de tokens
 // real via cl100k_base (mesma codificação usada pelos modelos de embedding),
 // conforme o guia de embeddings da OpenAI.
-import { encode } from "npm:gpt-tokenizer@2.9.0/cl100k_base";
+// A codificação padrão do pacote já é cl100k_base (usada por gpt-3.5/4 e
+// pelos modelos de embedding text-embedding-3-*).
+import { encode } from "npm:gpt-tokenizer@2.9.0";
 
 const TARGET_TOKENS = 800;
 const OVERLAP_TOKENS = 100;

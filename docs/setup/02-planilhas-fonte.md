@@ -18,7 +18,9 @@ Configuração feita em 2026-09-13 em **Segurança → Controle de dados e acess
 
 | Nome | ID do cliente | Escopos |
 |---|---|---|
-| Copiloto de Atendimento | `102223072074030067145` | `.../auth/spreadsheets.readonly` |
+| Copiloto de Atendimento | `102223072074030067145` | `.../auth/spreadsheets.readonly`, `.../auth/drive.readonly` |
+
+> O escopo de Drive foi adicionado depois do teste inicial: a leitura do Manual de Boas Práticas (Google Doc, exportado via Drive API) falhava com `unauthorized_client` só com o escopo de planilhas. Os dois escopos ficam na mesma entrada do Client ID, separados por vírgula.
 
 ### O que isso significa na prática
 - **Nenhuma planilha precisa ser compartilhada manualmente** com a conta de serviço.
