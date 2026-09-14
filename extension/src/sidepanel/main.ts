@@ -2,8 +2,8 @@
 // copiloto — US3). O copiloto nunca envia nada sozinho: só sugere, o
 // atendente decide copiar ou inserir (constitution §2).
 import { getConfigCached, versaoMenorQue } from "../lib/config-cache";
-import { ask, enviarFeedback } from "../lib/api";
-import type { AskResponse } from "../lib/api";
+import { ask, enviarFeedback, suggest } from "../lib/api";
+import type { AskResponse, SuggestResponse } from "../lib/api";
 import { hashThreadId } from "../lib/hash";
 import { maskPII } from "../lib/pii";
 import { extrairThreadId } from "../content/parse-conversa";
@@ -13,6 +13,9 @@ import type {
   InserirTextoResponse,
   MensagemRuntime,
 } from "../lib/types";
+
+type Confianca = "alta" | "media" | "baixa";
+type Fontes = Array<{ chunk_id: number; trecho: string | null }>;
 
 const EXTENSAO_VERSAO = chrome.runtime.getManifest().version;
 
@@ -25,8 +28,11 @@ const askHistoricoEl = document.getElementById("ask-historico")!;
 const askFormEl = document.getElementById("ask-form") as HTMLFormElement;
 const askInputEl = document.getElementById("ask-input") as HTMLTextAreaElement;
 const askEnviarEl = document.getElementById("ask-enviar") as HTMLButtonElement;
+const suggestStatusEl = document.getElementById("suggest-status")!;
+const suggestResultadoEl = document.getElementById("suggest-resultado")!;
 
 let threadIdAtual: string | null = null;
+let ultimaMensagemSugerida: string | null = null; // dedupe: threadId+texto da última msg do lead já processada
 
 function renderConversa(conversa: ConversaExtraida) {
   bannerInativoEl.hidden = true;
@@ -48,6 +54,8 @@ function renderConversa(conversa: ConversaExtraida) {
     }
     conversaEl.appendChild(div);
   }
+
+  dispararSuggestSeNecessario(conversa);
 }
 
 function renderSeletoresNaoCalibrados(threadId: string) {
@@ -105,22 +113,138 @@ async function abaAtivaId(): Promise<number | null> {
     });
 })();
 
+// --- Sugestões automáticas (US2) ---------------------------------------
+// Dispara sozinho quando a última mensagem da conversa extraída é do lead
+// (RF02) — o atendente não precisa perguntar nada. Versão v1 sem
+// classificação de etapa do playbook (ver comentário no topo de
+// supabase/functions/suggest/index.ts).
+
+function criarCardAcaoResposta(
+  texto: string,
+  usageLogId: number | null,
+): { el: HTMLElement; statusEl: HTMLElement } {
+  const acoes = document.createElement("div");
+  acoes.className = "ask-acoes";
+
+  const statusEl = document.createElement("span");
+  statusEl.className = "ask-status";
+
+  const btnCopiar = document.createElement("button");
+  btnCopiar.type = "button";
+  btnCopiar.textContent = "Copiar";
+  btnCopiar.onclick = async () => {
+    try {
+      await navigator.clipboard.writeText(texto);
+      btnCopiar.textContent = "Copiado ✓";
+      setTimeout(() => (btnCopiar.textContent = "Copiar"), 2000);
+    } catch {
+      statusEl.textContent = "Não consegui copiar.";
+    }
+  };
+
+  const btnInserir = document.createElement("button");
+  btnInserir.type = "button";
+  btnInserir.textContent = "Inserir na conversa";
+  btnInserir.onclick = () => inserirNaConversa(texto, statusEl, btnInserir);
+
+  acoes.append(btnCopiar, btnInserir, statusEl);
+
+  const wrapper = document.createElement("div");
+  wrapper.appendChild(acoes);
+  wrapper.appendChild(criarBotoesFeedback(usageLogId));
+  return { el: wrapper, statusEl };
+}
+
+function renderSugestoes(resposta: SuggestResponse) {
+  suggestStatusEl.hidden = true;
+  suggestResultadoEl.innerHTML = "";
+
+  if (resposta.sugestoes.length === 0) {
+    const vazio = document.createElement("p");
+    vazio.className = "ask-nao-encontrado";
+    vazio.textContent =
+      resposta.lacunas.length > 0
+        ? "Não encontrei fundamento na base para responder — dúvida registrada para curadoria."
+        : "Nada a sugerir para a última mensagem.";
+    suggestResultadoEl.appendChild(vazio);
+  }
+
+  for (const s of resposta.sugestoes) {
+    const bloco = document.createElement("div");
+    bloco.className = "ask-resposta";
+
+    const texto = document.createElement("p");
+    texto.textContent = s.texto;
+    bloco.appendChild(texto);
+    bloco.appendChild(criarBadgeConfianca(resposta.confianca));
+
+    const fontesEl = criarBlocoFontes(s.fontes);
+    if (fontesEl) bloco.appendChild(fontesEl);
+
+    const { el } = criarCardAcaoResposta(s.texto, resposta.usage_log_id);
+    bloco.appendChild(el);
+    suggestResultadoEl.appendChild(bloco);
+  }
+
+  if (resposta.perguntas_para_lead.length > 0) {
+    const box = document.createElement("div");
+    box.className = "suggest-perguntas";
+    const titulo = document.createElement("p");
+    titulo.className = "suggest-perguntas-titulo";
+    titulo.textContent = "Perguntas de esclarecimento:";
+    box.appendChild(titulo);
+    for (const pergunta of resposta.perguntas_para_lead) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = pergunta;
+      const statusEl = document.createElement("span");
+      statusEl.className = "ask-status";
+      btn.onclick = () => inserirNaConversa(pergunta, statusEl, btn);
+      box.appendChild(btn);
+    }
+    suggestResultadoEl.appendChild(box);
+  }
+}
+
+async function dispararSuggestSeNecessario(conversa: ConversaExtraida) {
+  const ultima = conversa.mensagens[conversa.mensagens.length - 1];
+  if (!ultima || ultima.autor !== "lead") return; // RF02: só reage a mensagem nova do lead
+
+  const chave = `${conversa.threadId}::${ultima.texto}`;
+  if (chave === ultimaMensagemSugerida) return; // já processamos essa mensagem
+  ultimaMensagemSugerida = chave;
+
+  suggestStatusEl.hidden = false;
+  suggestStatusEl.textContent = "Buscando sugestões…";
+  suggestResultadoEl.innerHTML = "";
+
+  try {
+    const threadHash = await hashThreadId(conversa.threadId);
+    const resposta = await suggest(conversa.mensagens, threadHash);
+    renderSugestoes(resposta);
+  } catch (err) {
+    suggestStatusEl.hidden = false;
+    suggestStatusEl.textContent = "Não consegui buscar sugestões agora.";
+    console.error("suggest() falhou:", err);
+  }
+}
+
 // --- Pergunte ao copiloto (US3) ---------------------------------------
 
-const RÓTULOS_CONFIANCA: Record<AskResponse["confianca"], string> = {
+const RÓTULOS_CONFIANCA: Record<Confianca, string> = {
   alta: "confiança alta",
   media: "confiança média",
   baixa: "confiança baixa",
 };
 
-function criarBadgeConfianca(confianca: AskResponse["confianca"]): HTMLElement {
+function criarBadgeConfianca(confianca: Confianca): HTMLElement {
   const span = document.createElement("span");
   span.className = `badge badge-${confianca}`;
   span.textContent = RÓTULOS_CONFIANCA[confianca];
   return span;
 }
 
-function criarBlocoFontes(fontes: AskResponse["fontes"]): HTMLElement | null {
+function criarBlocoFontes(fontes: Fontes): HTMLElement | null {
   if (fontes.length === 0) return null;
   const details = document.createElement("details");
   details.className = "fontes";

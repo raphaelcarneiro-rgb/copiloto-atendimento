@@ -11,8 +11,7 @@ import { createServiceClient, getConfig, logUsage } from "../_shared/db.ts";
 import { chatJSON, embedTexts } from "../_shared/openai.ts";
 import { maskPII } from "../_shared/pii.ts";
 import { jsonComCors, respondCorsPreflight } from "../_shared/cors.ts";
-
-type Db = ReturnType<typeof createServiceClient>;
+import { registrarLacuna } from "../_shared/lacunas.ts";
 
 interface ChunkResultado {
   chunk_id: number;
@@ -61,46 +60,6 @@ function buildUserPrompt(pergunta: string, chunks: ChunkResultado[]): string {
     .map((c) => `--- chunk_id=${c.chunk_id} ---\n${c.conteudo}`)
     .join("\n\n");
   return `Contexto recuperado da base de conhecimento (cite pelo chunk_id exato indicado antes de cada trecho):\n\n${contexto}\n\nPergunta do atendente: ${pergunta}`;
-}
-
-async function registrarLacuna(
-  db: Db,
-  perguntaMascarada: string,
-  embedding: number[],
-  limiarDedup: number,
-): Promise<{ registrada: boolean; gapId: string | null }> {
-  const { data: similar, error: matchErr } = await db.rpc("match_gap_similar", {
-    query_embedding: embedding,
-    limiar: limiarDedup,
-  });
-  if (matchErr) {
-    console.error("match_gap_similar falhou:", matchErr.message);
-    return { registrada: false, gapId: null };
-  }
-
-  if (similar && similar.length > 0) {
-    const gapId = similar[0].id;
-    // Sem função dedicada de incremento atômico: leitura + escrita. O
-    // volume esperado (uma pergunta por vez, via ask) não gera concorrência
-    // real; se isso mudar, trocar por um `update ... set contagem = contagem + 1`.
-    const { data: atual } = await db.from("knowledge_gaps").select("contagem").eq("id", gapId).single();
-    await db
-      .from("knowledge_gaps")
-      .update({ contagem: (atual?.contagem ?? 1) + 1, ultima_vez: new Date().toISOString() })
-      .eq("id", gapId);
-    return { registrada: true, gapId };
-  }
-
-  const { data: novo, error: insErr } = await db
-    .from("knowledge_gaps")
-    .insert({ pergunta_mascarada: perguntaMascarada, embedding })
-    .select("id")
-    .single();
-  if (insErr) {
-    console.error("knowledge_gaps.insert falhou:", insErr.message);
-    return { registrada: false, gapId: null };
-  }
-  return { registrada: true, gapId: novo.id };
 }
 
 Deno.serve(async (req: Request) => {

@@ -103,9 +103,20 @@ Requisitos: RF09, RF21 (estrutura), RF22 (config), constitution §4, §9.
 4. Quando `encontrado: false`, o painel ainda oferecia Copiar/Inserir para o texto de fallback ("não encontrei..."), sugerindo que essa frase fosse uma resposta pronta pra mandar ao lead — contra a intenção do aviso. Corrigido: sem fonte, sem copiar/inserir, só o aviso e o feedback.
 5. Nova coluna "% Desconto Convênio" na planilha de convênios (pedida pelo Raphael para o copiloto responder sobre desconto): a célula já vinha com "%" no valor, e o texto gerado também acrescentava um, dando "10%%." Corrigido removendo o "%" da célula antes de formatar.
 - [ ] Aviso de 24h no painel — **adiado**: depende de `business-hours.ts`/`window-guard.ts` da etapa 6, que ainda não existem. Não dava pra fazer uma versão simplificada sem duplicar essa lógica depois.
-- [~] `suggest` continua adiado (mesmo motivo da etapa 4: precisa do playbook estruturado por etapa)
 
 **Achado de processo (não é bug):** ao recarregar a extensão em `chrome://extensions`, a aba do HubSpot que já estava aberta precisa de F5 completo — senão o content script antigo fica "órfão" e lança "Extension context invalidated" ao tentar usar qualquer API do Chrome.
+
+### `suggest` (US2) — implementado em 2026-09-14, versão v1 sem etapa do playbook
+- [x] Nova Edge Function `suggest`: sugere até 3 respostas para a última mensagem do lead, automaticamente — reaproveita toda a infraestrutura do `ask` (busca híbrida, `chatJSON`, validação de citações RF06, lacunas RF15/RF16, custo RF21). Extraída `registrarLacuna` pra `_shared/lacunas.ts` (agora compartilhada entre `ask` e `suggest` — virou duplicação de verdade, não só parecido)
+- [x] **Deliberadamente sem classificação de etapa do playbook**: o Manual de Boas Práticas só existe como texto corrido (etapa 2), não estruturado por etapa da conversa. `etapa`/`script_etapa` na resposta ficam com um valor fixo (`"nao_classificado"`/`""`) só pra respeitar o formato do `contracts/suggestion.schema.json` — não é uma classificação real
+- [x] Side panel: seção "Sugestões para responder" dispara sozinha quando a conversa extraída termina com mensagem do lead (RF02) — sem precisar digitar pergunta. Mesmas ações de `ask` (copiar, inserir, feedback), mais os campos novos do `suggest`: perguntas de esclarecimento (viram botões de inserção rápida) e lacunas
+- [x] Testado com 3 cenários reais: pergunta cujo assunto (nome do curso) só aparecia numa mensagem anterior da conversa, pergunta totalmente fora da base, e resposta bem-sucedida com 3 sugestões citando fontes reais
+- [!] **Bug real encontrado e corrigido**: a busca usava só o texto da última mensagem do lead, isolada. Numa conversa real ("Vi o MBA em Arquitetura de Software" → "Quando começa a turma e quais matérias tem?"), a segunda mensagem sozinha não tem o nome do curso — a busca não achava nada, e o `suggest` respondia "a base não informa", mesmo a informação estando lá (confirmado com o mesmo `ask` retornando certo). Corrigido: a busca agora usa as últimas 6 mensagens da conversa, não só a mais recente.
+
+**Pendências conhecidas desta v1** (aceitas conscientemente, não são bugs escondidos):
+- Sem classificação de etapa do playbook (ver acima) — bloqueia US1 completo (script da etapa) e `alertas`, que ficam sempre vazios.
+- Dispara a cada mensagem nova do lead, sem checar se a conversa está com o copiloto ativado a partir do side panel isoladamente — na prática já está coberto porque o content script só manda `conversa-atualizada` quando ativo (RF03), mas vale registrar a dependência.
+- Sem limite de taxa: se o lead mandar várias mensagens em sequência rápida, cada uma dispara um `suggest` (custo real, RF21 já registra cada chamada) — o debounce de 2s do content script (RF02) amortiza isso, mas não elimina.
 
 ## Etapa 8 — Ciclo de aprendizado (RF15–RF20)
 - [ ] Propostas no painel; Edge Function `gaps`; tela de Curadoria; publicação de FAQ; avisos; inclusão em evals

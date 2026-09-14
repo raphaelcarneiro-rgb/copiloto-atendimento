@@ -2,7 +2,7 @@
 // Supabase (equivalente a uma chave de projeto, não a um segredo — o mesmo
 // valor já é usado pelo job pg_cron); a autorização de verdade vem do RLS e
 // do JWT do usuário logado, que é anexado aqui quando existir.
-import type { ConfigRemota } from "./types";
+import type { ConfigRemota, MensagemExtraida } from "./types";
 
 const SUPABASE_URL = "https://trtmyuqatmhvikfbqmkv.supabase.co";
 const SUPABASE_ANON_KEY =
@@ -47,6 +47,31 @@ export function ask(pergunta: string, threadHash?: string): Promise<AskResponse>
   return callFunction<AskResponse>("ask", {
     method: "POST",
     body: JSON.stringify({ pergunta, thread_hash: threadHash }),
+  });
+}
+
+export interface SuggestResponse {
+  etapa: string;
+  script_etapa: string;
+  sugestoes: Array<{
+    texto: string;
+    fontes: Array<{ chunk_id: number; trecho: string | null }>;
+  }>;
+  perguntas_para_lead: string[];
+  alertas: string[];
+  lacunas: string[];
+  confianca: "alta" | "media" | "baixa";
+  lacuna_registrada: boolean;
+  usage_log_id: number | null;
+}
+
+export function suggest(
+  mensagens: MensagemExtraida[],
+  threadHash?: string,
+): Promise<SuggestResponse> {
+  return callFunction<SuggestResponse>("suggest", {
+    method: "POST",
+    body: JSON.stringify({ mensagens, thread_hash: threadHash }),
   });
 }
 

@@ -215,3 +215,39 @@ header h1 {
   opacity: 0.6;
   cursor: default;
 }
+
+.suggest-status {
+  margin: 4px 16px 8px;
+  font-size: 11px;
+  color: #7c98b6;
+  font-style: italic;
+}
+.suggest-resultado {
+  padding: 0 16px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.suggest-perguntas {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  background: #fff;
+  border: 1px dashed #cbd6e2;
+  border-radius: 10px;
+}
+.suggest-perguntas-titulo {
+  margin: 0;
+  font-size: 11px;
+  color: #7c98b6;
+}
+.suggest-perguntas button {
+  text-align: left;
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #cbd6e2;
+  background: #f5f8fa;
+  cursor: pointer;
+}
