@@ -108,6 +108,14 @@ Como a [spec](spec.md) será construída. Mudanças de arquitetura atualizam est
 - **`config.limiar_relevancia` = 0.32**, calibrado com `evals/perguntas.json` (16 perguntas-ouro): perguntas relevantes tiveram similaridade top1 entre 0,41 e 0,83; perguntas fora do domínio, entre 0,22 e 0,23.
 - **Evals de recuperação:** `npm run eval` roda `evals/run.mjs`, que chama a função `search` via HTTP para cada pergunta-ouro e verifica se a informação esperada aparece em algum dos top-8 resultados (não só no 1º — é o que o LLM vai ver como contexto).
 
+## Ask (US3) — implementado; Suggest (US2) — adiado
+- **Edge Function `ask`** (`supabase/functions/ask`): recebe `{pergunta, thread_hash?}`, mascara PII, embute a pergunta, chama `match_chunks`, monta um prompt com os trechos numerados **só por `chunk_id`** (sem índice de posição — ver "Achado" abaixo) e chama `chatJSON` com o modelo de `config.modelos.chat`. Valida as citações contra o conjunto recuperado nesta mesma chamada (RF06); se a similaridade do melhor trecho já estiver abaixo de `limiar_relevancia`, nem chama o LLM. Quando não encontra resposta, registra lacuna deduplicada por embedding (RF16, `limiar_dedup`).
+- **Adapter `chatJSON`** (`_shared/openai.ts`): chat completions com `response_format: json_schema, strict: true`. Omite `temperature` quando não informado — `gpt-5.6-luna` só aceita o valor padrão.
+- **Achado (citação errada com resposta certa):** numerar os trechos com dois números juntos (`[1] chunk_id=8`) faz o modelo às vezes citar a posição em vez do chunk_id de verdade — uma citação que "existe" no conjunto recuperado (passa no RF06) mas não é a fonte real da resposta. Corrigido: o prompt usa só `chunk_id=N`, um único número por trecho.
+- **Achado (limiar_dedup):** duas paráfrases reais da mesma pergunta deram 0,783 de similaridade — o valor inicial (0,90) nunca deduplicaria. Recalibrado para 0,75.
+- **`suggest` (US2)** fica para depois das etapas 5/6: precisa de conversas reais da extensão e de um `playbook` estruturado por etapa (hoje só existe o Manual como texto corrido, sem uma tabela `playbook` populada). Toda a infraestrutura de `ask` (busca, chat estruturado, validação de citações, lacunas, custo) é reaproveitada — `suggest` soma a classificação da etapa e o script correspondente.
+- **Streaming:** adiado — sem a extensão para consumir, não há ganho perceptível agora, e resposta estruturada (JSON Schema) complica streaming incremental (validação só é possível com o JSON completo).
+
 ## Embeddings
 Referência: guia "Vector embeddings" da OpenAI (cópia recebida em 2026-09-13).
 - **Modelo:** `text-embedding-3-small`, 1536 dimensões por padrão, igual a `vector(1536)` no banco.

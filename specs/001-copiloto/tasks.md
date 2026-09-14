@@ -54,11 +54,19 @@ Requisitos: RF09, RF21 (estrutura), RF22 (config), constitution §4, §9.
 - [x] Resultado: 16/16 perguntas passaram (checando se a informação aparece em algum dos top-8 resultados, não só no 1º — é isso que a etapa 4 vai mandar como contexto para o LLM)
 - [~] Comparar classificação de etapa por embedding (zero-shot) vs. `gpt-5.6-luna` — **adiado para a etapa 4**: a tabela `playbook` ainda está vazia (o Manual foi ingerido como texto corrido, não estruturado por etapa do funil), então não há "etapas" para classificar ainda. Revisitar quando o playbook por etapa existir.
 
-## Etapa 4 — Suggest / Ask
-- [ ] Adapter OpenAI com uso de tokens
-- [ ] Prompt com prefixo estável, JSON Schema, temperatura baixa
-- [ ] Validação de citações (RF06), registro de lacunas (RF15/RF16)
-- [ ] Streaming e `usage_logs`
+## Etapa 4 — Ask ✅ (parcial — `suggest` adiado) fechada em 2026-09-14
+- [x] Adapter OpenAI de chat com saída estruturada (`_shared/openai.ts::chatJSON`, JSON Schema com `strict: true`)
+- [x] Edge Function `ask` (US3): busca híbrida → `facts` embutidos nos próprios chunks → prompt com contexto numerado por `chunk_id` → LLM (`gpt-5.6-luna`) → validação de citações (RF06) → registro de lacuna deduplicada (RF15/RF16) → `usage_logs` com custo (RF21)
+- [x] `contracts/ask.schema.json`: `{resposta, fontes, encontrado, confianca}`
+- [x] PII mascarado no backend antes de qualquer persistência (`_shared/pii.ts`) — defesa adicional; a extensão (etapa 5) também vai mascarar antes de sair do navegador
+- [x] Validado com 6 cenários reais: pergunta objetiva (calendário), pergunta do playbook, pergunta fora da base (lacuna registrada), dedup de lacunas, PII mascarada antes de salvar
+- [ ] Streaming — **adiado**: resposta estruturada (JSON Schema) hoje é validada de uma vez só; dá pra fazer streaming do texto puro depois com custo de perder a validação incremental. Baixa prioridade sem a extensão (etapa 5) para consumir.
+- [~] `suggest` (US2, auto-sugestão a partir da conversa inteira, com classificação de etapa do playbook) — **adiado para depois da etapa 5/6**: precisa de conversas reais vindas da extensão e de um playbook estruturado por etapa (hoje só existe o Manual como texto corrido). A infraestrutura (`match_chunks`, `chatJSON`, validação de citações, lacunas, custo) já está pronta e será reaproveitada.
+
+**3 bugs reais encontrados e corrigidos testando de ponta a ponta:**
+1. `gpt-5.6-luna` rejeita `temperature` customizada (só aceita o padrão) — corrigido tornando o campo opcional no adapter.
+2. **Citação errada mesmo com resposta certa:** o prompt numerava os trechos com `[1] (chunk_id=8) ...`, e o modelo citava o `[1]` (posição) em vez do `chunk_id=8` real — uma citação "válida" (existe no conjunto recuperado) mas que aponta pro trecho errado. RF06 não pega esse caso (só verifica se o ID existe, não se é o certo). Corrigido removendo a numeração dupla do prompt — só o `chunk_id` aparece, sem índice de posição.
+3. **Limiar de dedup de lacunas era severo demais na prática:** duas perguntas com o mesmo sentido ("aceita dogecoin?" / "aceitam pagar com dogecoin?") tiveram só 0,783 de similaridade real — bem abaixo dos 0,90 do seed inicial. Recalibrado para 0,75 com base nesse teste real; revisar com mais dados na etapa 8.
 
 ## Etapa 5 — Extensão v0
 - [ ] Vite + TS + MV3 com `key` fixa

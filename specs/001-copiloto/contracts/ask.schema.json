@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://copiloto.infnet.edu.br/contracts/ask.schema.json",
+  "title": "Resposta do copiloto a uma pergunta livre (US3, RF05 simplificado)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["resposta", "fontes", "encontrado", "confianca"],
+  "properties": {
+    "resposta": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Resposta direta e fundamentada nos trechos numerados do contexto, ou uma frase dizendo que não foi encontrada na base."
+    },
+    "fontes": {
+      "type": "array",
+      "description": "IDs dos trechos (chunk_id) do contexto realmente usados para montar a resposta. Validados no backend contra os chunks recuperados nesta requisição (RF06).",
+      "items": { "type": "integer" }
+    },
+    "encontrado": {
+      "type": "boolean",
+      "description": "false quando a base de conhecimento não cobre a pergunta (aciona RF15 — vira lacuna)."
+    },
+    "confianca": {
+      "type": "string",
+      "enum": ["alta", "media", "baixa"]
+    }
+  }
+}
