@@ -9,12 +9,17 @@ const FIXTURE_PATH = fileURLToPath(
   new URL("../../fixtures/hubspot-inbox-fixture.html", import.meta.url),
 );
 
+// Seletores reais, calibrados inspecionando o inbox de verdade (ver
+// supabase/migrations/20260914030000_calibra_seletores_hubspot.sql) — não
+// são um chute, e mudar isso aqui sem atualizar a migration destrava a
+// extensão de novo.
 const SELETORES: SeletoresMensagens = {
-  container_mensagens: ".thread-messages",
-  mensagem: ".msg-bubble",
-  mensagem_texto: ".msg-text",
-  mensagem_autor_lead: ".from-visitor",
-  mensagem_hora: ".msg-time",
+  container_mensagens: '[data-test-id="virtualParentRef"]',
+  mensagem:
+    '[data-test-id="primary-message-visitor"], [data-test-id="primary-message-agent"], [data-test-id="primary-message-AUTOMATED"]',
+  mensagem_texto: '[data-test-id="primary-message-content"]',
+  mensagem_autor_lead: '[data-test-id="primary-message-visitor"]',
+  mensagem_hora: '[data-test-id="sender-header-content-timestamp"]',
 };
 
 describe("extrairConversa", () => {
@@ -38,7 +43,7 @@ describe("extrairConversa", () => {
 
   it("ignora bolhas sem texto (ex.: separador de data, indicador 'digitando')", () => {
     const dom = new JSDOM(
-      `<div class="thread-messages"><div class="msg-bubble from-agent"></div></div>`,
+      `<div data-test-id="virtualParentRef"><div data-test-id="primary-message-agent"></div></div>`,
     );
     const container = dom.window.document.querySelector(SELETORES.container_mensagens)!;
     expect(extrairConversa(container, SELETORES)).toEqual([]);
@@ -46,7 +51,7 @@ describe("extrairConversa", () => {
 
   it("funciona sem seletor de hora configurado (opcional)", () => {
     const dom = new JSDOM(
-      `<div class="thread-messages"><div class="msg-bubble from-visitor"><div class="msg-text">oi</div></div></div>`,
+      `<div data-test-id="virtualParentRef"><div data-test-id="primary-message-visitor"><div data-test-id="primary-message-content">oi</div></div></div>`,
     );
     const container = dom.window.document.querySelector(SELETORES.container_mensagens)!;
     const { mensagem_hora: _semHora, ...semHora } = SELETORES;
@@ -59,6 +64,12 @@ describe("extrairThreadId", () => {
     expect(extrairThreadId("https://app.hubspot.com/live-messages/12345/inbox/998877")).toBe(
       "998877",
     );
+  });
+
+  it("ignora o hash de canal (#whatsapp) que a URL real inclui", () => {
+    expect(
+      extrairThreadId("https://app.hubspot.com/live-messages/6010218/inbox/11173394035#whatsapp"),
+    ).toBe("11173394035");
   });
 
   it("retorna null fora de uma conversa do inbox", () => {

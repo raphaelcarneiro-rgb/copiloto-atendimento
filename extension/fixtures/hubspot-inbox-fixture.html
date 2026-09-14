@@ -1,25 +1,31 @@
 <!--
-  Fixture SINTÉTICA para testar a lógica de extração (parse-conversa.ts).
+  Fixture baseada na estrutura REAL do inbox do HubSpot (canal WhatsApp),
+  confirmada inspecionando uma conversa de verdade em 2026-09-14 (ver
+  supabase/migrations/20260914030000_calibra_seletores_hubspot.sql). Os
+  `data-test-id` abaixo são os mesmos usados em produção; o conteúdo das
+  mensagens é fictício (a conversa real inspecionada não entra no repo).
 
-  IMPORTANTE: esta estrutura e essas classes (`.thread-messages`, `.msg-bubble`,
-  `.from-visitor`) são inventadas por nós para o teste — NÃO são o HTML real
-  do inbox do HubSpot, que não temos acesso para inspecionar ainda. Os
-  seletores de produção em `config.seletores_hubspot` só devem ser
-  preenchidos depois de alguém inspecionar uma conversa real (ver
-  docs/setup/04-extensao.md). Este fixture só garante que o código que
-  percorre o DOM e monta as mensagens está correto.
+  HubSpot virtualiza a lista (`virtualParentRef`): só as mensagens perto da
+  área visível ficam no DOM. Este fixture simula uma "janela" já renderizada,
+  não a lista inteira do histórico.
 -->
-<div class="thread-messages">
-  <div class="msg-bubble from-visitor">
-    <div class="msg-text">Oi, boa tarde! Queria saber mais sobre a pós de dados.</div>
-    <time class="msg-time" datetime="2026-09-13T14:02:00-03:00">14:02</time>
+<div data-test-id="virtualParentRef">
+  <div data-test-id="primary-message-visitor">
+    <div data-test-id="primary-message-content-wrapper">
+      <span data-test-id="sender-header-content-timestamp">14:02</span>
+      <div data-test-id="primary-message-content">Oi, boa tarde! Queria saber mais sobre a pós de dados.</div>
+    </div>
   </div>
-  <div class="msg-bubble from-agent">
-    <div class="msg-text">Boa tarde! Claro, posso te ajudar. Você já é graduado em qual área?</div>
-    <time class="msg-time" datetime="2026-09-13T14:03:10-03:00">14:03</time>
+  <div data-test-id="primary-message-agent">
+    <div data-test-id="primary-message-content-wrapper">
+      <span data-test-id="sender-header-content-timestamp">14:03</span>
+      <div data-test-id="primary-message-content">Boa tarde! Claro, posso te ajudar. Você já é graduado em qual área?</div>
+    </div>
   </div>
-  <div class="msg-bubble from-visitor">
-    <div class="msg-text">Sou formado em administração.</div>
-    <time class="msg-time" datetime="2026-09-13T14:05:00-03:00">14:05</time>
+  <div data-test-id="primary-message-visitor">
+    <div data-test-id="primary-message-content-wrapper">
+      <span data-test-id="sender-header-content-timestamp">14:05</span>
+      <div data-test-id="primary-message-content">Sou formado em administração.</div>
+    </div>
   </div>
 </div>
