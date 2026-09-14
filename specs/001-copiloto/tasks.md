@@ -45,11 +45,14 @@ Requisitos: RF09, RF21 (estrutura), RF22 (config), constitution §4, §9.
 - [~] PDF do Storage implementado mas **não testado com arquivo real** (nenhum PDF foi enviado ainda) — validar assim que houver um PDF de verdade para subir ao bucket `fontes-pdf`
 - [ ] Fonte `url` real (institucional) ainda não cadastrada em produção — só testada com uma URL descartável; cadastrar quando houver uma página específica da Infnet que valha a pena indexar
 
-## Etapa 3 — Recuperação
-- [ ] Função SQL `match_chunks` (vetor + FTS + RRF, filtro por metadados)
-- [ ] Calibrar `limiar_relevancia`
-- [ ] Comparar nos evals: classificação de etapa por embedding (zero-shot) vs. `gpt-5.6-luna`
-- [ ] `evals/` com perguntas-ouro e runner
+## Etapa 3 — Recuperação ✅ fechada em 2026-09-14
+- [x] Função SQL `match_chunks` (busca híbrida: vetor pgvector + full-text `tsvector` em português, fundidos por RRF k=60; filtra por fontes ativas e por metadados via contenção jsonb)
+  - Achado de implementação: `set search_path = 'a, b'` **entre aspas** vira um único nome de schema literal, não dois — quebra silenciosamente a resolução de operadores do pgvector. A sintaxe certa é sem aspas: `set search_path = a, b`.
+- [x] Edge Function `search` (`supabase/functions/search`): embute a pergunta e chama `match_chunks` — usada pelos evals hoje, e será a base de `suggest`/`ask` na etapa 4
+- [x] `evals/perguntas.json` (16 perguntas-ouro: 4 calendário, 3 convênios, 3 feriados, 4 playbook, 2 negativas fora do domínio) + `evals/run.mjs` (runner em Node, `npm run eval`)
+- [x] Calibrado `limiar_relevancia` = 0.32 com dados reais: relevantes ficaram em 0.41–0.83 de similaridade; fora do domínio, 0.22–0.23 — boa separação
+- [x] Resultado: 16/16 perguntas passaram (checando se a informação aparece em algum dos top-8 resultados, não só no 1º — é isso que a etapa 4 vai mandar como contexto para o LLM)
+- [~] Comparar classificação de etapa por embedding (zero-shot) vs. `gpt-5.6-luna` — **adiado para a etapa 4**: a tabela `playbook` ainda está vazia (o Manual foi ingerido como texto corrido, não estruturado por etapa do funil), então não há "etapas" para classificar ainda. Revisitar quando o playbook por etapa existir.
 
 ## Etapa 4 — Suggest / Ask
 - [ ] Adapter OpenAI com uso de tokens

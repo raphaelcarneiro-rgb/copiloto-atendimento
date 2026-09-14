@@ -1,0 +1,8 @@
+{
+  "name": "copiloto-atendimento",
+  "private": true,
+  "description": "Copiloto de Atendimento Infnet — specs em /specs, backend em /supabase (Edge Functions Deno), evals em /evals (Node).",
+  "scripts": {
+    "eval": "node evals/run.mjs"
+  }
+}

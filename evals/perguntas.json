@@ -1,0 +1,98 @@
+[
+  {
+    "id": "curso-01",
+    "pergunta": "quando começa o MBA de engenharia de dados",
+    "categoria_esperada": "calendario_cursos",
+    "contem": "Engenharia de Dados"
+  },
+  {
+    "id": "curso-02",
+    "pergunta": "qual o horário da faculdade EAD Live de cibersegurança",
+    "categoria_esperada": "calendario_cursos",
+    "contem": "Cibersegurança"
+  },
+  {
+    "id": "curso-03",
+    "pergunta": "data de início do MBA de UX Design",
+    "categoria_esperada": "calendario_cursos",
+    "contem": "UX Design"
+  },
+  {
+    "id": "curso-04",
+    "pergunta": "curso de inteligência artificial e automação de processos, quando começa",
+    "categoria_esperada": "calendario_cursos",
+    "contem": "Inteligência Artificial e Automação"
+  },
+  {
+    "id": "convenio-01",
+    "pergunta": "a empresa Nubank tem convênio com a Infnet?",
+    "categoria_esperada": "convenio",
+    "contem": "Nubank"
+  },
+  {
+    "id": "convenio-02",
+    "pergunta": "qual o nível de convênio da Totvs",
+    "categoria_esperada": "convenio",
+    "contem": "Totvs"
+  },
+  {
+    "id": "convenio-03",
+    "pergunta": "até quando vale o convênio da RD Station",
+    "categoria_esperada": "convenio",
+    "contem": "RD Station"
+  },
+  {
+    "id": "feriado-01",
+    "pergunta": "quando é o carnaval no calendário da Infnet",
+    "categoria_esperada": "feriados",
+    "contem": "Carnaval"
+  },
+  {
+    "id": "feriado-02",
+    "pergunta": "dia do professor é feriado?",
+    "categoria_esperada": "feriados",
+    "contem": "Dia do Professor"
+  },
+  {
+    "id": "feriado-03",
+    "pergunta": "corpus christi conta como folga",
+    "categoria_esperada": "feriados",
+    "contem": "Corpus Christi"
+  },
+  {
+    "id": "playbook-01",
+    "pergunta": "o que fazer quando a conversa reabre depois de 24 horas com o template do WhatsApp",
+    "categoria_esperada": "playbook",
+    "contem": "template"
+  },
+  {
+    "id": "playbook-02",
+    "pergunta": "como tratar objeção de preço do lead",
+    "categoria_esperada": "playbook",
+    "contem": "objeç"
+  },
+  {
+    "id": "playbook-03",
+    "pergunta": "importância de fechar a conversa com um pedido explícito de matrícula",
+    "categoria_esperada": "playbook",
+    "contem": "explícito"
+  },
+  {
+    "id": "playbook-04",
+    "pergunta": "o que fazer quando o lead faz uma pergunta específica e ela fica sem resposta",
+    "categoria_esperada": "playbook",
+    "contem": "pergunta"
+  },
+  {
+    "id": "negativo-01",
+    "pergunta": "qual a capital da França",
+    "categoria_esperada": null,
+    "esperar_baixa_similaridade": true
+  },
+  {
+    "id": "negativo-02",
+    "pergunta": "receita de bolo de chocolate",
+    "categoria_esperada": null,
+    "esperar_baixa_similaridade": true
+  }
+]

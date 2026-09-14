@@ -1,0 +1,119 @@
+{
+  "executado_em": "2026-09-14T00:41:45.249Z",
+  "acertos": 16,
+  "total": 16,
+  "resultados": [
+    {
+      "id": "curso-01",
+      "pergunta": "quando começa o MBA de engenharia de dados",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.699)",
+      "similaridade_top1": 0.699022268548915
+    },
+    {
+      "id": "curso-02",
+      "pergunta": "qual o horário da faculdade EAD Live de cibersegurança",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.832)",
+      "similaridade_top1": 0.831973299763331
+    },
+    {
+      "id": "curso-03",
+      "pergunta": "data de início do MBA de UX Design",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.663)",
+      "similaridade_top1": 0.662885454485371
+    },
+    {
+      "id": "curso-04",
+      "pergunta": "curso de inteligência artificial e automação de processos, quando começa",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.667)",
+      "similaridade_top1": 0.666594164590365
+    },
+    {
+      "id": "convenio-01",
+      "pergunta": "a empresa Nubank tem convênio com a Infnet?",
+      "ok": true,
+      "motivo": "ok (posição 3/8, sim_top1=0.559)",
+      "similaridade_top1": 0.559211002400485
+    },
+    {
+      "id": "convenio-02",
+      "pergunta": "qual o nível de convênio da Totvs",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.596)",
+      "similaridade_top1": 0.596007552534656
+    },
+    {
+      "id": "convenio-03",
+      "pergunta": "até quando vale o convênio da RD Station",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.544)",
+      "similaridade_top1": 0.543954929415496
+    },
+    {
+      "id": "feriado-01",
+      "pergunta": "quando é o carnaval no calendário da Infnet",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.575)",
+      "similaridade_top1": 0.574742432166408
+    },
+    {
+      "id": "feriado-02",
+      "pergunta": "dia do professor é feriado?",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.560)",
+      "similaridade_top1": 0.559888517463336
+    },
+    {
+      "id": "feriado-03",
+      "pergunta": "corpus christi conta como folga",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.412)",
+      "similaridade_top1": 0.411700153314024
+    },
+    {
+      "id": "playbook-01",
+      "pergunta": "o que fazer quando a conversa reabre depois de 24 horas com o template do WhatsApp",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.645)",
+      "similaridade_top1": 0.645127451821287
+    },
+    {
+      "id": "playbook-02",
+      "pergunta": "como tratar objeção de preço do lead",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.600)",
+      "similaridade_top1": 0.599675043527336
+    },
+    {
+      "id": "playbook-03",
+      "pergunta": "importância de fechar a conversa com um pedido explícito de matrícula",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.570)",
+      "similaridade_top1": 0.570328981524761
+    },
+    {
+      "id": "playbook-04",
+      "pergunta": "o que fazer quando o lead faz uma pergunta específica e ela fica sem resposta",
+      "ok": true,
+      "motivo": "ok (posição 1/8, sim_top1=0.611)",
+      "similaridade_top1": 0.610940480150174
+    },
+    {
+      "id": "negativo-01",
+      "pergunta": "qual a capital da França",
+      "ok": true,
+      "motivo": "similaridade do topo: 0.216 (esperado baixa)",
+      "similaridade_top1": 0.215515383798951
+    },
+    {
+      "id": "negativo-02",
+      "pergunta": "receita de bolo de chocolate",
+      "ok": true,
+      "motivo": "similaridade do topo: 0.228 (esperado baixa)",
+      "similaridade_top1": 0.227897309328042
+    }
+  ]
+}

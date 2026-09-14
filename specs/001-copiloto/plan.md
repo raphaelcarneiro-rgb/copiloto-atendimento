@@ -102,6 +102,12 @@ Como a [spec](spec.md) será construída. Mudanças de arquitetura atualizam est
   - reprocessar só em mensagem do lead;
   - embeddings só quando o hash muda.
 
+## Recuperação (busca híbrida)
+- **`match_chunks(query_embedding, query_text, match_count, filtro)`**: função SQL que combina similaridade vetorial (pgvector, `<=>`, cosseno) com busca textual (`tsvector` em português) via Reciprocal Rank Fusion (k=60). Filtra por fontes ativas e aceita um filtro opcional por metadados (contenção jsonb, ex.: `{"curso": "..."}`).
+- **Edge Function `search`** (`supabase/functions/search`): recebe uma pergunta em texto livre, gera o embedding e chama `match_chunks`. É a mesma lógica que `suggest`/`ask` (etapa 4) vão usar internamente antes de montar o prompt.
+- **`config.limiar_relevancia` = 0.32**, calibrado com `evals/perguntas.json` (16 perguntas-ouro): perguntas relevantes tiveram similaridade top1 entre 0,41 e 0,83; perguntas fora do domínio, entre 0,22 e 0,23.
+- **Evals de recuperação:** `npm run eval` roda `evals/run.mjs`, que chama a função `search` via HTTP para cada pergunta-ouro e verifica se a informação esperada aparece em algum dos top-8 resultados (não só no 1º — é o que o LLM vai ver como contexto).
+
 ## Embeddings
 Referência: guia "Vector embeddings" da OpenAI (cópia recebida em 2026-09-13).
 - **Modelo:** `text-embedding-3-small`, 1536 dimensões por padrão, igual a `vector(1536)` no banco.
