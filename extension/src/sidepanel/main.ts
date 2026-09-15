@@ -75,6 +75,8 @@ async function renderCabecalhoLead(conversa: ConversaExtraida) {
     const convenio = await buscarConvenio(conversa.empresaAssociada);
     if (ultimaEmpresaConvenioConsultada !== conversa.empresaAssociada) return; // conversa trocou enquanto buscava
     cabecalhoLeadEl.hidden = false;
+    leadConvenioEl.classList.toggle("cabecalho-convenio-ok", convenio.encontrado);
+    leadConvenioEl.classList.toggle("cabecalho-convenio-nao", !convenio.encontrado);
     setItem(
       leadConvenioEl,
       convenio.encontrado ? `Convênio: ${convenio.desconto_pct}% (${convenio.empresa_convenio})` : "Sem convênio localizado",
@@ -154,20 +156,27 @@ async function renderAuthArea() {
 
     // admin/curadoria.html e admin/relatorios.html rodam como arquivo local,
     // sem OAuth próprio — colar esse token ali é o jeito de elas mandarem um
-    // usuário real (curador/admin) em vez da anon key pública.
+    // usuário real (curador/admin) em vez da anon key pública. Fica como
+    // ícone discreto porque só o curador/admin precisa usar isso no dia a dia.
     const btnToken = document.createElement("button");
     btnToken.type = "button";
-    btnToken.textContent = "Copiar token";
-    btnToken.title = "Cole em admin/curadoria.html ou admin/relatorios.html pra acessar como você mesmo.";
+    btnToken.className = "auth-icon-btn";
+    btnToken.title = "Copiar token (pra colar em admin/curadoria.html ou admin/relatorios.html)";
+    btnToken.innerHTML =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg>';
     btnToken.onclick = async () => {
       await navigator.clipboard.writeText(sessao.access_token);
-      btnToken.textContent = "Copiado ✓";
-      setTimeout(() => (btnToken.textContent = "Copiar token"), 2000);
+      const original = btnToken.title;
+      btnToken.title = "Copiado ✓";
+      setTimeout(() => (btnToken.title = original), 2000);
     };
 
     const btnSair = document.createElement("button");
     btnSair.type = "button";
-    btnSair.textContent = "Sair";
+    btnSair.className = "auth-icon-btn";
+    btnSair.title = "Sair";
+    btnSair.innerHTML =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>';
     btnSair.onclick = async () => {
       await logout();
       renderAuthArea();

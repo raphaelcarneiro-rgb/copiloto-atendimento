@@ -21,7 +21,7 @@ header h1 {
   margin-top: 4px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   font-size: 11px;
 }
 .auth-area button {
@@ -34,6 +34,28 @@ header h1 {
 }
 .auth-email {
   color: #516f90;
+  margin-right: 2px;
+}
+.auth-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  border-radius: 999px !important;
+  color: #99acc2;
+  cursor: pointer;
+}
+.auth-icon-btn:hover {
+  background: #eaf0f6 !important;
+  color: #33475b;
+}
+.auth-icon-btn svg {
+  width: 14px;
+  height: 14px;
 }
 .thread-id {
   font-size: 11px;
@@ -42,18 +64,43 @@ header h1 {
 .cabecalho-lead {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 14px;
-  padding: 8px 16px;
-  background: #eaf0f6;
+  gap: 6px;
+  padding: 10px 16px;
+  background: #fff;
   border-bottom: 1px solid #dfe3eb;
-  font-size: 12px;
 }
 .cabecalho-lead-item {
-  color: #33475b;
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
   font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
 }
-.cabecalho-lead-item:first-child {
+.cabecalho-nome {
+  background: #cee7ff;
+  color: #1c4d80;
+  font-size: 12px;
   font-weight: 700;
+  padding: 4px 12px;
+}
+.cabecalho-empresa {
+  background: #e6d9f7;
+  color: #4c2a85;
+}
+.cabecalho-estado {
+  background: #e5e9f0;
+  color: #516f90;
+}
+.cabecalho-convenio-ok {
+  background: #cbf4c9;
+  color: #14532d;
+}
+.cabecalho-convenio-nao {
+  background: #f1f3f6;
+  color: #99acc2;
+  font-weight: 500;
 }
 .banner {
   margin: 10px 16px;
