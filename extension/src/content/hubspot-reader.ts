@@ -224,6 +224,10 @@ async function processarConversa(threadId: string) {
       autor: m.autor,
       texto: maskPII(await resolverTexto(m, threadHash)), // RF04: mascara antes de qualquer envio/armazenamento
       hora: m.hora,
+      // Pedido do Raphael, 2026-09-15: marca no painel que o texto veio de
+      // uma nota de voz transcrita (pode ter erro de reconhecimento), não
+      // foi digitado pelo lead/atendente.
+      viaAudio: Boolean(m.audioUrl),
     })),
   );
 

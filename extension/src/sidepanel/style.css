@@ -184,6 +184,17 @@ header h1 {
   color: #99acc2;
   margin-top: 2px;
 }
+.msg-tag-audio {
+  display: block;
+  width: fit-content;
+  font-size: 10px;
+  font-weight: 600;
+  color: #4c2a85;
+  background: #e6d9f7;
+  padding: 1px 7px;
+  border-radius: 999px;
+  margin-bottom: 4px;
+}
 
 .section-title {
   margin: 16px 16px 4px;

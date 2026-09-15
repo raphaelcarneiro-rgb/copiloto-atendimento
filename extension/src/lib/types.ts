@@ -77,6 +77,8 @@ export interface MensagemExtraida {
    * é enviado ao backend (ver `api.ts`).
    */
   audioUrl?: string | null;
+  /** Texto veio de transcrição de nota de voz (pode ter erro de reconhecimento) — só pra exibição, nunca enviado ao backend. */
+  viaAudio?: boolean;
 }
 
 export interface ConvenioInfo {

@@ -119,6 +119,13 @@ function renderConversa(conversa: ConversaExtraida) {
   for (const msg of conversa.mensagens) {
     const div = document.createElement("div");
     div.className = `msg msg-${msg.autor}`;
+    if (msg.viaAudio) {
+      const tagAudio = document.createElement("span");
+      tagAudio.className = "msg-tag-audio";
+      tagAudio.title = "Transcrito de uma nota de voz — pode ter erro de reconhecimento";
+      tagAudio.textContent = "🎙️ Áudio";
+      div.appendChild(tagAudio);
+    }
     const texto = document.createElement("span");
     texto.textContent = msg.texto;
     div.appendChild(texto);
