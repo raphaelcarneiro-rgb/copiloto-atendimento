@@ -3,6 +3,8 @@
 // em "Ativar copiloto" para aquela conversa específica (RF03).
 import { getConfigCached, seletoresCalibrados } from "../lib/config-cache";
 import { maskPII } from "../lib/pii";
+import { transcreverAudio } from "../lib/api";
+import { hashThreadId } from "../lib/hash";
 import {
   extrairConversa,
   extrairEmpresaAssociada,
@@ -13,11 +15,60 @@ import {
 import { inserirNoComposer } from "./composer";
 import type {
   AtivacaoState,
+  BaixarAudioResponse,
   ConversaExtraida,
   InserirTextoRequest,
   InserirTextoResponse,
+  MensagemExtraida,
   MensagemRuntime,
 } from "../lib/types";
+
+// Cache de transcrições por URL de áudio: o `MutationObserver` reprocessa a
+// conversa inteira a cada mudança no DOM, e sem isso a mesma nota de voz
+// seria baixada e transcrita de novo (custo em dobro) toda vez.
+const transcricoesCache = new Map<string, string>();
+
+/**
+ * O download em si roda no service worker, não aqui — a URL do áudio
+ * costuma ser de outro subdomínio do HubSpot (ex.: api-na1.hubspot.com), e
+ * um fetch cross-origin feito pelo content script cairia no CORS da própria
+ * página do HubSpot. O service worker, com `host_permissions`, contorna
+ * isso (ver lib/audio.ts e background/service-worker.ts).
+ */
+function pedirDownloadDeAudio(url: string): Promise<BaixarAudioResponse> {
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage(
+      { tipo: "baixar-audio", url } satisfies MensagemRuntime,
+      (resposta: BaixarAudioResponse | undefined) => {
+        resolve(chrome.runtime.lastError || !resposta ? { ok: false } : resposta);
+      },
+    );
+  });
+}
+
+async function resolverTexto(m: MensagemExtraida, threadHash: string): Promise<string> {
+  if (!m.audioUrl) return m.texto;
+
+  const cacheHit = transcricoesCache.get(m.audioUrl);
+  if (cacheHit) return cacheHit;
+
+  const audio = await pedirDownloadDeAudio(m.audioUrl);
+  if (!audio.ok) return "[Áudio enviado — não consegui baixar pra transcrever]";
+
+  try {
+    const { texto } = await transcreverAudio({
+      audioBase64: audio.base64,
+      mimeType: audio.mimeType,
+      threadHash,
+    });
+    const textoFinal = texto.trim() || "[Áudio enviado — transcrição veio vazia]";
+    transcricoesCache.set(m.audioUrl, textoFinal);
+    return textoFinal;
+  } catch (err) {
+    console.error("transcreverAudio() falhou:", err);
+    return "[Áudio enviado — não consegui transcrever agora]";
+  }
+}
 
 const BOTAO_ID = "copiloto-ativar-btn";
 let observer: MutationObserver | null = null;
@@ -110,10 +161,15 @@ async function processarConversa(threadId: string) {
     return;
   }
 
-  const mensagens = extrairConversa(container, config.seletores_hubspot as never).map((m) => ({
-    ...m,
-    texto: maskPII(m.texto), // RF04: mascara antes de qualquer envio/armazenamento
-  }));
+  const threadHash = await hashThreadId(threadId);
+  const brutas = extrairConversa(container, config.seletores_hubspot as never);
+  const mensagens = await Promise.all(
+    brutas.map(async (m) => ({
+      autor: m.autor,
+      texto: maskPII(await resolverTexto(m, threadHash)), // RF04: mascara antes de qualquer envio/armazenamento
+      hora: m.hora,
+    })),
+  );
 
   const conversa: ConversaExtraida = {
     threadId,

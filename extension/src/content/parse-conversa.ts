@@ -14,20 +14,31 @@ export function extrairConversa(
   for (const bolha of Array.from(bolhas)) {
     const textoEl = bolha.querySelector(seletores.mensagem_texto);
     let texto = textoEl?.textContent?.trim();
+    let audioUrl: string | null = null;
 
-    // Achado real (2026-09-15): mensagem só com imagem/arquivo (ex.: print
-    // de desconto que o atendente manda pro lead) não tem texto nenhum em
+    // Achado real (2026-09-15): mensagem só com imagem/arquivo/áudio (ex.:
+    // print de desconto, nota de voz) não tem texto nenhum em
     // `mensagem_texto` — antes disso a bolha inteira era descartada e o
-    // copiloto "esquecia" que aquela troca aconteceu. Não lemos o conteúdo
-    // do anexo (isso exigiria OCR/visão, decisão em aberto), só marcamos
-    // que ele existiu, pra não perder a mensagem da conversa.
+    // copiloto "esquecia" que aquela troca aconteceu.
     if (!texto && seletores.mensagem_anexo) {
       const anexoEl = bolha.querySelector(seletores.mensagem_anexo);
       if (anexoEl) {
-        const ehImagem = anexoEl.querySelector('img, [data-test-id="inline-image"]') !== null;
-        texto = ehImagem
-          ? "[Imagem enviada — conteúdo não lido pelo copiloto]"
-          : "[Arquivo enviado — conteúdo não lido pelo copiloto]";
+        // Nota de voz: só um <audio> HTML5 padrão é detectado aqui (nunca
+        // um seletor específico "chutado" do HubSpot — se o player deles
+        // não expuser isso, cai no marcador genérico de arquivo abaixo,
+        // sem quebrar nada). `hubspot-reader.ts` resolve `audioUrl` pra
+        // texto de verdade via transcrição antes de mandar a conversa.
+        const audioEl = anexoEl.querySelector("audio") as HTMLAudioElement | null;
+        const src = audioEl?.currentSrc || audioEl?.getAttribute("src") || audioEl?.querySelector("source")?.getAttribute("src");
+        if (src) {
+          audioUrl = src;
+          texto = "[Áudio enviado — transcrevendo…]";
+        } else {
+          const ehImagem = anexoEl.querySelector('img, [data-test-id="inline-image"]') !== null;
+          texto = ehImagem
+            ? "[Imagem enviada — conteúdo não lido pelo copiloto]"
+            : "[Arquivo enviado — conteúdo não lido pelo copiloto]";
+        }
       }
     }
 
@@ -49,7 +60,7 @@ export function extrairConversa(
       hora = horaEl?.textContent?.trim() ?? horaEl?.getAttribute("datetime") ?? null;
     }
 
-    mensagens.push({ autor, texto, hora });
+    mensagens.push(audioUrl ? { autor, texto, hora, audioUrl } : { autor, texto, hora });
   }
 
   return mensagens;

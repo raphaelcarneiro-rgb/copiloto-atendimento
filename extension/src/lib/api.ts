@@ -70,9 +70,17 @@ export function suggest(
   threadHash?: string,
   empresaAssociada?: string | null,
 ): Promise<SuggestResponse> {
+  // `audioUrl` é só um estado intermediário de transcrição (ver
+  // hubspot-reader.ts) — nunca deve sair do navegador, mesmo que por algum
+  // motivo ainda esteja presente no momento da chamada.
+  const mensagensSemAudioUrl = mensagens.map(({ autor, texto, hora }) => ({ autor, texto, hora }));
   return callFunction<SuggestResponse>("suggest", {
     method: "POST",
-    body: JSON.stringify({ mensagens, thread_hash: threadHash, empresa_associada: empresaAssociada ?? undefined }),
+    body: JSON.stringify({
+      mensagens: mensagensSemAudioUrl,
+      thread_hash: threadHash,
+      empresa_associada: empresaAssociada ?? undefined,
+    }),
   });
 }
 
@@ -101,6 +109,24 @@ export interface ConvenioResponse {
 /** Cabeçalho do side panel (pedido do Raphael, 2026-09-15): % de desconto de convênio da empresa associada. */
 export function buscarConvenio(empresa: string): Promise<ConvenioResponse> {
   return callFunction<ConvenioResponse>(`convenio?empresa=${encodeURIComponent(empresa)}`, { method: "GET" });
+}
+
+/** Nota de voz do WhatsApp (pedido do Raphael, 2026-09-15): transcreve o áudio já baixado pelo navegador. */
+export function transcreverAudio(params: {
+  audioBase64: string;
+  mimeType: string;
+  duracaoSeg?: number | null;
+  threadHash?: string;
+}): Promise<{ texto: string }> {
+  return callFunction<{ texto: string }>("transcrever-audio", {
+    method: "POST",
+    body: JSON.stringify({
+      audio_base64: params.audioBase64,
+      mime_type: params.mimeType,
+      duracao_seg: params.duracaoSeg ?? undefined,
+      thread_hash: params.threadHash,
+    }),
+  });
 }
 
 export function enviarFeedback(params: {

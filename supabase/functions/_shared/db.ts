@@ -29,7 +29,7 @@ export async function logEmbeddingUsage(
 export async function logUsage(
   db: ReturnType<typeof createServiceClient>,
   params: {
-    tipoChamada: "classificacao" | "suggest" | "ask" | "embedding" | "ingest";
+    tipoChamada: "classificacao" | "suggest" | "ask" | "embedding" | "ingest" | "transcricao";
     modelo: string;
     tokensEntrada: number;
     tokensSaida: number;
@@ -38,6 +38,13 @@ export async function logUsage(
     userId?: string | null;
     etapa?: string | null;
     aceita?: boolean | null;
+    /**
+     * Custo já calculado pelo chamador (ex.: transcrição de áudio cobrada
+     * por minuto, não por token — ver `_shared/openai.ts`). Quando ausente,
+     * o trigger `calcular_custo_usage` do banco calcula pelo preço por
+     * token de `precos_modelo`, como sempre.
+     */
+    custoUsdOverride?: number | null;
   },
 ): Promise<number | null> {
   // Devolve o id da linha para o chamador poder anexar feedback depois
@@ -54,6 +61,7 @@ export async function logUsage(
       tokens_cache: params.tokensCache ?? 0,
       etapa: params.etapa ?? null,
       aceita: params.aceita ?? null,
+      ...(params.custoUsdOverride != null ? { custo_usd: params.custoUsdOverride } : {}),
     })
     .select("id")
     .single();

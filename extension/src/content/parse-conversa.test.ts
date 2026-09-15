@@ -100,6 +100,21 @@ describe("extrairConversa", () => {
       { autor: "atendente", texto: "Segue o print", hora: null },
     ]);
   });
+
+  it("mensagem de áudio (nota de voz) vira um marcador temporário com a URL, pra ser transcrita depois", () => {
+    const dom = new JSDOM(
+      `<div data-test-id="virtualParentRef"><div data-test-id="primary-message-visitor"><div data-test-id="primary-message-content"></div><div data-test-id="file-attachment-wrapper"><audio src="https://example.com/audio.ogg"></audio></div></div></div>`,
+    );
+    const container = dom.window.document.querySelector(SELETORES.container_mensagens)!;
+    expect(extrairConversa(container, SELETORES_COM_ANEXO)).toEqual([
+      {
+        autor: "lead",
+        texto: "[Áudio enviado — transcrevendo…]",
+        hora: null,
+        audioUrl: "https://example.com/audio.ogg",
+      },
+    ]);
+  });
 });
 
 describe("extrairEmpresaAssociada", () => {

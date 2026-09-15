@@ -42,6 +42,65 @@ export async function embedTexts(texts: string[]): Promise<EmbeddingResult> {
 export { EMBEDDING_MODEL };
 
 // ---------------------------------------------------------------------------
+// Transcrição de áudio (nota de voz do WhatsApp — pedido do Raphael, 2026-09-15).
+// ---------------------------------------------------------------------------
+
+export interface TranscricaoResult {
+  texto: string;
+  /** 0 quando a API não devolve `usage` por token para este modelo (formato ainda não confirmado ao vivo) — o chamador cai no fallback por duração. */
+  tokensEntrada: number;
+  tokensSaida: number;
+}
+
+const EXTENSAO_POR_MIME: Record<string, string> = {
+  "audio/ogg": "ogg",
+  "audio/opus": "ogg",
+  "audio/mpeg": "mp3",
+  "audio/mp3": "mp3",
+  "audio/wav": "wav",
+  "audio/webm": "webm",
+  "audio/mp4": "mp4",
+  "audio/m4a": "m4a",
+  "audio/x-m4a": "m4a",
+};
+
+export async function transcreverAudio(params: {
+  audioBytes: Uint8Array;
+  mimeType: string;
+  modelo: string;
+}): Promise<TranscricaoResult> {
+  const apiKey = Deno.env.get("OPENAI_API_KEY");
+  if (!apiKey) {
+    throw new Error("OPENAI_API_KEY não configurada (Secret da Edge Function).");
+  }
+
+  const extensao = EXTENSAO_POR_MIME[params.mimeType] ?? "ogg";
+  const form = new FormData();
+  form.append("model", params.modelo);
+  form.append("file", new Blob([params.audioBytes], { type: params.mimeType }), `audio.${extensao}`);
+
+  const res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}` },
+    body: form,
+  });
+  if (!res.ok) {
+    throw new Error(`OpenAI transcrição falhou (${res.status}): ${await res.text()}`);
+  }
+
+  const data = await res.json();
+  if (typeof data.text !== "string") {
+    throw new Error("OpenAI transcrição não retornou texto.");
+  }
+
+  return {
+    texto: data.text,
+    tokensEntrada: data.usage?.input_tokens ?? 0,
+    tokensSaida: data.usage?.output_tokens ?? 0,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Chat com saída estruturada (Structured Outputs / json_schema).
 // ---------------------------------------------------------------------------
 

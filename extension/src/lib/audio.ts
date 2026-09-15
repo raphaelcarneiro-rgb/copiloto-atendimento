@@ -1,0 +1,39 @@
+// Baixa o áudio de uma nota de voz do HubSpot com a sessão logada do
+// atendente (`credentials: "include"`) e converte pra base64, formato
+// aceito pela Edge Function `transcrever-audio` — o backend não tem como
+// baixar essa URL sozinho (exige o login do atendente no HubSpot).
+//
+// Roda no service worker (background/service-worker.ts), não no content
+// script: a URL do arquivo normalmente é de um subdomínio diferente do
+// HubSpot (ex.: api-na1.hubspot.com vs. app.hubspot.com de onde o content
+// script roda) — um fetch cross-origin do content script cairia no CORS da
+// página. Um fetch do service worker, com `host_permissions` cobrindo esse
+// domínio, contorna isso (é tratado como requisição da extensão, não da
+// página). Por isso esta função evita APIs de DOM (sem `FileReader`/`Audio`,
+// que não existem no service worker).
+export interface AudioBaixado {
+  base64: string;
+  mimeType: string;
+}
+
+export async function baixarAudioComoBase64(url: string): Promise<AudioBaixado | null> {
+  try {
+    const res = await fetch(url, { credentials: "include" });
+    if (!res.ok) return null;
+    const buffer = await res.arrayBuffer();
+    const mimeType = res.headers.get("content-type")?.split(";")[0]?.trim() || "audio/ogg";
+    return { base64: arrayBufferParaBase64(buffer), mimeType };
+  } catch {
+    return null;
+  }
+}
+
+function arrayBufferParaBase64(buffer: ArrayBuffer): string {
+  let binario = "";
+  const bytes = new Uint8Array(buffer);
+  const TAMANHO_BLOCO = 0x8000; // evita estourar o limite de argumentos de String.fromCharCode em áudios grandes
+  for (let i = 0; i < bytes.length; i += TAMANHO_BLOCO) {
+    binario += String.fromCharCode(...bytes.subarray(i, i + TAMANHO_BLOCO));
+  }
+  return btoa(binario);
+}

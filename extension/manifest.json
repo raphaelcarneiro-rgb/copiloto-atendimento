@@ -24,6 +24,7 @@
   "permissions": ["storage", "alarms", "notifications", "identity", "sidePanel"],
   "host_permissions": [
     "https://app.hubspot.com/*",
+    "https://api-na1.hubspot.com/*",
     "https://trtmyuqatmhvikfbqmkv.supabase.co/*"
   ]
 }
