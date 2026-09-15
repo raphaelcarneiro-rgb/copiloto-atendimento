@@ -3,7 +3,7 @@
 // em "Ativar copiloto" para aquela conversa específica (RF03).
 import { getConfigCached, seletoresCalibrados } from "../lib/config-cache";
 import { maskPII } from "../lib/pii";
-import { transcreverAudio } from "../lib/api";
+import { buscarContextoLead, transcreverAudio } from "../lib/api";
 import { hashThreadId } from "../lib/hash";
 import {
   extrairConversa,
@@ -16,12 +16,68 @@ import { inserirNoComposer } from "./composer";
 import type {
   AtivacaoState,
   BaixarAudioResponse,
+  ConfigRemota,
   ConversaExtraida,
+  ConvenioInfo,
   InserirTextoRequest,
   InserirTextoResponse,
   MensagemExtraida,
   MensagemRuntime,
 } from "../lib/types";
+
+interface ContextoLead {
+  nomeLead: string | null;
+  estadoLead: string | null;
+  empresaAssociada: string | null;
+  convenio: ConvenioInfo | null;
+}
+
+// Cache por threadId: contato/empresa raramente mudam no meio de uma
+// conversa, e sem isso toda checagem do `MutationObserver` (a cada
+// mensagem nova) bateria de novo na API do HubSpot à toa.
+const contextoLeadCache = new Map<string, ContextoLead>();
+
+/**
+ * Nome/estado/empresa/convênio vêm da API do HubSpot (`contexto-lead`),
+ * não da tela — achado real (2026-09-15): o texto do cabeçalho da
+ * conversa às vezes reflete um campo de texto livre do contato ("Nome da
+ * empresa"), não a Empresa de fato associada via CRM. Se a API falhar
+ * (rede, token do Private App não configurado etc.), cai de volta pra
+ * leitura do DOM — pior qualidade, mas nunca quebra o painel.
+ */
+async function resolverContextoLead(
+  threadId: string,
+  config: ConfigRemota,
+  doc: Document,
+): Promise<ContextoLead> {
+  const cacheHit = contextoLeadCache.get(threadId);
+  if (cacheHit) return cacheHit;
+
+  try {
+    const resp = await buscarContextoLead(threadId);
+    if (resp.encontrado) {
+      const contexto: ContextoLead = {
+        nomeLead: resp.nome ?? null,
+        estadoLead: resp.estado ?? null,
+        empresaAssociada: resp.empresa ?? null,
+        convenio: resp.convenio ?? null,
+      };
+      contextoLeadCache.set(threadId, contexto);
+      return contexto;
+    }
+  } catch (err) {
+    console.error("buscarContextoLead() falhou, usando leitura do DOM como fallback:", err);
+  }
+
+  // Fallback: extração antiga via DOM (seletores calibrados, mas não
+  // confiável pro nome da empresa — ver comentário acima).
+  return {
+    nomeLead: extrairNomeLead(doc, config.seletores_hubspot.nome_lead),
+    estadoLead: extrairEstadoLead(doc, config.seletores_hubspot.estado_lead),
+    empresaAssociada: extrairEmpresaAssociada(doc, config.seletores_hubspot.empresa_associada),
+    convenio: null,
+  };
+}
 
 // Cache de transcrições por URL de áudio: o `MutationObserver` reprocessa a
 // conversa inteira a cada mudança no DOM, e sem isso a mesma nota de voz
@@ -171,13 +227,13 @@ async function processarConversa(threadId: string) {
     })),
   );
 
+  const contexto = await resolverContextoLead(threadId, config, document);
+
   const conversa: ConversaExtraida = {
     threadId,
     mensagens,
     extraidoEm: new Date().toISOString(),
-    empresaAssociada: extrairEmpresaAssociada(document, config.seletores_hubspot.empresa_associada),
-    nomeLead: extrairNomeLead(document, config.seletores_hubspot.nome_lead),
-    estadoLead: extrairEstadoLead(document, config.seletores_hubspot.estado_lead),
+    ...contexto,
   };
   chrome.runtime.sendMessage({ tipo: "conversa-atualizada", conversa } satisfies MensagemRuntime);
 }

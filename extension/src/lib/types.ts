@@ -79,16 +79,38 @@ export interface MensagemExtraida {
   audioUrl?: string | null;
 }
 
+export interface ConvenioInfo {
+  encontrado: boolean;
+  empresa_convenio?: string;
+  desconto_pct?: number;
+  nivel?: string | null;
+  valido_ate?: string | null;
+  status?: string | null;
+}
+
 export interface ConversaExtraida {
   threadId: string;
   mensagens: MensagemExtraida[];
   extraidoEm: string;
-  /** Empresa já associada ao contato no CRM (null se não calibrado ou o contato não tiver empresa associada). */
+  /**
+   * Empresa associada ao contato — vem da API do HubSpot (`contexto-lead`,
+   * associação real de CRM), com fallback pra leitura do DOM se a API
+   * falhar. Achado real (2026-09-15): o texto do cabeçalho da conversa às
+   * vezes reflete um campo de texto livre do contato, não a Empresa de
+   * fato associada — por isso a API é a fonte preferida.
+   */
   empresaAssociada: string | null;
-  /** Nome do lead/contato da conversa ativa (null se não calibrado). Só exibição no cabeçalho do painel. */
+  /** Nome do lead/contato da conversa ativa (null se não encontrado). Só exibição no cabeçalho do painel. */
   nomeLead: string | null;
-  /** Estado/Região do contato (null se não calibrado). Só exibição no cabeçalho do painel. */
+  /** Estado/Região do contato (null se não encontrado). Só exibição no cabeçalho do painel. */
   estadoLead: string | null;
+  /**
+   * Convênio já resolvido pelo backend (via `contexto-lead`), pra evitar
+   * uma segunda chamada do side panel. `null` quando a API do HubSpot
+   * falhou e caiu no fallback de DOM — nesse caso o side panel busca o
+   * convênio ele mesmo (`buscarConvenio`), como antes.
+   */
+  convenio: ConvenioInfo | null;
 }
 
 /** Estado de ativação por conversa, persistido em chrome.storage.local. */

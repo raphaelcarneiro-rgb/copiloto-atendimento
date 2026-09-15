@@ -11,6 +11,7 @@ import { listarJanelasExpirando } from "../background/window-guard";
 import { getSessao, login, logout } from "../lib/auth";
 import type {
   ConversaExtraida,
+  ConvenioInfo,
   InserirTextoRequest,
   InserirTextoResponse,
   MensagemRuntime,
@@ -57,11 +58,30 @@ function setItem(el: HTMLElement, texto: string | null) {
   el.textContent = texto;
 }
 
+function aplicarConvenio(convenio: ConvenioInfo) {
+  cabecalhoLeadEl.hidden = false;
+  leadConvenioEl.classList.toggle("cabecalho-convenio-ok", convenio.encontrado);
+  leadConvenioEl.classList.toggle("cabecalho-convenio-nao", !convenio.encontrado);
+  setItem(
+    leadConvenioEl,
+    convenio.encontrado ? `Convênio: ${convenio.desconto_pct}% (${convenio.empresa_convenio})` : "Sem convênio localizado",
+  );
+}
+
 async function renderCabecalhoLead(conversa: ConversaExtraida) {
   setItem(leadNomeEl, conversa.nomeLead);
   setItem(leadEmpresaEl, conversa.empresaAssociada ? `Empresa: ${conversa.empresaAssociada}` : null);
   setItem(leadEstadoEl, conversa.estadoLead ? `Estado: ${conversa.estadoLead}` : null);
   cabecalhoLeadEl.hidden = !(conversa.nomeLead || conversa.empresaAssociada || conversa.estadoLead);
+
+  // `contexto-lead` (API do HubSpot, ver hubspot-reader.ts) já resolve o
+  // convênio junto — só busca aqui de novo se ele não veio (fallback de
+  // DOM, quando a API do HubSpot falhou).
+  if (conversa.convenio) {
+    ultimaEmpresaConvenioConsultada = conversa.empresaAssociada;
+    aplicarConvenio(conversa.convenio);
+    return;
+  }
 
   if (!conversa.empresaAssociada) {
     leadConvenioEl.hidden = true;
@@ -74,13 +94,7 @@ async function renderCabecalhoLead(conversa: ConversaExtraida) {
   try {
     const convenio = await buscarConvenio(conversa.empresaAssociada);
     if (ultimaEmpresaConvenioConsultada !== conversa.empresaAssociada) return; // conversa trocou enquanto buscava
-    cabecalhoLeadEl.hidden = false;
-    leadConvenioEl.classList.toggle("cabecalho-convenio-ok", convenio.encontrado);
-    leadConvenioEl.classList.toggle("cabecalho-convenio-nao", !convenio.encontrado);
-    setItem(
-      leadConvenioEl,
-      convenio.encontrado ? `Convênio: ${convenio.desconto_pct}% (${convenio.empresa_convenio})` : "Sem convênio localizado",
-    );
+    aplicarConvenio(convenio);
   } catch (err) {
     console.error("buscarConvenio() falhou:", err);
     leadConvenioEl.hidden = true;

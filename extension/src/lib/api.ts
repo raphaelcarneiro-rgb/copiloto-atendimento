@@ -2,7 +2,7 @@
 // Supabase (equivalente a uma chave de projeto, não a um segredo — o mesmo
 // valor já é usado pelo job pg_cron); a autorização de verdade vem do RLS e
 // do JWT do usuário logado, que é anexado aqui quando existir (RF09).
-import type { ConfigRemota, MensagemExtraida } from "./types";
+import type { ConfigRemota, ConvenioInfo, MensagemExtraida } from "./types";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "./supabase-config";
 import { getSessao } from "./auth";
 
@@ -97,18 +97,33 @@ export async function listarNotificacoes(): Promise<Notificacao[]> {
   return notificacoes;
 }
 
-export interface ConvenioResponse {
-  encontrado: boolean;
-  empresa_convenio?: string;
-  desconto_pct?: number;
-  nivel?: string | null;
-  valido_ate?: string | null;
-  status?: string | null;
-}
+export type ConvenioResponse = ConvenioInfo;
 
 /** Cabeçalho do side panel (pedido do Raphael, 2026-09-15): % de desconto de convênio da empresa associada. */
 export function buscarConvenio(empresa: string): Promise<ConvenioResponse> {
   return callFunction<ConvenioResponse>(`convenio?empresa=${encodeURIComponent(empresa)}`, { method: "GET" });
+}
+
+export interface ContextoLeadResponse {
+  encontrado: boolean;
+  nome?: string | null;
+  cargo?: string | null;
+  estado?: string | null;
+  empresa?: string | null;
+  convenio?: ConvenioInfo;
+}
+
+/**
+ * Nome/cargo/estado/empresa direto da API do HubSpot (`contexto-lead`),
+ * não da tela — corrige um bug real (2026-09-15): o texto do cabeçalho da
+ * conversa às vezes reflete um campo de texto livre do contato, não a
+ * Empresa de fato associada via CRM. Falha (rede, token não configurado)
+ * não é fatal — `hubspot-reader.ts` cai de volta pra leitura do DOM.
+ */
+export function buscarContextoLead(threadId: string): Promise<ContextoLeadResponse> {
+  return callFunction<ContextoLeadResponse>(`contexto-lead?thread_id=${encodeURIComponent(threadId)}`, {
+    method: "GET",
+  });
 }
 
 /** Nota de voz do WhatsApp (pedido do Raphael, 2026-09-15): transcreve o áudio já baixado pelo navegador. */
