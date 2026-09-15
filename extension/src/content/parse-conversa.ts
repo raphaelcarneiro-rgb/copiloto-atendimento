@@ -13,7 +13,24 @@ export function extrairConversa(
 
   for (const bolha of Array.from(bolhas)) {
     const textoEl = bolha.querySelector(seletores.mensagem_texto);
-    const texto = textoEl?.textContent?.trim();
+    let texto = textoEl?.textContent?.trim();
+
+    // Achado real (2026-09-15): mensagem só com imagem/arquivo (ex.: print
+    // de desconto que o atendente manda pro lead) não tem texto nenhum em
+    // `mensagem_texto` — antes disso a bolha inteira era descartada e o
+    // copiloto "esquecia" que aquela troca aconteceu. Não lemos o conteúdo
+    // do anexo (isso exigiria OCR/visão, decisão em aberto), só marcamos
+    // que ele existiu, pra não perder a mensagem da conversa.
+    if (!texto && seletores.mensagem_anexo) {
+      const anexoEl = bolha.querySelector(seletores.mensagem_anexo);
+      if (anexoEl) {
+        const ehImagem = anexoEl.querySelector('img, [data-test-id="inline-image"]') !== null;
+        texto = ehImagem
+          ? "[Imagem enviada — conteúdo não lido pelo copiloto]"
+          : "[Arquivo enviado — conteúdo não lido pelo copiloto]";
+      }
+    }
+
     if (!texto) continue;
 
     // O marcador de "é do lead" pode estar na própria bolha (ex.: classe

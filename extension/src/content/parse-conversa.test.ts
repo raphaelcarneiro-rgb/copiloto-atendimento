@@ -57,6 +57,49 @@ describe("extrairConversa", () => {
     const { mensagem_hora: _semHora, ...semHora } = SELETORES;
     expect(extrairConversa(container, semHora)).toEqual([{ autor: "lead", texto: "oi", hora: null }]);
   });
+
+  const SELETORES_COM_ANEXO: SeletoresMensagens = {
+    ...SELETORES,
+    mensagem_anexo: '[data-test-id="file-attachment-wrapper"]',
+  };
+
+  it("sem seletor de anexo configurado, mensagem só com imagem continua sendo descartada (comportamento antigo)", () => {
+    const dom = new JSDOM(
+      `<div data-test-id="virtualParentRef"><div data-test-id="primary-message-agent"><div data-test-id="primary-message-content"></div><div data-test-id="file-attachment-wrapper"><img data-test-id="inline-image" src="x.png"></div></div></div>`,
+    );
+    const container = dom.window.document.querySelector(SELETORES.container_mensagens)!;
+    expect(extrairConversa(container, SELETORES)).toEqual([]);
+  });
+
+  it("com seletor de anexo configurado, mensagem só com imagem vira um marcador em vez de sumir", () => {
+    const dom = new JSDOM(
+      `<div data-test-id="virtualParentRef"><div data-test-id="primary-message-agent"><div data-test-id="primary-message-content"></div><div data-test-id="file-attachment-wrapper"><img data-test-id="inline-image" src="x.png"></div></div></div>`,
+    );
+    const container = dom.window.document.querySelector(SELETORES.container_mensagens)!;
+    expect(extrairConversa(container, SELETORES_COM_ANEXO)).toEqual([
+      { autor: "atendente", texto: "[Imagem enviada — conteúdo não lido pelo copiloto]", hora: null },
+    ]);
+  });
+
+  it("com seletor de anexo configurado, mensagem só com arquivo (não-imagem) usa o marcador genérico", () => {
+    const dom = new JSDOM(
+      `<div data-test-id="virtualParentRef"><div data-test-id="primary-message-agent"><div data-test-id="primary-message-content"></div><div data-test-id="file-attachment-wrapper"><a href="x.pdf">arquivo.pdf</a></div></div></div>`,
+    );
+    const container = dom.window.document.querySelector(SELETORES.container_mensagens)!;
+    expect(extrairConversa(container, SELETORES_COM_ANEXO)).toEqual([
+      { autor: "atendente", texto: "[Arquivo enviado — conteúdo não lido pelo copiloto]", hora: null },
+    ]);
+  });
+
+  it("mensagem com texto E anexo prioriza o texto real (não sobrescreve)", () => {
+    const dom = new JSDOM(
+      `<div data-test-id="virtualParentRef"><div data-test-id="primary-message-agent"><div data-test-id="primary-message-content">Segue o print</div><div data-test-id="file-attachment-wrapper"><img data-test-id="inline-image" src="x.png"></div></div></div>`,
+    );
+    const container = dom.window.document.querySelector(SELETORES.container_mensagens)!;
+    expect(extrairConversa(container, SELETORES_COM_ANEXO)).toEqual([
+      { autor: "atendente", texto: "Segue o print", hora: null },
+    ]);
+  });
 });
 
 describe("extrairEmpresaAssociada", () => {

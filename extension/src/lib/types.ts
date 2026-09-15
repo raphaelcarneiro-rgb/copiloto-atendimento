@@ -11,6 +11,13 @@ export interface SeletoresMensagens {
   mensagem_autor_lead: string;
   /** Selector do horário da mensagem, relativo à bolha. Opcional. */
   mensagem_hora?: string;
+  /**
+   * Selector (relativo à bolha) de um anexo (imagem ou arquivo). Opcional:
+   * sem ele, uma bolha sem texto (ex.: mensagem só com print) é descartada
+   * como antes. Com ele, vira um marcador tipo "[Imagem enviada]" em vez de
+   * sumir da conversa extraída — o copiloto não lê o conteúdo do anexo.
+   */
+  mensagem_anexo?: string;
 }
 
 export interface SeletorComposer {
