@@ -19,11 +19,22 @@ export interface AudioBaixado {
 export async function baixarAudioComoBase64(url: string): Promise<AudioBaixado | null> {
   try {
     const res = await fetch(url, { credentials: "include" });
-    if (!res.ok) return null;
+    // Log temporário (2026-09-15): a falha real ainda não foi diagnosticada
+    // ao vivo — pode ser CORS num domínio de redirecionamento fora de
+    // `host_permissions` (a URL é um "signed-url-redirect") ou cookie de
+    // sessão do HubSpot não acompanhando um fetch da extensão (SameSite).
+    // Ver DevTools → extensão → "service worker" → Console.
+    console.log("[copiloto] baixarAudioComoBase64:", url, "→ status", res.status, "url final", res.url);
+    if (!res.ok) {
+      console.error("[copiloto] download de áudio falhou com status", res.status, await res.text().catch(() => "(sem corpo)"));
+      return null;
+    }
     const buffer = await res.arrayBuffer();
     const mimeType = res.headers.get("content-type")?.split(";")[0]?.trim() || "audio/ogg";
+    console.log("[copiloto] áudio baixado com sucesso:", buffer.byteLength, "bytes,", mimeType);
     return { base64: arrayBufferParaBase64(buffer), mimeType };
-  } catch {
+  } catch (err) {
+    console.error("[copiloto] baixarAudioComoBase64 lançou uma exceção (provável CORS/rede):", err);
     return null;
   }
 }
