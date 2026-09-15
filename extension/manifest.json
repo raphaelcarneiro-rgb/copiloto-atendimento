@@ -25,6 +25,7 @@
   "host_permissions": [
     "https://app.hubspot.com/*",
     "https://api-na1.hubspot.com/*",
+    "https://*.hubspotusercontent-na1.net/*",
     "https://trtmyuqatmhvikfbqmkv.supabase.co/*"
   ]
 }
