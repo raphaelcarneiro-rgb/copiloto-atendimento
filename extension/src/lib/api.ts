@@ -89,6 +89,20 @@ export async function listarNotificacoes(): Promise<Notificacao[]> {
   return notificacoes;
 }
 
+export interface ConvenioResponse {
+  encontrado: boolean;
+  empresa_convenio?: string;
+  desconto_pct?: number;
+  nivel?: string | null;
+  valido_ate?: string | null;
+  status?: string | null;
+}
+
+/** Cabeçalho do side panel (pedido do Raphael, 2026-09-15): % de desconto de convênio da empresa associada. */
+export function buscarConvenio(empresa: string): Promise<ConvenioResponse> {
+  return callFunction<ConvenioResponse>(`convenio?empresa=${encodeURIComponent(empresa)}`, { method: "GET" });
+}
+
 export function enviarFeedback(params: {
   usageLogId: number;
   aceita?: boolean;

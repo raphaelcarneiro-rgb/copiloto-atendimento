@@ -28,8 +28,18 @@ export interface SeletorEmpresaAssociada {
   empresa_associada: string;
 }
 
+export interface SeletoresCabecalhoCrm {
+  /** Nome do contato/lead da conversa ativa, lido do painel "Sobre esse Contato". */
+  nome_lead: string;
+  /** Estado/Região do contato, lido do mesmo painel. Só exibição — não usado em nenhuma busca. */
+  estado_lead: string;
+}
+
 /** `{}` (todas as chaves ausentes) significa "ainda não calibrado" — ver docs/setup/04-extensao.md. */
-export type SeletoresHubspot = Partial<SeletoresMensagens> & Partial<SeletorComposer> & Partial<SeletorEmpresaAssociada>;
+export type SeletoresHubspot = Partial<SeletoresMensagens> &
+  Partial<SeletorComposer> &
+  Partial<SeletorEmpresaAssociada> &
+  Partial<SeletoresCabecalhoCrm>;
 
 export interface Expediente {
   dias: number[];
@@ -61,6 +71,10 @@ export interface ConversaExtraida {
   extraidoEm: string;
   /** Empresa já associada ao contato no CRM (null se não calibrado ou o contato não tiver empresa associada). */
   empresaAssociada: string | null;
+  /** Nome do lead/contato da conversa ativa (null se não calibrado). Só exibição no cabeçalho do painel. */
+  nomeLead: string | null;
+  /** Estado/Região do contato (null se não calibrado). Só exibição no cabeçalho do painel. */
+  estadoLead: string | null;
 }
 
 /** Estado de ativação por conversa, persistido em chrome.storage.local. */

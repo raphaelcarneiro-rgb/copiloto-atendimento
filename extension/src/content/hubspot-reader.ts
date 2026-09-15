@@ -3,7 +3,13 @@
 // em "Ativar copiloto" para aquela conversa específica (RF03).
 import { getConfigCached, seletoresCalibrados } from "../lib/config-cache";
 import { maskPII } from "../lib/pii";
-import { extrairConversa, extrairEmpresaAssociada, extrairThreadId } from "./parse-conversa";
+import {
+  extrairConversa,
+  extrairEmpresaAssociada,
+  extrairEstadoLead,
+  extrairNomeLead,
+  extrairThreadId,
+} from "./parse-conversa";
 import { inserirNoComposer } from "./composer";
 import type {
   AtivacaoState,
@@ -114,6 +120,8 @@ async function processarConversa(threadId: string) {
     mensagens,
     extraidoEm: new Date().toISOString(),
     empresaAssociada: extrairEmpresaAssociada(document, config.seletores_hubspot.empresa_associada),
+    nomeLead: extrairNomeLead(document, config.seletores_hubspot.nome_lead),
+    estadoLead: extrairEstadoLead(document, config.seletores_hubspot.estado_lead),
   };
   chrome.runtime.sendMessage({ tipo: "conversa-atualizada", conversa } satisfies MensagemRuntime);
 }

@@ -2,7 +2,7 @@
 // copiloto — US3). O copiloto nunca envia nada sozinho: só sugere, o
 // atendente decide copiar ou inserir (constitution §2).
 import { getConfigCached, versaoMenorQue } from "../lib/config-cache";
-import { ask, enviarFeedback, listarNotificacoes, suggest } from "../lib/api";
+import { ask, buscarConvenio, enviarFeedback, listarNotificacoes, suggest } from "../lib/api";
 import type { AskResponse, SuggestResponse } from "../lib/api";
 import { hashThreadId } from "../lib/hash";
 import { maskPII } from "../lib/pii";
@@ -38,15 +38,59 @@ const notificacoesEl = document.getElementById("notificacoes")!;
 const banner24hEl = document.getElementById("banner-24h")!;
 const secaoJanelas24hEl = document.getElementById("secao-janelas-24h")!;
 const janelas24hEl = document.getElementById("janelas-24h")!;
+const cabecalhoLeadEl = document.getElementById("cabecalho-lead")!;
+const leadNomeEl = document.getElementById("lead-nome")!;
+const leadEmpresaEl = document.getElementById("lead-empresa")!;
+const leadEstadoEl = document.getElementById("lead-estado")!;
+const leadConvenioEl = document.getElementById("lead-convenio")!;
 
 let threadIdAtual: string | null = null;
+let ultimaEmpresaConvenioConsultada: string | null = null; // evita rebuscar convênio a cada mensagem nova
 let ultimaMensagemSugerida: string | null = null; // dedupe: threadId+texto da última msg do lead já processada
+
+function setItem(el: HTMLElement, texto: string | null) {
+  if (!texto) {
+    el.hidden = true;
+    return;
+  }
+  el.hidden = false;
+  el.textContent = texto;
+}
+
+async function renderCabecalhoLead(conversa: ConversaExtraida) {
+  setItem(leadNomeEl, conversa.nomeLead);
+  setItem(leadEmpresaEl, conversa.empresaAssociada ? `Empresa: ${conversa.empresaAssociada}` : null);
+  setItem(leadEstadoEl, conversa.estadoLead ? `Estado: ${conversa.estadoLead}` : null);
+  cabecalhoLeadEl.hidden = !(conversa.nomeLead || conversa.empresaAssociada || conversa.estadoLead);
+
+  if (!conversa.empresaAssociada) {
+    leadConvenioEl.hidden = true;
+    ultimaEmpresaConvenioConsultada = null;
+    return;
+  }
+  if (conversa.empresaAssociada === ultimaEmpresaConvenioConsultada) return; // já consultado pra essa empresa
+  ultimaEmpresaConvenioConsultada = conversa.empresaAssociada;
+
+  try {
+    const convenio = await buscarConvenio(conversa.empresaAssociada);
+    if (ultimaEmpresaConvenioConsultada !== conversa.empresaAssociada) return; // conversa trocou enquanto buscava
+    cabecalhoLeadEl.hidden = false;
+    setItem(
+      leadConvenioEl,
+      convenio.encontrado ? `Convênio: ${convenio.desconto_pct}% (${convenio.empresa_convenio})` : "Sem convênio localizado",
+    );
+  } catch (err) {
+    console.error("buscarConvenio() falhou:", err);
+    leadConvenioEl.hidden = true;
+  }
+}
 
 function renderConversa(conversa: ConversaExtraida) {
   bannerInativoEl.hidden = true;
   bannerSeletoresEl.hidden = true;
   threadIdEl.textContent = `Conversa #${conversa.threadId}`;
   threadIdAtual = conversa.threadId;
+  renderCabecalhoLead(conversa);
   conversaEl.innerHTML = "";
   for (const msg of conversa.mensagens) {
     const div = document.createElement("div");
@@ -71,6 +115,7 @@ function renderSeletoresNaoCalibrados(threadId: string) {
   threadIdAtual = threadId;
   bannerInativoEl.hidden = true;
   bannerSeletoresEl.hidden = false;
+  cabecalhoLeadEl.hidden = true;
   conversaEl.innerHTML = "";
 }
 

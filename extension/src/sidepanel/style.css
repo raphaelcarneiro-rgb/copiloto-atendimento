@@ -39,6 +39,22 @@ header h1 {
   font-size: 11px;
   color: #7c98b6;
 }
+.cabecalho-lead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  padding: 8px 16px;
+  background: #eaf0f6;
+  border-bottom: 1px solid #dfe3eb;
+  font-size: 12px;
+}
+.cabecalho-lead-item {
+  color: #33475b;
+  font-weight: 600;
+}
+.cabecalho-lead-item:first-child {
+  font-weight: 700;
+}
 .banner {
   margin: 10px 16px;
   padding: 8px 12px;

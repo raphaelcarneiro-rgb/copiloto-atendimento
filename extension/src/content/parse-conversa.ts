@@ -46,13 +46,30 @@ export function extrairThreadId(url: string): string | null {
 }
 
 /**
- * Empresa já associada ao contato no CRM (painel lateral do HubSpot).
- * `document` inteiro, não o container de mensagens — o painel de contato
- * fica fora dele. Sem seletor calibrado ou sem empresa associada, `null`
- * (não é erro — nem todo contato tem empresa vinculada).
+ * Extrai o texto de um elemento único do `document` (não do container de
+ * mensagens) a partir de um seletor opcional vindo de `/config`. Usado para
+ * os dados do painel de contato do HubSpot (empresa, nome, estado) que só
+ * servem pra exibição no cabeçalho do side panel — nunca chegam a fazer
+ * parte da conversa mascarada. Sem seletor calibrado ou elemento ausente
+ * (contato sem esse dado), `null` — nunca é erro.
  */
-export function extrairEmpresaAssociada(doc: ParentNode, seletorEmpresaAssociada?: string): string | null {
-  if (!seletorEmpresaAssociada) return null;
-  const el = doc.querySelector(seletorEmpresaAssociada);
+function extrairTextoDoPainel(doc: ParentNode, seletor?: string): string | null {
+  if (!seletor) return null;
+  const el = doc.querySelector(seletor);
   return el?.textContent?.trim() || null;
+}
+
+/** Empresa já associada ao contato no CRM (painel lateral do HubSpot). */
+export function extrairEmpresaAssociada(doc: ParentNode, seletorEmpresaAssociada?: string): string | null {
+  return extrairTextoDoPainel(doc, seletorEmpresaAssociada);
+}
+
+/** Nome do contato/lead da conversa ativa. */
+export function extrairNomeLead(doc: ParentNode, seletorNomeLead?: string): string | null {
+  return extrairTextoDoPainel(doc, seletorNomeLead);
+}
+
+/** Estado/Região do contato. */
+export function extrairEstadoLead(doc: ParentNode, seletorEstadoLead?: string): string | null {
+  return extrairTextoDoPainel(doc, seletorEstadoLead);
 }
