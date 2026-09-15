@@ -101,7 +101,7 @@ function buildSchema(etapasValidas: string[]) {
   } as const;
 }
 
-function buildSystemPrompt(playbook: PlaybookRow[], empresaAssociada: string | null): string {
+function buildSystemPrompt(playbook: PlaybookRow[], empresaAssociada: string | null, modo: "resposta" | "follow_up"): string {
   const roteiro = playbook
     .sort((a, b) => a.ordem - b.ordem)
     .map(
@@ -112,9 +112,14 @@ function buildSystemPrompt(playbook: PlaybookRow[], empresaAssociada: string | n
     )
     .join("\n");
 
+  const instrucaoAbertura =
+    modo === "follow_up"
+      ? "Você vê a conversa recente. O ATENDENTE mandou a última mensagem e o lead ainda não respondeu — sua tarefa é sugerir de 1 a 2 mensagens curtas de FOLLOW-UP (reengajamento), não uma resposta a uma pergunta nova. Não repita a mesma pergunta/mensagem já enviada; ofereça algo levemente diferente pra reengajar (ex.: reforçar um benefício já discutido, perguntar objetivamente se ficou alguma dúvida, retomar o próximo passo natural do roteiro). NUNCA invente prazo, desconto ou urgência que não esteja fundamentada nos trechos do contexto ou já dita na conversa."
+      : "Você vê a conversa recente. Uma ou mais mensagens do FINAL da conversa são do lead e ainda não foram respondidas — tente cobrir TODAS elas na mesma sugestão, quando fizer sentido, não só a última.";
+
   return [
     "Você é o copiloto de atendimento comercial da Faculdade Infnet, ajudando um atendente humano a responder um lead pelo WhatsApp.",
-    "Você vê a conversa recente. Uma ou mais mensagens do FINAL da conversa são do lead e ainda não foram respondidas — tente cobrir TODAS elas na mesma sugestão, quando fizer sentido, não só a última.",
+    instrucaoAbertura,
     "Sugira até 3 respostas curtas e diretas que o atendente poderia mandar — cada uma fundamentada SOMENTE nos trechos numerados do contexto.",
     "Nunca invente preço, data, duração ou qualquer dado. Se a base não tiver informação suficiente para responder com segurança a algum ponto, NÃO crie uma sugestão para esse ponto — em vez disso, descreva a dúvida em 'lacunas'.",
     "IMPORTANTE: cada texto em 'sugestoes' é a mensagem EXATA que o atendente vai colar e mandar pro lead — nunca escreva, dentro dela, frases dirigidas ao atendente ou que expõem incerteza pro lead, como 'não tenho essa informação', 'no momento não sei', 'vou verificar e te retorno', 'posso confirmar isso pra você'. Isso faz o atendente (que pode saber a resposta de cabeça) parecer despreparado na frente do cliente. Se a pergunta tem uma parte que você responde com confiança e outra que não, responda SÓ a parte confiável na sugestão (se ela ainda fizer sentido sozinha) e jogue a parte sem fundamento inteira em 'lacunas' — nunca misture as duas coisas numa única mensagem.",
@@ -127,12 +132,19 @@ function buildSystemPrompt(playbook: PlaybookRow[], empresaAssociada: string | n
     empresaAssociada
       ? `A empresa do lead JÁ está associada no CRM do HubSpot: "${empresaAssociada}". NUNCA pergunte o nome da empresa em 'perguntas_para_lead' nem na sugestão — ela já é conhecida. Use esse nome pra procurar o convênio dela nos trechos do contexto e responder/calcular o desconto diretamente; se não achar essa empresa nos trechos recuperados, registre a dúvida em 'lacunas' (não pergunte de novo o nome, pergunte outra coisa se precisar, tipo confirmar o convênio com a coordenação).`
       : "",
-    "Se nenhuma mensagem do lead pedir informação (ex.: só um agradecimento), devolva 'sugestoes' vazio.",
+    modo === "follow_up"
+      ? "Sempre gere pelo menos 1 sugestão de follow-up nesse modo, mesmo que a última mensagem do lead pareça encerrar o assunto (ex.: um agradecimento) — o objetivo aqui é reengajar quem parou de responder."
+      : "Se nenhuma mensagem do lead pedir informação (ex.: só um agradecimento), devolva 'sugestoes' vazio.",
     "Seja direto e objetivo, em português do Brasil, como uma mensagem de WhatsApp de atendimento comercial.",
   ].join(" ");
 }
 
-function buildUserPrompt(mensagens: MensagemEntrada[], chunks: ChunkResultado[], empresaAssociada: string | null): string {
+function buildUserPrompt(
+  mensagens: MensagemEntrada[],
+  chunks: ChunkResultado[],
+  empresaAssociada: string | null,
+  modo: "resposta" | "follow_up",
+): string {
   const conversa = mensagens
     .map((m) => `${m.autor === "lead" ? "Lead" : "Atendente"}: ${m.texto}`)
     .join("\n");
@@ -142,9 +154,13 @@ function buildUserPrompt(mensagens: MensagemEntrada[], chunks: ChunkResultado[],
   const linhaEmpresa = empresaAssociada
     ? `Empresa do lead (já associada no CRM, não precisa perguntar): ${empresaAssociada}\n\n`
     : "";
+  const linhaConversa =
+    modo === "follow_up"
+      ? `Conversa completa (o ATENDENTE mandou a última mensagem e o lead ainda não respondeu):\n${conversa}\n\n`
+      : `Conversa completa (as últimas mensagens do lead, se houver mais de uma seguida, ainda não têm resposta):\n${conversa}\n\n`;
   return (
     linhaEmpresa +
-    `Conversa completa (as últimas mensagens do lead, se houver mais de uma seguida, ainda não têm resposta):\n${conversa}\n\n` +
+    linhaConversa +
     `Contexto recuperado da base de conhecimento (cite pelo chunk_id exato indicado antes de cada trecho):\n\n${contexto}`
   );
 }
@@ -155,7 +171,13 @@ Deno.serve(async (req: Request) => {
     return jsonComCors({ error: "use POST" }, { status: 405 });
   }
 
-  let body: { mensagens?: MensagemEntrada[]; thread_hash?: string; match_count?: number; empresa_associada?: string };
+  let body: {
+    mensagens?: MensagemEntrada[];
+    thread_hash?: string;
+    match_count?: number;
+    empresa_associada?: string;
+    modo?: "resposta" | "follow_up";
+  };
   try {
     body = await req.json();
   } catch {
@@ -166,23 +188,39 @@ Deno.serve(async (req: Request) => {
     return jsonComCors({ error: "campo 'mensagens' é obrigatório e não pode ser vazio" }, { status: 400 });
   }
 
+  const modo: "resposta" | "follow_up" = body.modo === "follow_up" ? "follow_up" : "resposta";
+
   // RF04: mascara PII em toda a conversa antes de qualquer processamento.
   const mensagens = body.mensagens.map((m) => ({ ...m, texto: maskPII(m.texto) }));
 
-  // RF: "sempre que o app consiga ver tudo que não foi respondido" — pega
-  // TODAS as mensagens do lead no final da conversa, não só a última. Numa
-  // sequência tipo Lead/Lead/Lead sem resposta do atendente entre elas,
-  // todas contam como pendentes.
-  const mensagensNaoRespondidas: MensagemEntrada[] = [];
-  for (let i = mensagens.length - 1; i >= 0; i--) {
-    if (mensagens[i].autor !== "lead") break;
-    mensagensNaoRespondidas.unshift(mensagens[i]);
-  }
-  if (mensagensNaoRespondidas.length === 0) {
-    return jsonComCors(
-      { error: "nenhuma mensagem do lead sem resposta encontrada — nada para sugerir" },
-      { status: 400 },
-    );
+  // "resposta" (padrão): pega TODAS as mensagens do lead no final da
+  // conversa, não só a última — numa sequência Lead/Lead/Lead sem resposta
+  // do atendente entre elas, todas contam como pendentes.
+  // "follow_up" (pedido do Raphael, 2026-09-15): o ATENDENTE mandou a
+  // última mensagem e o lead sumiu — o foco de busca vira essa última
+  // mensagem do atendente (o que ficou sem resposta), não uma pergunta do lead.
+  let mensagensNaoRespondidas: MensagemEntrada[];
+  if (modo === "follow_up") {
+    const ultima = mensagens[mensagens.length - 1];
+    if (!ultima || ultima.autor !== "atendente") {
+      return jsonComCors(
+        { error: "modo 'follow_up' exige que a última mensagem da conversa seja do atendente" },
+        { status: 400 },
+      );
+    }
+    mensagensNaoRespondidas = [ultima];
+  } else {
+    mensagensNaoRespondidas = [];
+    for (let i = mensagens.length - 1; i >= 0; i--) {
+      if (mensagens[i].autor !== "lead") break;
+      mensagensNaoRespondidas.unshift(mensagens[i]);
+    }
+    if (mensagensNaoRespondidas.length === 0) {
+      return jsonComCors(
+        { error: "nenhuma mensagem do lead sem resposta encontrada — nada para sugerir" },
+        { status: 400 },
+      );
+    }
   }
   const textoNaoRespondido = mensagensNaoRespondidas.map((m) => m.texto).join(" \n ");
   // RF (pedido do Raphael, 2026-09-15): a empresa do lead já pode estar
@@ -285,7 +323,12 @@ Deno.serve(async (req: Request) => {
     let tokensCompletion = 0;
     let tokensCache = 0;
 
-    if (chunks.length === 0 || melhorSimilaridade < limiarRelevancia) {
+    // Follow-up é uma mensagem de reengajamento, não uma afirmação factual
+    // nova — não precisa de trecho fundamentado pra existir (ex.: "ficou
+    // alguma dúvida?" não cita nada). Por isso só o modo "resposta" pula o
+    // LLM quando não há contexto relevante (constitution §1 — sem
+    // fundamento pra responder uma pergunta, não inventa).
+    if (modo === "resposta" && (chunks.length === 0 || melhorSimilaridade < limiarRelevancia)) {
       // Sem trechos minimamente relevantes: nem vale chamar o modelo de
       // chat — não tem como fundamentar nada (constitution §1). Mesmo
       // assim precisamos de uma etapa_atual válida; "descoberta" (ordem 1)
@@ -300,8 +343,8 @@ Deno.serve(async (req: Request) => {
     } else {
       const chat = await chatJSON<SuggestLLMOutput>({
         model: modelos.chat,
-        system: buildSystemPrompt(playbook, empresaAssociada),
-        user: buildUserPrompt(mensagens, chunks, empresaAssociada),
+        system: buildSystemPrompt(playbook, empresaAssociada, modo),
+        user: buildUserPrompt(mensagens, chunks, empresaAssociada, modo),
         schemaName: "suggest_response",
         schema: buildSchema(etapasValidas),
       });
@@ -313,14 +356,20 @@ Deno.serve(async (req: Request) => {
       // RF06: descarta citações que não pertencem ao conjunto recuperado
       // NESTA requisição. Uma sugestão sem nenhuma fonte válida não é uma
       // sugestão fundamentada — vira lacuna em vez de aparecer pro
-      // atendente como resposta pronta.
+      // atendente como resposta pronta. Exceção: follow-up é reengajamento,
+      // não uma afirmação factual nova — não precisa citar nada pra ser
+      // válido (ex.: "ficou alguma dúvida?" não fundamenta nada porque não
+      // afirma nada nas suas próprias palavras).
       const sugestoesValidas: SugestaoLLM[] = [];
       const lacunasExtras: string[] = [];
       let houveFonteInvalida = false;
       for (const s of resultado.sugestoes) {
         const fontesValidas = s.fontes.filter((id) => idsRecuperados.has(id));
         if (fontesValidas.length !== s.fontes.length) houveFonteInvalida = true;
-        if (fontesValidas.length === 0) {
+        if (fontesValidas.length === 0 && s.fontes.length > 0) {
+          // Citou algo, mas nada bateu com o que foi recuperado — isso sim é suspeito.
+          lacunasExtras.push(s.texto);
+        } else if (fontesValidas.length === 0 && modo === "resposta") {
           lacunasExtras.push(s.texto);
         } else if (PADRAO_INCERTEZA.test(s.texto)) {
           // A sugestão vazou uma frase de incerteza dirigida ao lead — nunca

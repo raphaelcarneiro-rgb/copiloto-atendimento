@@ -69,6 +69,7 @@ export function suggest(
   mensagens: MensagemExtraida[],
   threadHash?: string,
   empresaAssociada?: string | null,
+  modo?: "resposta" | "follow_up",
 ): Promise<SuggestResponse> {
   // `audioUrl` é só um estado intermediário de transcrição (ver
   // hubspot-reader.ts) — nunca deve sair do navegador, mesmo que por algum
@@ -80,6 +81,7 @@ export function suggest(
       mensagens: mensagensSemAudioUrl,
       thread_hash: threadHash,
       empresa_associada: empresaAssociada ?? undefined,
+      modo: modo ?? undefined,
     }),
   });
 }

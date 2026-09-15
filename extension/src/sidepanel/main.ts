@@ -7,7 +7,7 @@ import type { AskResponse, SuggestResponse } from "../lib/api";
 import { hashThreadId } from "../lib/hash";
 import { maskPII } from "../lib/pii";
 import { extrairThreadId } from "../content/parse-conversa";
-import { listarJanelasExpirando } from "../background/window-guard";
+import { listarJanelasExpirando, type JanelaExpirando } from "../background/window-guard";
 import { getSessao, login, logout } from "../lib/auth";
 import type {
   ConversaExtraida,
@@ -44,10 +44,17 @@ const leadNomeEl = document.getElementById("lead-nome")!;
 const leadEmpresaEl = document.getElementById("lead-empresa")!;
 const leadEstadoEl = document.getElementById("lead-estado")!;
 const leadConvenioEl = document.getElementById("lead-convenio")!;
+const leadJanelaEl = document.getElementById("lead-janela")!;
+const secaoFollowupEl = document.getElementById("secao-followup")!;
+const followupQuandoEl = document.getElementById("followup-quando")!;
+const followupAvaliarBtn = document.getElementById("followup-avaliar") as HTMLButtonElement;
+const followupStatusEl = document.getElementById("followup-status")!;
+const followupResultadoEl = document.getElementById("followup-resultado")!;
 
 let threadIdAtual: string | null = null;
 let ultimaEmpresaConvenioConsultada: string | null = null; // evita rebuscar convênio a cada mensagem nova
 let ultimaMensagemSugerida: string | null = null; // dedupe: threadId+texto da última msg do lead já processada
+let conversaAtual: ConversaExtraida | null = null; // pra "Sugerir follow-up" poder reusar mensagens/empresa sem reextrair
 
 function setItem(el: HTMLElement, texto: string | null) {
   if (!texto) {
@@ -72,7 +79,7 @@ async function renderCabecalhoLead(conversa: ConversaExtraida) {
   setItem(leadNomeEl, conversa.nomeLead);
   setItem(leadEmpresaEl, conversa.empresaAssociada ? `Empresa: ${conversa.empresaAssociada}` : null);
   setItem(leadEstadoEl, conversa.estadoLead ? `Estado: ${conversa.estadoLead}` : null);
-  cabecalhoLeadEl.hidden = !(conversa.nomeLead || conversa.empresaAssociada || conversa.estadoLead);
+  cabecalhoLeadEl.hidden = !(conversa.nomeLead || conversa.empresaAssociada || conversa.estadoLead || !leadJanelaEl.hidden);
 
   // `contexto-lead` (API do HubSpot, ver hubspot-reader.ts) já resolve o
   // convênio junto — só busca aqui de novo se ele não veio (fallback de
@@ -106,6 +113,7 @@ function renderConversa(conversa: ConversaExtraida) {
   bannerSeletoresEl.hidden = true;
   threadIdEl.textContent = `Conversa #${conversa.threadId}`;
   threadIdAtual = conversa.threadId;
+  conversaAtual = conversa;
   renderCabecalhoLead(conversa);
   conversaEl.innerHTML = "";
   for (const msg of conversa.mensagens) {
@@ -123,6 +131,7 @@ function renderConversa(conversa: ConversaExtraida) {
     conversaEl.appendChild(div);
   }
 
+  atualizarSecaoFollowup(conversa);
   dispararSuggestSeNecessario(conversa);
 }
 
@@ -322,9 +331,31 @@ async function dispensar24h(threadId: string) {
   await atualizarJanelas24h();
 }
 
+/** Chip do cabeçalho: "Encerra em Xh Ymin" — sempre visível, não só perto de fechar (isso é o banner abaixo). */
+function formatarContagemRegressiva(janela: JanelaExpirando | undefined): string | null {
+  if (!janela) return null;
+  if (janela.semJanelaUtil) return "Sem janela útil (24h)";
+
+  const restanteMs = new Date(janela.expiraEm).getTime() - Date.now();
+  if (restanteMs <= 0) return "Janela de 24h encerrada";
+
+  const horas = Math.floor(restanteMs / (60 * 60 * 1000));
+  const minutos = Math.floor((restanteMs % (60 * 60 * 1000)) / (60 * 1000));
+  const tempo = horas > 0 ? `${horas}h${minutos > 0 ? ` ${minutos}min` : ""}` : `${minutos}min`;
+  return `Encerra em ${tempo}`;
+}
+
 async function atualizarJanelas24h() {
   const lista = await listarJanelasExpirando();
   const visiveis = lista.filter((j) => j.deveExibir);
+
+  // Chip no cabeçalho do side panel (pedido do Raphael, 2026-09-15): tempo
+  // até a janela de 24h da conversa aberta fechar, sempre visível — não só
+  // quando está perto de fechar (isso é o banner abaixo, com antecedência
+  // configurável).
+  const janelaDaConversaAtual = threadIdAtual ? lista.find((j) => j.threadId === threadIdAtual) : undefined;
+  setItem(leadJanelaEl, formatarContagemRegressiva(janelaDaConversaAtual));
+  if (!leadJanelaEl.hidden) cabecalhoLeadEl.hidden = false;
 
   // Banner específico da conversa aberta agora no painel.
   const daConversaAtual = threadIdAtual ? visiveis.find((j) => j.threadId === threadIdAtual) : undefined;
@@ -419,15 +450,15 @@ const RÓTULOS_ETAPA: Record<string, string> = {
   follow_up: "Follow-up",
 };
 
-function renderSugestoes(resposta: SuggestResponse) {
-  suggestStatusEl.hidden = true;
-  suggestResultadoEl.innerHTML = "";
+function renderSugestoes(resposta: SuggestResponse, resultadoEl: HTMLElement, statusEl: HTMLElement) {
+  statusEl.hidden = true;
+  resultadoEl.innerHTML = "";
 
   if (resposta.etapa) {
     const etapaEl = document.createElement("p");
     etapaEl.className = "suggest-etapa";
     etapaEl.textContent = `Etapa do roteiro: ${RÓTULOS_ETAPA[resposta.etapa] ?? resposta.etapa}`;
-    suggestResultadoEl.appendChild(etapaEl);
+    resultadoEl.appendChild(etapaEl);
   }
 
   if (resposta.sugestoes.length === 0) {
@@ -437,7 +468,7 @@ function renderSugestoes(resposta: SuggestResponse) {
       resposta.lacunas.length > 0
         ? "Não encontrei fundamento na base para responder — dúvida registrada para curadoria."
         : "Nada a sugerir para a última mensagem.";
-    suggestResultadoEl.appendChild(vazio);
+    resultadoEl.appendChild(vazio);
   }
 
   for (const s of resposta.sugestoes) {
@@ -454,7 +485,7 @@ function renderSugestoes(resposta: SuggestResponse) {
 
     const { el } = criarCardAcaoResposta(s.texto, resposta.usage_log_id);
     bloco.appendChild(el);
-    suggestResultadoEl.appendChild(bloco);
+    resultadoEl.appendChild(bloco);
   }
 
   if (resposta.perguntas_para_lead.length > 0) {
@@ -468,12 +499,12 @@ function renderSugestoes(resposta: SuggestResponse) {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.textContent = pergunta;
-      const statusEl = document.createElement("span");
-      statusEl.className = "ask-status";
-      btn.onclick = () => inserirNaConversa(pergunta, statusEl, btn);
+      const statusEl2 = document.createElement("span");
+      statusEl2.className = "ask-status";
+      btn.onclick = () => inserirNaConversa(pergunta, statusEl2, btn);
       box.appendChild(btn);
     }
-    suggestResultadoEl.appendChild(box);
+    resultadoEl.appendChild(box);
   }
 }
 
@@ -492,13 +523,77 @@ async function dispararSuggestSeNecessario(conversa: ConversaExtraida) {
   try {
     const threadHash = await hashThreadId(conversa.threadId);
     const resposta = await suggest(conversa.mensagens, threadHash, conversa.empresaAssociada);
-    renderSugestoes(resposta);
+    renderSugestoes(resposta, suggestResultadoEl, suggestStatusEl);
   } catch (err) {
     suggestStatusEl.hidden = false;
     suggestStatusEl.textContent = "Não consegui buscar sugestões agora.";
     console.error("suggest() falhou:", err);
   }
 }
+
+// --- Follow-up quando o lead para de responder (pedido do Raphael, 2026-09-15) ---
+// Diferente das sugestões automáticas (RF02, reage só a mensagem nova do
+// lead), isso é sempre uma ação manual do atendente — não queremos chamar o
+// LLM sozinho toda vez que a última mensagem for do atendente (ia disparar
+// de novo a cada re-render do MutationObserver, sem nenhuma msg nova).
+
+function descreverQuandoFollowup(janela: JanelaExpirando | undefined): string {
+  if (!janela) {
+    return "Sem informação da janela de 24h ainda — mande quando fizer sentido pra conversa.";
+  }
+  if (janela.semJanelaUtil) {
+    return "Essa janela de 24h vai fechar sem nenhum horário de expediente no meio — pode mandar agora, mas depois de fechar só vai dar pra reengajar com um template do WhatsApp.";
+  }
+  const expira = formatarHorario(janela.expiraEm);
+  return janela.foraDeExpediente
+    ? `Pode mandar agora — a janela de 24h expira ${expira}, fora do seu expediente, então vale a pena não deixar pra depois.`
+    : `Pode mandar a qualquer momento até ${expira}, quando a janela de 24h desta conversa fecha.`;
+}
+
+async function atualizarSecaoFollowup(conversa: ConversaExtraida) {
+  const ultima = conversa.mensagens[conversa.mensagens.length - 1];
+  if (!ultima || ultima.autor !== "atendente") {
+    secaoFollowupEl.hidden = true;
+    followupResultadoEl.innerHTML = "";
+    return;
+  }
+  secaoFollowupEl.hidden = false;
+  followupResultadoEl.innerHTML = "";
+  followupStatusEl.hidden = true;
+  followupAvaliarBtn.disabled = false;
+  followupAvaliarBtn.textContent = "Sugerir follow-up";
+
+  try {
+    const lista = await listarJanelasExpirando();
+    const janela = lista.find((j) => j.threadId === conversa.threadId);
+    followupQuandoEl.textContent = descreverQuandoFollowup(janela);
+  } catch (err) {
+    console.error("listarJanelasExpirando() falhou (follow-up):", err);
+    followupQuandoEl.textContent = "";
+  }
+}
+
+followupAvaliarBtn.addEventListener("click", async () => {
+  if (!conversaAtual) return;
+  followupAvaliarBtn.disabled = true;
+  followupAvaliarBtn.textContent = "Avaliando…";
+  followupStatusEl.hidden = false;
+  followupStatusEl.textContent = "Buscando sugestões de follow-up…";
+  followupResultadoEl.innerHTML = "";
+
+  try {
+    const threadHash = await hashThreadId(conversaAtual.threadId);
+    const resposta = await suggest(conversaAtual.mensagens, threadHash, conversaAtual.empresaAssociada, "follow_up");
+    renderSugestoes(resposta, followupResultadoEl, followupStatusEl);
+  } catch (err) {
+    followupStatusEl.hidden = false;
+    followupStatusEl.textContent = "Não consegui avaliar o follow-up agora.";
+    console.error("suggest(follow_up) falhou:", err);
+  } finally {
+    followupAvaliarBtn.disabled = false;
+    followupAvaliarBtn.textContent = "Sugerir follow-up";
+  }
+});
 
 // --- Pergunte ao copiloto (US3) ---------------------------------------
 

@@ -130,6 +130,10 @@ header h1 {
   background: #fef08a;
   color: #854d0e;
 }
+.cabecalho-janela {
+  background: #dbe9ff;
+  color: #1e4c8a;
+}
 .cabecalho-convenio-nao {
   background: #f1f3f6;
   color: #99acc2;
@@ -437,4 +441,31 @@ header h1 {
   border: 1px solid #cbd6e2;
   background: #f5f8fa;
   cursor: pointer;
+}
+
+#secao-followup {
+  margin: 0 16px 12px;
+  padding: 10px;
+  background: #fff;
+  border: 1px dashed #99acc2;
+  border-radius: 10px;
+}
+.followup-quando {
+  font-size: 11px;
+  color: #516f90;
+  margin-bottom: 8px;
+}
+#followup-avaliar {
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  background: #00a4bd;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+#followup-avaliar:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
