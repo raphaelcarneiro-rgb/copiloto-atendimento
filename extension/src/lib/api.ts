@@ -68,10 +68,11 @@ export interface SuggestResponse {
 export function suggest(
   mensagens: MensagemExtraida[],
   threadHash?: string,
+  empresaAssociada?: string | null,
 ): Promise<SuggestResponse> {
   return callFunction<SuggestResponse>("suggest", {
     method: "POST",
-    body: JSON.stringify({ mensagens, thread_hash: threadHash }),
+    body: JSON.stringify({ mensagens, thread_hash: threadHash, empresa_associada: empresaAssociada ?? undefined }),
   });
 }
 

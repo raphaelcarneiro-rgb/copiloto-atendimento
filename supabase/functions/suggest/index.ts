@@ -57,6 +57,15 @@ interface SugestaoLLM {
 // real testando o cálculo de preço com desconto (etapa 8, 2026-09-14).
 const MATCH_COUNT_PADRAO = 12;
 
+// Rede de segurança além da instrução no prompt (achado real, 2026-09-14:
+// o modelo às vezes respondia a maior parte da pergunta certo, mas
+// deixava vazar uma frase de incerteza dentro do MEIO da sugestão, tipo
+// "no momento não tenho informação de X" — texto que não devia ir pro
+// lead nunca, faz o atendente parecer despreparado). Se aparecer, a
+// sugestão inteira vira lacuna em vez de arriscar deixar passar.
+const PADRAO_INCERTEZA =
+  /n[ãa]o tenho (essa )?informa[çc][ãa]o|n[ãa]o tenho certeza|no momento,? n[ãa]o (sei|tenho)|n[ãa]o sei informar|posso verificar (essa|isso|essa possibilidade)|vou verificar e (te )?retorno|n[ãa]o consigo confirmar/i;
+
 interface SuggestLLMOutput {
   etapa_atual: string;
   sugestoes: SugestaoLLM[];
@@ -92,7 +101,7 @@ function buildSchema(etapasValidas: string[]) {
   } as const;
 }
 
-function buildSystemPrompt(playbook: PlaybookRow[]): string {
+function buildSystemPrompt(playbook: PlaybookRow[], empresaAssociada: string | null): string {
   const roteiro = playbook
     .sort((a, b) => a.ordem - b.ordem)
     .map(
@@ -108,25 +117,33 @@ function buildSystemPrompt(playbook: PlaybookRow[]): string {
     "Você vê a conversa recente. Uma ou mais mensagens do FINAL da conversa são do lead e ainda não foram respondidas — tente cobrir TODAS elas na mesma sugestão, quando fizer sentido, não só a última.",
     "Sugira até 3 respostas curtas e diretas que o atendente poderia mandar — cada uma fundamentada SOMENTE nos trechos numerados do contexto.",
     "Nunca invente preço, data, duração ou qualquer dado. Se a base não tiver informação suficiente para responder com segurança a algum ponto, NÃO crie uma sugestão para esse ponto — em vez disso, descreva a dúvida em 'lacunas'.",
+    "IMPORTANTE: cada texto em 'sugestoes' é a mensagem EXATA que o atendente vai colar e mandar pro lead — nunca escreva, dentro dela, frases dirigidas ao atendente ou que expõem incerteza pro lead, como 'não tenho essa informação', 'no momento não sei', 'vou verificar e te retorno', 'posso confirmar isso pra você'. Isso faz o atendente (que pode saber a resposta de cabeça) parecer despreparado na frente do cliente. Se a pergunta tem uma parte que você responde com confiança e outra que não, responda SÓ a parte confiável na sugestão (se ela ainda fizer sentido sozinha) e jogue a parte sem fundamento inteira em 'lacunas' — nunca misture as duas coisas numa única mensagem.",
     'No campo "fontes" de cada sugestão, cite o(s) valor(es) exato(s) de chunk_id (o número depois de "chunk_id=" antes do trecho) — nunca invente ou adivinhe um chunk_id.',
     "\n\nRoteiro comercial da Infnet, em 6 etapas (não necessariamente nessa ordem, mas todo atendimento deve tentar passar por elas):\n" +
       roteiro,
     "\nEm 'etapa_atual', identifique qual dessas etapas melhor descreve o momento AGORA da conversa (use exatamente uma das chaves entre aspas acima, ex.: \"descoberta\").",
     "Se alguma informação de uma etapa anterior ainda não foi coletada (ex.: nome da empresa, nível de convênio) e isso ajudaria a responder melhor, inclua a pergunta correspondente em 'perguntas_para_lead' — mas só se ainda não tiver sido perguntada ou respondida na conversa.",
     "Se a conversa já trouxe dados como empresa, convênio ou interesse específico (inclusive de mensagens automáticas/chatbot), USE esses dados para enriquecer a sugestão (ex.: já calcular o desconto do convênio certo) em vez de perguntar de novo.",
+    empresaAssociada
+      ? `A empresa do lead JÁ está associada no CRM do HubSpot: "${empresaAssociada}". NUNCA pergunte o nome da empresa em 'perguntas_para_lead' nem na sugestão — ela já é conhecida. Use esse nome pra procurar o convênio dela nos trechos do contexto e responder/calcular o desconto diretamente; se não achar essa empresa nos trechos recuperados, registre a dúvida em 'lacunas' (não pergunte de novo o nome, pergunte outra coisa se precisar, tipo confirmar o convênio com a coordenação).`
+      : "",
     "Se nenhuma mensagem do lead pedir informação (ex.: só um agradecimento), devolva 'sugestoes' vazio.",
     "Seja direto e objetivo, em português do Brasil, como uma mensagem de WhatsApp de atendimento comercial.",
   ].join(" ");
 }
 
-function buildUserPrompt(mensagens: MensagemEntrada[], chunks: ChunkResultado[]): string {
+function buildUserPrompt(mensagens: MensagemEntrada[], chunks: ChunkResultado[], empresaAssociada: string | null): string {
   const conversa = mensagens
     .map((m) => `${m.autor === "lead" ? "Lead" : "Atendente"}: ${m.texto}`)
     .join("\n");
   const contexto = chunks
     .map((c) => `--- chunk_id=${c.chunk_id} ---\n${c.conteudo}`)
     .join("\n\n");
+  const linhaEmpresa = empresaAssociada
+    ? `Empresa do lead (já associada no CRM, não precisa perguntar): ${empresaAssociada}\n\n`
+    : "";
   return (
+    linhaEmpresa +
     `Conversa completa (as últimas mensagens do lead, se houver mais de uma seguida, ainda não têm resposta):\n${conversa}\n\n` +
     `Contexto recuperado da base de conhecimento (cite pelo chunk_id exato indicado antes de cada trecho):\n\n${contexto}`
   );
@@ -138,7 +155,7 @@ Deno.serve(async (req: Request) => {
     return jsonComCors({ error: "use POST" }, { status: 405 });
   }
 
-  let body: { mensagens?: MensagemEntrada[]; thread_hash?: string; match_count?: number };
+  let body: { mensagens?: MensagemEntrada[]; thread_hash?: string; match_count?: number; empresa_associada?: string };
   try {
     body = await req.json();
   } catch {
@@ -168,6 +185,11 @@ Deno.serve(async (req: Request) => {
     );
   }
   const textoNaoRespondido = mensagensNaoRespondidas.map((m) => m.texto).join(" \n ");
+  // RF (pedido do Raphael, 2026-09-15): a empresa do lead já pode estar
+  // associada no CRM (painel do contato no HubSpot) — nesse caso o
+  // suggest nunca deve perguntar de novo, e usa o nome direto pra buscar
+  // o convênio dela.
+  const empresaAssociada = body.empresa_associada?.trim() || null;
 
   const db = createServiceClient();
   // RF20: opcional — sem login (ainda comum) continua funcionando normal,
@@ -232,7 +254,13 @@ Deno.serve(async (req: Request) => {
       .map((m) => m.texto)
       .join(" \n ");
 
-    const consultasIndividuais = [...new Set(mensagensNaoRespondidas.map((m) => m.texto))];
+    // A empresa associada vira uma busca própria também — o mesmo achado da
+    // etapa 8 (cada fato precisa da sua consulta, senão dilui) se aplica
+    // aqui: "convênio da empresa X" tem que competir sozinho pelo top da
+    // busca, não só como parte da pergunta original do lead.
+    const consultasIndividuais = [
+      ...new Set([...mensagensNaoRespondidas.map((m) => m.texto), ...(empresaAssociada ? [`convênio da empresa ${empresaAssociada}`] : [])]),
+    ];
     const [resultadosIndividuais, chunksAmpla] = await Promise.all([
       Promise.all(consultasIndividuais.map((texto) => buscar(texto))),
       contextoRecente === textoNaoRespondido ? Promise.resolve([]) : buscar(contextoRecente),
@@ -272,8 +300,8 @@ Deno.serve(async (req: Request) => {
     } else {
       const chat = await chatJSON<SuggestLLMOutput>({
         model: modelos.chat,
-        system: buildSystemPrompt(playbook),
-        user: buildUserPrompt(mensagens, chunks),
+        system: buildSystemPrompt(playbook, empresaAssociada),
+        user: buildUserPrompt(mensagens, chunks, empresaAssociada),
         schemaName: "suggest_response",
         schema: buildSchema(etapasValidas),
       });
@@ -293,6 +321,10 @@ Deno.serve(async (req: Request) => {
         const fontesValidas = s.fontes.filter((id) => idsRecuperados.has(id));
         if (fontesValidas.length !== s.fontes.length) houveFonteInvalida = true;
         if (fontesValidas.length === 0) {
+          lacunasExtras.push(s.texto);
+        } else if (PADRAO_INCERTEZA.test(s.texto)) {
+          // A sugestão vazou uma frase de incerteza dirigida ao lead — nunca
+          // mostra isso como resposta pronta, mesmo tendo fonte válida.
           lacunasExtras.push(s.texto);
         } else {
           sugestoesValidas.push({ texto: s.texto, fontes: fontesValidas });

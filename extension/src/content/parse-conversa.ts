@@ -44,3 +44,15 @@ const THREAD_URL_RE = /\/live-messages\/\d+\/inbox\/(\d+)/;
 export function extrairThreadId(url: string): string | null {
   return url.match(THREAD_URL_RE)?.[1] ?? null;
 }
+
+/**
+ * Empresa já associada ao contato no CRM (painel lateral do HubSpot).
+ * `document` inteiro, não o container de mensagens — o painel de contato
+ * fica fora dele. Sem seletor calibrado ou sem empresa associada, `null`
+ * (não é erro — nem todo contato tem empresa vinculada).
+ */
+export function extrairEmpresaAssociada(doc: ParentNode, seletorEmpresaAssociada?: string): string | null {
+  if (!seletorEmpresaAssociada) return null;
+  const el = doc.querySelector(seletorEmpresaAssociada);
+  return el?.textContent?.trim() || null;
+}

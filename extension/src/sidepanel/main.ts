@@ -423,7 +423,7 @@ async function dispararSuggestSeNecessario(conversa: ConversaExtraida) {
 
   try {
     const threadHash = await hashThreadId(conversa.threadId);
-    const resposta = await suggest(conversa.mensagens, threadHash);
+    const resposta = await suggest(conversa.mensagens, threadHash, conversa.empresaAssociada);
     renderSugestoes(resposta);
   } catch (err) {
     suggestStatusEl.hidden = false;

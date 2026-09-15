@@ -18,8 +18,18 @@ export interface SeletorComposer {
   composer_texto: string;
 }
 
+export interface SeletorEmpresaAssociada {
+  /**
+   * Selector do nome da empresa já associada ao contato no CRM (ex.: painel
+   * "Sobre esse Contato" / seção "Empresas"). Pedido do Raphael em
+   * 2026-09-15: o `suggest` não deve perguntar a empresa do lead se ela já
+   * está associada no HubSpot — precisa ler daqui, não da conversa.
+   */
+  empresa_associada: string;
+}
+
 /** `{}` (todas as chaves ausentes) significa "ainda não calibrado" — ver docs/setup/04-extensao.md. */
-export type SeletoresHubspot = Partial<SeletoresMensagens> & Partial<SeletorComposer>;
+export type SeletoresHubspot = Partial<SeletoresMensagens> & Partial<SeletorComposer> & Partial<SeletorEmpresaAssociada>;
 
 export interface Expediente {
   dias: number[];
@@ -49,6 +59,8 @@ export interface ConversaExtraida {
   threadId: string;
   mensagens: MensagemExtraida[];
   extraidoEm: string;
+  /** Empresa já associada ao contato no CRM (null se não calibrado ou o contato não tiver empresa associada). */
+  empresaAssociada: string | null;
 }
 
 /** Estado de ativação por conversa, persistido em chrome.storage.local. */

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { JSDOM } from "jsdom";
-import { extrairConversa, extrairThreadId } from "./parse-conversa";
+import { extrairConversa, extrairEmpresaAssociada, extrairThreadId } from "./parse-conversa";
 import type { SeletoresMensagens } from "../lib/types";
 
 const FIXTURE_PATH = fileURLToPath(
@@ -56,6 +56,28 @@ describe("extrairConversa", () => {
     const container = dom.window.document.querySelector(SELETORES.container_mensagens)!;
     const { mensagem_hora: _semHora, ...semHora } = SELETORES;
     expect(extrairConversa(container, semHora)).toEqual([{ autor: "lead", texto: "oi", hora: null }]);
+  });
+});
+
+describe("extrairEmpresaAssociada", () => {
+  it("retorna null sem seletor calibrado (ainda não temos o HTML real do painel de contato)", () => {
+    const dom = new JSDOM(`<div><span class="empresa">Binário.Net</span></div>`);
+    expect(extrairEmpresaAssociada(dom.window.document, undefined)).toBeNull();
+  });
+
+  it("extrai o texto do elemento quando o seletor está calibrado", () => {
+    const dom = new JSDOM(`<div><span data-test-id="empresa-associada"> Binário.Net </span></div>`);
+    expect(extrairEmpresaAssociada(dom.window.document, '[data-test-id="empresa-associada"]')).toBe("Binário.Net");
+  });
+
+  it("retorna null se o elemento existe mas está vazio", () => {
+    const dom = new JSDOM(`<div><span data-test-id="empresa-associada"></span></div>`);
+    expect(extrairEmpresaAssociada(dom.window.document, '[data-test-id="empresa-associada"]')).toBeNull();
+  });
+
+  it("retorna null se o elemento não existe no DOM (contato sem empresa associada)", () => {
+    const dom = new JSDOM(`<div></div>`);
+    expect(extrairEmpresaAssociada(dom.window.document, '[data-test-id="empresa-associada"]')).toBeNull();
   });
 });
 
