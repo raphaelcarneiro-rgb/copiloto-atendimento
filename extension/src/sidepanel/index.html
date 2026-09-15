@@ -6,63 +6,72 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <header>
-      <h1>Copiloto de Atendimento</h1>
-      <span id="thread-id" class="thread-id"></span>
-      <div id="auth-area" class="auth-area"></div>
-    </header>
+    <div id="topo-fixo">
+      <header>
+        <div class="header-topo">
+          <img id="logo-infnet" class="logo-infnet" src="" alt="Instituto Infnet" hidden />
+          <h1>Copiloto de Atendimento</h1>
+        </div>
+        <div class="header-meta">
+          <span id="thread-id" class="thread-id"></span>
+          <div id="auth-area" class="auth-area"></div>
+        </div>
+      </header>
 
-    <div id="cabecalho-lead" class="cabecalho-lead" hidden>
-      <span id="lead-nome" class="cabecalho-lead-item cabecalho-nome" hidden></span>
-      <span id="lead-empresa" class="cabecalho-lead-item cabecalho-empresa" hidden></span>
-      <span id="lead-estado" class="cabecalho-lead-item cabecalho-estado" hidden></span>
-      <span id="lead-convenio" class="cabecalho-lead-item" hidden></span>
+      <div id="cabecalho-lead" class="cabecalho-lead" hidden>
+        <span id="lead-nome" class="cabecalho-lead-item cabecalho-nome" hidden></span>
+        <span id="lead-empresa" class="cabecalho-lead-item cabecalho-empresa" hidden></span>
+        <span id="lead-estado" class="cabecalho-lead-item cabecalho-estado" hidden></span>
+        <span id="lead-convenio" class="cabecalho-lead-item" hidden></span>
+      </div>
     </div>
 
-    <div id="banner-versao" class="banner banner-erro" hidden></div>
-    <div id="banner-seletores" class="banner banner-aviso" hidden>
-      Não consegui ler esta conversa — os seletores do HubSpot ainda não foram calibrados. Avise o
-      admin.
+    <div id="conteudo-rolavel">
+      <div id="banner-versao" class="banner banner-erro" hidden></div>
+      <div id="banner-seletores" class="banner banner-aviso" hidden>
+        Não consegui ler esta conversa — os seletores do HubSpot ainda não foram calibrados. Avise o
+        admin.
+      </div>
+      <div id="banner-inativo" class="banner banner-neutro">
+        Copiloto desativado nesta conversa. Clique em "Ativar copiloto" no canto da tela do HubSpot
+        para começar.
+      </div>
+      <div id="banner-24h" class="banner banner-aviso" hidden></div>
+
+      <section id="secao-notificacoes" hidden>
+        <h2 class="section-title">Novidades</h2>
+        <div id="notificacoes" class="notificacoes"></div>
+      </section>
+
+      <section id="secao-janelas-24h" hidden>
+        <h2 class="section-title">Janelas de 24h expirando</h2>
+        <div id="janelas-24h" class="janelas-24h"></div>
+      </section>
+
+      <section>
+        <h2 class="section-title">Conversa extraída</h2>
+        <div id="conversa" class="conversa"></div>
+      </section>
+
+      <section>
+        <h2 class="section-title">Sugestões para responder</h2>
+        <div id="suggest-status" class="suggest-status" hidden></div>
+        <div id="suggest-resultado" class="suggest-resultado"></div>
+      </section>
+
+      <section>
+        <h2 class="section-title">Perguntar ao copiloto</h2>
+        <div id="ask-historico" class="ask-historico"></div>
+        <form id="ask-form" class="ask-form">
+          <textarea
+            id="ask-input"
+            rows="2"
+            placeholder="Ex.: tem desconto para convênio Clinicorp?"
+          ></textarea>
+          <button id="ask-enviar" type="submit">Perguntar</button>
+        </form>
+      </section>
     </div>
-    <div id="banner-inativo" class="banner banner-neutro">
-      Copiloto desativado nesta conversa. Clique em "Ativar copiloto" no canto da tela do HubSpot
-      para começar.
-    </div>
-    <div id="banner-24h" class="banner banner-aviso" hidden></div>
-
-    <section id="secao-notificacoes" hidden>
-      <h2 class="section-title">Novidades</h2>
-      <div id="notificacoes" class="notificacoes"></div>
-    </section>
-
-    <section id="secao-janelas-24h" hidden>
-      <h2 class="section-title">Janelas de 24h expirando</h2>
-      <div id="janelas-24h" class="janelas-24h"></div>
-    </section>
-
-    <section>
-      <h2 class="section-title">Conversa extraída</h2>
-      <div id="conversa" class="conversa"></div>
-    </section>
-
-    <section>
-      <h2 class="section-title">Sugestões para responder</h2>
-      <div id="suggest-status" class="suggest-status" hidden></div>
-      <div id="suggest-resultado" class="suggest-resultado"></div>
-    </section>
-
-    <section>
-      <h2 class="section-title">Perguntar ao copiloto</h2>
-      <div id="ask-historico" class="ask-historico"></div>
-      <form id="ask-form" class="ask-form">
-        <textarea
-          id="ask-input"
-          rows="2"
-          placeholder="Ex.: tem desconto para convênio Clinicorp?"
-        ></textarea>
-        <button id="ask-enviar" type="submit">Perguntar</button>
-      </form>
-    </section>
 
     <script type="module" src="main.ts"></script>
   </body>

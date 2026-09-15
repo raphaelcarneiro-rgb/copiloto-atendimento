@@ -1,21 +1,54 @@
 * {
   box-sizing: border-box;
 }
+html,
+body {
+  height: 100%;
+}
 body {
   margin: 0;
   font-family: -apple-system, "Segoe UI", sans-serif;
   font-size: 13px;
   color: #33475b;
   background: #f5f8fa;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+/* Cabeçalho congelado: só #conteudo-rolavel rola (pedido do Raphael, 2026-09-15). */
+#topo-fixo {
+  flex: 0 0 auto;
+}
+#conteudo-rolavel {
+  flex: 1 1 auto;
+  min-height: 0; /* sem isso o flex item não encolhe e o scroll interno não aparece */
+  overflow-y: auto;
 }
 header {
-  padding: 12px 16px;
+  padding: 12px 16px 8px;
   background: #fff;
   border-bottom: 1px solid #dfe3eb;
+}
+.header-topo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.logo-infnet {
+  height: 22px;
+  width: auto;
 }
 header h1 {
   font-size: 15px;
   margin: 0;
+  text-align: center;
+}
+.header-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
 }
 .auth-area {
   margin-top: 4px;
@@ -90,12 +123,12 @@ header h1 {
   color: #4c2a85;
 }
 .cabecalho-estado {
-  background: #e5e9f0;
-  color: #516f90;
+  background: #ffe3c9;
+  color: #9a4b12;
 }
 .cabecalho-convenio-ok {
-  background: #cbf4c9;
-  color: #14532d;
+  background: #fef08a;
+  color: #854d0e;
 }
 .cabecalho-convenio-nao {
   background: #f1f3f6;
