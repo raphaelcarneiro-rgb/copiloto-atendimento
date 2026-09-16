@@ -23,6 +23,7 @@ import { jsonComCors, respondCorsPreflight } from "../_shared/cors.ts";
 import { registrarLacuna } from "../_shared/lacunas.ts";
 import { resolverChamador } from "../_shared/auth_context.ts";
 import { INSTRUCAO_FORMATACAO_WHATSAPP } from "../_shared/formatacao.ts";
+import { extrairCursosCandidatos, montarBlocoPrecoOficial } from "../_shared/precos.ts";
 
 interface MensagemEntrada {
   autor: "lead" | "atendente";
@@ -139,6 +140,7 @@ function buildSystemPrompt(
     "Nunca invente preço, data, duração ou qualquer dado. Se a base não tiver informação suficiente para responder com segurança a algum ponto, NÃO crie uma sugestão para esse ponto — em vez disso, descreva a dúvida em 'lacunas'.",
     "IMPORTANTE: cada texto em 'sugestoes' é a mensagem EXATA que o atendente vai colar e mandar pro lead — nunca escreva, dentro dela, frases dirigidas ao atendente ou que expõem incerteza pro lead, como 'não tenho essa informação', 'no momento não sei', 'vou verificar e te retorno', 'posso confirmar isso pra você'. Isso faz o atendente (que pode saber a resposta de cabeça) parecer despreparado na frente do cliente. Se a pergunta tem uma parte que você responde com confiança e outra que não, responda SÓ a parte confiável na sugestão (se ela ainda fizer sentido sozinha) e jogue a parte sem fundamento inteira em 'lacunas' — nunca misture as duas coisas numa única mensagem.",
     'No campo "fontes" de cada sugestão, cite o(s) valor(es) exato(s) de chunk_id (o número depois de "chunk_id=" antes do trecho) — nunca invente ou adivinhe um chunk_id.',
+    "Se a mensagem do usuário trouxer um bloco \"DADOS OFICIAIS DE PREÇO\", esse é o ÚNICO lugar de onde um preço de curso pode vir — use exatamente esses números (nunca recalcule, arredonde diferente ou invente outra forma de pagamento). Se não houver esse bloco para o curso perguntado, NÃO informe nenhum preço — descreva a dúvida em 'lacunas'. Uma sugestão de preço baseada só nesse bloco (sem chunk_id) é válida, não precisa de outra fonte.",
     "\n\nRoteiro comercial da Infnet, em 6 etapas (não necessariamente nessa ordem, mas todo atendimento deve tentar passar por elas):\n" +
       roteiro,
     "\nEm 'etapa_atual', identifique qual dessas etapas melhor descreve o momento AGORA da conversa (use exatamente uma das chaves entre aspas acima, ex.: \"descoberta\").",
@@ -158,6 +160,7 @@ function buildUserPrompt(
   chunks: ChunkResultado[],
   empresaAssociada: string | null,
   modo: "resposta" | "follow_up",
+  blocoPrecoOficial: string,
 ): string {
   const conversa = mensagens
     .map((m) => `${m.autor === "lead" ? "Lead" : "Atendente"}: ${m.texto}`)
@@ -175,7 +178,8 @@ function buildUserPrompt(
   return (
     linhaEmpresa +
     linhaConversa +
-    `Contexto recuperado da base de conhecimento (cite pelo chunk_id exato indicado antes de cada trecho):\n\n${contexto}`
+    `Contexto recuperado da base de conhecimento (cite pelo chunk_id exato indicado antes de cada trecho):\n\n${contexto}` +
+    blocoPrecoOficial
   );
 }
 
@@ -190,6 +194,7 @@ Deno.serve(async (req: Request) => {
     thread_hash?: string;
     match_count?: number;
     empresa_associada?: string;
+    estado_lead?: string;
     modo?: "resposta" | "follow_up";
   };
   try {
@@ -242,6 +247,12 @@ Deno.serve(async (req: Request) => {
   // suggest nunca deve perguntar de novo, e usa o nome direto pra buscar
   // o convênio dela.
   const empresaAssociada = body.empresa_associada?.trim() || null;
+  // Etapa 14: estado do lead (UF de 2 letras, ex.: "RJ", "MG"), já resolvido
+  // via API do HubSpot (contexto-lead) do lado da extensão — decide qual
+  // coluna de preço usar (valor_final x valor_final_rj). Se não vier, o
+  // bloco de preço oficial instrui o modelo a perguntar antes de cravar
+  // um valor (nunca assume estado).
+  const estadoLead = body.estado_lead?.trim().toUpperCase() || null;
 
   const db = createServiceClient();
   // RF20: opcional — sem login (ainda comum) continua funcionando normal,
@@ -328,13 +339,7 @@ Deno.serve(async (req: Request) => {
       .map((m) => m.texto)
       .join(" \n ");
 
-    // A empresa associada vira uma busca própria também — o mesmo achado da
-    // etapa 8 (cada fato precisa da sua consulta, senão dilui) se aplica
-    // aqui: "convênio da empresa X" tem que competir sozinho pelo top da
-    // busca, não só como parte da pergunta original do lead.
-    const consultasIndividuais = [
-      ...new Set([...mensagensNaoRespondidas.map((m) => m.texto), ...(empresaAssociada ? [`convênio da empresa ${empresaAssociada}`] : [])]),
-    ];
+    const consultasIndividuais = [...new Set(mensagensNaoRespondidas.map((m) => m.texto))];
     const [resultadosIndividuais, chunksAmpla] = await Promise.all([
       Promise.all(consultasIndividuais.map((texto) => buscar(texto))),
       contextoRecente === textoNaoRespondido ? Promise.resolve([]) : buscar(contextoRecente),
@@ -354,6 +359,20 @@ Deno.serve(async (req: Request) => {
     const idsRecuperados = new Set(chunks.map((c) => c.chunk_id));
     const melhorSimilaridade = chunks[0]?.similaridade ?? 0;
 
+    // Etapa 14 (pedido do Raphael, 2026-09-16): preço nunca vem de texto
+    // livre nem de conta feita pelo LLM — busca determinística, ver
+    // `_shared/precos.ts`. Convênio agora também vem de
+    // `buscar_convenio_empresa` direto (chamada determinística — antes
+    // vinha de busca vetorial em texto, dívida de arquitetura do RF07
+    // fechada aqui de graça).
+    const cursosCandidatos = extrairCursosCandidatos(chunks);
+    const { bloco: blocoPrecoOficial, injetado: precoOficialInjetado } = await montarBlocoPrecoOficial(
+      db,
+      cursosCandidatos,
+      empresaAssociada,
+      estadoLead,
+    );
+
     let resultado: SuggestLLMOutput;
     let tokensPromptChat = 0;
     let tokensCompletion = 0;
@@ -364,7 +383,7 @@ Deno.serve(async (req: Request) => {
     // alguma dúvida?" não cita nada). Por isso só o modo "resposta" pula o
     // LLM quando não há contexto relevante (constitution §1 — sem
     // fundamento pra responder uma pergunta, não inventa).
-    if (modo === "resposta" && (chunks.length === 0 || melhorSimilaridade < limiarRelevancia)) {
+    if (modo === "resposta" && !precoOficialInjetado && (chunks.length === 0 || melhorSimilaridade < limiarRelevancia)) {
       // Sem trechos minimamente relevantes: nem vale chamar o modelo de
       // chat — não tem como fundamentar nada (constitution §1). Mesmo
       // assim precisamos de uma etapa_atual válida; "descoberta" (ordem 1)
@@ -380,7 +399,7 @@ Deno.serve(async (req: Request) => {
       const chat = await chatJSON<SuggestLLMOutput>({
         model: modelos.chat,
         system: buildSystemPrompt(playbook, empresaAssociada, modo, prompts),
-        user: buildUserPrompt(mensagens, chunks, empresaAssociada, modo),
+        user: buildUserPrompt(mensagens, chunks, empresaAssociada, modo, blocoPrecoOficial),
         schemaName: "suggest_response",
         schema: buildSchema(etapasValidas),
       });
@@ -405,7 +424,7 @@ Deno.serve(async (req: Request) => {
         if (fontesValidas.length === 0 && s.fontes.length > 0) {
           // Citou algo, mas nada bateu com o que foi recuperado — isso sim é suspeito.
           lacunasExtras.push(s.texto);
-        } else if (fontesValidas.length === 0 && modo === "resposta") {
+        } else if (fontesValidas.length === 0 && modo === "resposta" && !precoOficialInjetado) {
           lacunasExtras.push(s.texto);
         } else if (PADRAO_INCERTEZA.test(s.texto)) {
           // A sugestão vazou uma frase de incerteza dirigida ao lead — nunca

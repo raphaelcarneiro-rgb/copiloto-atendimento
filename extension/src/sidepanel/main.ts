@@ -568,7 +568,7 @@ async function dispararSuggestSeNecessario(conversa: ConversaExtraida) {
 
   try {
     const threadHash = await hashThreadId(conversa.threadId);
-    const resposta = await suggest(conversa.mensagens, threadHash, conversa.empresaAssociada);
+    const resposta = await suggest(conversa.mensagens, threadHash, conversa.empresaAssociada, undefined, conversa.estadoLead);
     renderSugestoes(resposta, suggestResultadoEl, suggestStatusEl);
   } catch (err) {
     suggestStatusEl.hidden = false;
@@ -629,7 +629,13 @@ followupAvaliarBtn.addEventListener("click", async () => {
 
   try {
     const threadHash = await hashThreadId(conversaAtual.threadId);
-    const resposta = await suggest(conversaAtual.mensagens, threadHash, conversaAtual.empresaAssociada, "follow_up");
+    const resposta = await suggest(
+      conversaAtual.mensagens,
+      threadHash,
+      conversaAtual.empresaAssociada,
+      "follow_up",
+      conversaAtual.estadoLead,
+    );
     renderSugestoes(resposta, followupResultadoEl, followupStatusEl);
   } catch (err) {
     followupStatusEl.hidden = false;
@@ -842,7 +848,7 @@ askFormEl.addEventListener("submit", async (ev) => {
 
   try {
     const threadHash = threadIdAtual ? await hashThreadId(threadIdAtual) : undefined;
-    const resposta = await ask(pergunta, threadHash);
+    const resposta = await ask(pergunta, threadHash, conversaAtual?.empresaAssociada, conversaAtual?.estadoLead);
     renderRespostaAsk(resposta);
   } catch (err) {
     const erroEl = document.createElement("p");

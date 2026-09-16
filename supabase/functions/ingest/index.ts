@@ -6,6 +6,8 @@
 //   - tipo='url'        → busca a página e limpa o HTML
 //   - tipo='arquivo' com ref="storage:<bkt>/<path>" → baixa do Storage, aceita
 //     .pdf/.txt/.md (upload via portal admin, Etapa 12)
+//   - tipo='sheet' categoria='precos_cursos' → preço oficial PGL/GRL (Etapa 14),
+//     aba fixa "apoio-valores-2" → tabela `precos_cursos`, nunca vira chunk
 // Cada fonte tem um único `documents`; ao mudar o hash, os `chunks` são
 // substituídos por completo (RF08: reprocessa só quando o hash muda).
 //
@@ -32,6 +34,7 @@ import {
   parseConvenios,
   parseFeriados,
   parseListaUrls,
+  parsePrecosCursos,
 } from "./parsers.ts";
 import type { CursoRow } from "./parsers.ts";
 
@@ -331,6 +334,78 @@ async function ingestFeriados(db: Db, source: SourceRow): Promise<SyncResult> {
   return { source: source.nome, status: "ok", chunks: synced.chunks, facts: feriados.length };
 }
 
+/**
+ * Fonte tipo='sheet' categoria='precos_cursos' (Etapa 14, pedido do Raphael
+ * 2026-09-16): preço oficial de PGL/GRL. Aba fixa por NOME real ("apoio-
+ * valores-2", confirmada via API do Google Sheets, nunca chutada) — essa
+ * planilha tem 24+ abas, não dá pra assumir tabs[0] como os outros
+ * parsers de sheet fazem. Nunca vira chunk de texto — só é acessível pela
+ * função determinística `buscar_preco_curso()` (Constitution §1): preço
+ * nunca passa por busca vetorial nem por conta feita pelo LLM.
+ */
+const ABA_PRECOS_CURSOS = "apoio-valores-2";
+
+async function ingestPrecosCursos(db: Db, source: SourceRow): Promise<SyncResult> {
+  const token = await getGoogleAccessToken([SCOPE_SHEETS_READONLY]);
+  const tabs = await listSheetTabs(token, source.ref);
+  if (!tabs.some((t) => t.title === ABA_PRECOS_CURSOS)) {
+    throw new Error(`aba "${ABA_PRECOS_CURSOS}" não encontrada nesta planilha — o nome da aba pode ter mudado`);
+  }
+
+  const rows = await getSheetValues(token, source.ref, ABA_PRECOS_CURSOS);
+  const precos = parsePrecosCursos(rows);
+  if (precos.length === 0) throw new Error("nenhuma linha de preço encontrada — verifique o layout da aba");
+
+  const rawHashInput = JSON.stringify(precos);
+  const hash = await sha256Hex(rawHashInput);
+
+  const { data: existingSource, error: sourceErr } = await db
+    .from("sources")
+    .select("hash")
+    .eq("id", source.id)
+    .single();
+  if (sourceErr) throw new Error(`sources.select falhou: ${sourceErr.message}`);
+
+  if (existingSource?.hash === hash) {
+    await db
+      .from("sources")
+      .update({ ultima_sync: new Date().toISOString(), status: "ok", erro: null })
+      .eq("id", source.id);
+    return { source: source.nome, status: "sem_alteracao" };
+  }
+
+  const { error: deleteErr } = await db.from("precos_cursos").delete().eq("source_id", source.id);
+  if (deleteErr) throw new Error(`precos_cursos.delete falhou: ${deleteErr.message}`);
+
+  const { error: insertErr } = await db.from("precos_cursos").insert(
+    precos.map((p) => ({
+      source_id: source.id,
+      search_key: p.searchKey || null,
+      semana: p.semana,
+      programa: p.programa,
+      produto: p.produto,
+      codigo: p.codigo || null,
+      valor: p.valor,
+      cupom_pct: p.cupomPct,
+      codcupom: p.codcupom || null,
+      valor_final: p.valorFinal,
+      codigo_rj: p.codigoRj || null,
+      valor_rj: p.valorRj,
+      cupom_rj_pct: p.cupomRjPct,
+      codcupom_rj: p.codcupomRj || null,
+      valor_final_rj: p.valorFinalRj,
+    })),
+  );
+  if (insertErr) throw new Error(`precos_cursos.insert falhou: ${insertErr.message}`);
+
+  await db
+    .from("sources")
+    .update({ hash, ultima_sync: new Date().toISOString(), status: "ok", erro: null })
+    .eq("id", source.id);
+
+  return { source: source.nome, status: "ok", facts: precos.length };
+}
+
 async function ingestGoogleDoc(db: Db, source: SourceRow, fileId: string): Promise<SyncResult> {
   const token = await getGoogleAccessToken([SCOPE_DRIVE_READONLY]);
   const text = await exportGoogleDocAsText(token, fileId);
@@ -435,6 +510,8 @@ async function ingestSource(db: Db, source: SourceRow): Promise<SyncResult> {
         return ingestFeriados(db, source);
       case "lista_urls":
         return ingestListaUrls(db, source);
+      case "precos_cursos":
+        return ingestPrecosCursos(db, source);
       default:
         throw new Error(`categoria de planilha não suportada: ${source.categoria ?? "(vazia)"}`);
     }

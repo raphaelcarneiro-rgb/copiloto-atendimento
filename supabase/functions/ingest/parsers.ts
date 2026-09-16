@@ -273,6 +273,126 @@ export function parseFeriados(rows: string[][]): FeriadoRow[] {
   return result;
 }
 
+// ---------------------------------------------------------------------------
+// Preço oficial de cursos PGL/GRL (fonte "precos_cursos", Etapa 14, pedido
+// do Raphael 2026-09-16)
+// Planilha real confirmada via API do Google Sheets (nunca chutada):
+// spreadsheet 1Azgidfab9z6uUauKd6UpFMONQYPwPADGMmNVCXDGGMg, aba
+// "apoio-valores-2" (gid 1025708788). Cabeçalho já vem como tags @-prefixadas
+// (não é texto em português sujeito a acento/variação), então o match é por
+// igualdade exata, sem normalize().
+// ---------------------------------------------------------------------------
+
+export interface PrecoCursoRow {
+  searchKey: string;
+  semana: string; // ISO (YYYY-MM-DD)
+  programa: string;
+  produto: string;
+  codigo: string;
+  valor: number | null;
+  cupomPct: number | null;
+  codcupom: string;
+  valorFinal: number | null;
+  codigoRj: string;
+  valorRj: number | null;
+  cupomRjPct: number | null;
+  codcupomRj: string;
+  valorFinalRj: number | null;
+}
+
+const CABECALHO_PRECOS = [
+  "@search_key",
+  "@semana",
+  "@programa",
+  "@produto",
+  "@codigo",
+  "@valor",
+  "@cupom",
+  "@codcupom",
+  "@valor_final",
+  "@codigo_rj",
+  "@valor_rj",
+  "@cupom_rj",
+  "@codcupom_rj",
+  "@valor_final_rj",
+];
+
+function isPrecosHeaderRow(row: string[]): boolean {
+  return row.some((c) => (c ?? "").trim() === "@search_key");
+}
+
+/** "R$ 3.591,00" -> 3591.00. "" ou "#N/A" -> null. */
+function parseMoeda(valor: string): number | null {
+  const limpo = (valor ?? "").replace(/[^\d,.-]/g, "").trim();
+  if (!limpo) return null;
+  const numero = Number(limpo.replace(/\./g, "").replace(",", "."));
+  return Number.isFinite(numero) ? numero : null;
+}
+
+/** "15%" -> 15. "" ou "#N/A" -> null. */
+function parsePercentual(valor: string): number | null {
+  const limpo = (valor ?? "").replace("%", "").replace(",", ".").trim();
+  if (!limpo) return null;
+  const numero = Number(limpo);
+  return Number.isFinite(numero) ? numero : null;
+}
+
+/** "05/01/2026" (DD/MM/YYYY) -> "2026-01-05" (ISO, pro Postgres). */
+function parseDataBr(valor: string): string | null {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec((valor ?? "").trim());
+  if (!m) return null;
+  const [, dd, mm, yyyy] = m;
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+export function parsePrecosCursos(rows: string[][]): PrecoCursoRow[] {
+  const result: PrecoCursoRow[] = [];
+  let colIndex: Record<string, number> | null = null;
+
+  for (const row of rows) {
+    const nonEmpty = row.filter((c) => (c ?? "").trim().length > 0);
+    if (nonEmpty.length === 0) continue;
+
+    if (isPrecosHeaderRow(row)) {
+      colIndex = {};
+      row.forEach((cell, i) => {
+        const chave = (cell ?? "").trim();
+        if (CABECALHO_PRECOS.includes(chave)) colIndex![chave] = i;
+      });
+      continue;
+    }
+    if (colIndex === null) continue;
+
+    const get = (chave: string) => {
+      const i = colIndex![chave];
+      return i === undefined ? "" : (row[i] ?? "").trim();
+    };
+
+    const semana = parseDataBr(get("@semana"));
+    const produto = get("@produto");
+    if (!semana || !produto) continue; // linha incompleta — pula, não inventa
+
+    result.push({
+      searchKey: get("@search_key"),
+      semana,
+      programa: get("@programa"),
+      produto,
+      codigo: get("@codigo"),
+      valor: parseMoeda(get("@valor")),
+      cupomPct: parsePercentual(get("@cupom")),
+      codcupom: get("@codcupom"),
+      valorFinal: parseMoeda(get("@valor_final")),
+      codigoRj: get("@codigo_rj"),
+      valorRj: parseMoeda(get("@valor_rj")),
+      cupomRjPct: parsePercentual(get("@cupom_rj")),
+      codcupomRj: get("@codcupom_rj"),
+      valorFinalRj: parseMoeda(get("@valor_final_rj")),
+    });
+  }
+
+  return result;
+}
+
 export function feriadosParaTexto(feriados: FeriadoRow[]): string {
   const linhas = feriados.map((f) => {
     const detalhe = [f.tipo, f.observacao].filter(Boolean).join(", ");

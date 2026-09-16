@@ -43,10 +43,20 @@ export interface AskResponse {
   usage_log_id: number | null;
 }
 
-export function ask(pergunta: string, threadHash?: string): Promise<AskResponse> {
+export function ask(
+  pergunta: string,
+  threadHash?: string,
+  empresaAssociada?: string | null,
+  estadoLead?: string | null,
+): Promise<AskResponse> {
   return callFunction<AskResponse>("ask", {
     method: "POST",
-    body: JSON.stringify({ pergunta, thread_hash: threadHash }),
+    body: JSON.stringify({
+      pergunta,
+      thread_hash: threadHash,
+      empresa_associada: empresaAssociada ?? undefined,
+      estado_lead: estadoLead ?? undefined,
+    }),
   });
 }
 
@@ -70,6 +80,7 @@ export function suggest(
   threadHash?: string,
   empresaAssociada?: string | null,
   modo?: "resposta" | "follow_up",
+  estadoLead?: string | null,
 ): Promise<SuggestResponse> {
   // `audioUrl` é só um estado intermediário de transcrição (ver
   // hubspot-reader.ts) — nunca deve sair do navegador, mesmo que por algum
@@ -82,6 +93,7 @@ export function suggest(
       thread_hash: threadHash,
       empresa_associada: empresaAssociada ?? undefined,
       modo: modo ?? undefined,
+      estado_lead: estadoLead ?? undefined,
     }),
   });
 }
