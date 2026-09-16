@@ -449,6 +449,7 @@ setInterval(atualizarJanelas24h, 30_000);
 function criarCardAcaoResposta(
   texto: string,
   usageLogId: number | null,
+  aoInserirComSucesso: () => void,
 ): { el: HTMLElement; statusEl: HTMLElement } {
   const acoes = document.createElement("div");
   acoes.className = "ask-acoes";
@@ -472,7 +473,7 @@ function criarCardAcaoResposta(
   const btnInserir = document.createElement("button");
   btnInserir.type = "button";
   btnInserir.textContent = "Inserir na conversa";
-  btnInserir.onclick = () => inserirNaConversa(texto, statusEl, btnInserir);
+  btnInserir.onclick = () => inserirNaConversa(texto, statusEl, btnInserir, aoInserirComSucesso);
 
   acoes.append(btnCopiar, btnInserir, statusEl);
 
@@ -524,7 +525,11 @@ function renderSugestoes(resposta: SuggestResponse, resultadoEl: HTMLElement, st
     const fontesEl = criarBlocoFontes(s.fontes);
     if (fontesEl) bloco.appendChild(fontesEl);
 
-    const { el } = criarCardAcaoResposta(s.texto, resposta.usage_log_id);
+    // Depois de inserida no composer, a sugestão some do painel (em vez de
+    // só desabilitar o botão) — achado real (Raphael, 2026-09-15): deixar o
+    // card ali, já "usado", ficava parecendo uma sugestão ainda pendente,
+    // confundindo o atendente sobre o que já foi tratado.
+    const { el } = criarCardAcaoResposta(s.texto, resposta.usage_log_id, () => bloco.remove());
     bloco.appendChild(el);
     resultadoEl.appendChild(bloco);
   }
@@ -542,7 +547,7 @@ function renderSugestoes(resposta: SuggestResponse, resultadoEl: HTMLElement, st
       btn.textContent = pergunta;
       const statusEl2 = document.createElement("span");
       statusEl2.className = "ask-status";
-      btn.onclick = () => inserirNaConversa(pergunta, statusEl2, btn);
+      btn.onclick = () => inserirNaConversa(pergunta, statusEl2, btn, () => btn.remove());
       box.appendChild(btn);
     }
     resultadoEl.appendChild(box);
@@ -693,7 +698,12 @@ function criarBlocoFontes(fontes: Fontes): HTMLElement | null {
   return details;
 }
 
-async function inserirNaConversa(texto: string, statusEl: HTMLElement, botao: HTMLButtonElement) {
+async function inserirNaConversa(
+  texto: string,
+  statusEl: HTMLElement,
+  botao: HTMLButtonElement,
+  aoSucesso?: () => void,
+) {
   const tabId = await abaAtivaId();
   if (!tabId) {
     statusEl.textContent = "Não encontrei a aba do HubSpot.";
@@ -710,6 +720,9 @@ async function inserirNaConversa(texto: string, statusEl: HTMLElement, botao: HT
       botao.textContent = "Inserido ✓";
       botao.disabled = true;
       statusEl.textContent = "";
+      // Some do painel logo depois (dá tempo de ver a confirmação) — ver
+      // comentário em renderSugestoes().
+      if (aoSucesso) setTimeout(aoSucesso, 1200);
     } else if (resposta.motivo === "composer-nao-calibrado") {
       statusEl.textContent = "Campo de resposta ainda não calibrado — use copiar.";
     } else {

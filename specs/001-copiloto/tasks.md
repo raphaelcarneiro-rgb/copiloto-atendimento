@@ -254,5 +254,11 @@ Requisitos: RF09, RF21 (estrutura), RF22 (config), constitution §4, §9.
 - [x] `npx vitest run` 34/34, `npm run build` limpo.
 - **Falta:** teste manual ao vivo confirmando que o modelo segue a instrução de formatação e que a prévia (negrito + quebras) e o texto realmente enviado ao WhatsApp aparecem corretos.
 
+## Sugestão inserida continuava aparecendo como pendente (achado real ao vivo, 2026-09-15)
+- [x] **Bug reportado com print do HubSpot:** depois de clicar "Inserir na conversa" e a mensagem já ter sido enviada de verdade no HubSpot, o card da sugestão continuava visível em "Sugestões para responder" (só com o botão desabilitado dizendo "Inserido ✓") — parecia uma sugestão ainda pendente de ação, confundindo o atendente sobre o que já tinha sido tratado.
+- [x] **Corrigido:** `criarCardAcaoResposta`/`inserirNaConversa` ganharam um callback `aoSucesso`, chamado ~1,2s depois da inserção confirmada (tempo de ver o "Inserido ✓" antes de sumir). `renderSugestoes()` usa isso pra remover o card inteiro da sugestão (e também o botão de cada "pergunta de esclarecimento" clicada) assim que a inserção é confirmada. `ask` (histórico de perguntas livres) não mudou de propósito — lá a lista é um log de conversa com o copiloto, não uma lista de opções pra escolher uma.
+- [x] `npx vitest run` 34/34, build limpo.
+- **Falta:** teste manual ao vivo confirmando que o card some do jeito esperado.
+
 ## Dependências externas
 - [~] Material comercial: roteiro por etapa, objeções, planilhas de preço/convênio (Raphael)
