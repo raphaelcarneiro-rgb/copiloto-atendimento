@@ -120,11 +120,23 @@ function renderConversa(conversa: ConversaExtraida) {
     const div = document.createElement("div");
     div.className = `msg msg-${msg.autor}`;
     if (msg.viaAudio) {
+      const linhaAudio = document.createElement("div");
+      linhaAudio.className = "msg-tag-audio-linha";
       const tagAudio = document.createElement("span");
       tagAudio.className = "msg-tag-audio";
       tagAudio.title = "Transcrito de uma nota de voz — pode ter erro de reconhecimento";
       tagAudio.textContent = "🎙️ Áudio";
-      div.appendChild(tagAudio);
+      linhaAudio.appendChild(tagAudio);
+      if (msg.audioUrl) {
+        const btnRetranscrever = document.createElement("button");
+        btnRetranscrever.type = "button";
+        btnRetranscrever.className = "btn-retranscrever";
+        btnRetranscrever.textContent = "🔁 Retranscrever";
+        btnRetranscrever.title = "Transcrição saiu errada? Manda ouvir de novo.";
+        btnRetranscrever.onclick = () => retranscreverAudio(msg.audioUrl!, btnRetranscrever);
+        linhaAudio.appendChild(btnRetranscrever);
+      }
+      div.appendChild(linhaAudio);
     }
     const texto = document.createElement("span");
     texto.textContent = msg.texto;
@@ -140,6 +152,28 @@ function renderConversa(conversa: ConversaExtraida) {
 
   atualizarSecaoFollowup(conversa);
   dispararSuggestSeNecessario(conversa);
+}
+
+/**
+ * Pedido do Raphael, 2026-09-15: transcrição de áudio às vezes sai errada
+ * (o modelo não é 100% determinístico) — em vez de re-transcrever sempre
+ * (gastando de novo à toa), deixa manual: o atendente pede quando percebe
+ * que ficou ruim. O content script invalida o cache dessa nota de voz
+ * específica e reprocessa a conversa, que chega de volta via
+ * "conversa-atualizada" (mesmo listener de sempre).
+ */
+async function retranscreverAudio(audioUrl: string, botao: HTMLButtonElement) {
+  const tabId = await abaAtivaId();
+  if (!tabId) return;
+  botao.disabled = true;
+  botao.textContent = "Retranscrevendo…";
+  try {
+    await chrome.tabs.sendMessage(tabId, { tipo: "retranscrever-audio", audioUrl } satisfies MensagemRuntime);
+  } catch (err) {
+    console.error("retranscrever-audio falhou:", err);
+    botao.disabled = false;
+    botao.textContent = "🔁 Retranscrever";
+  }
 }
 
 function renderSeletoresNaoCalibrados(threadId: string) {

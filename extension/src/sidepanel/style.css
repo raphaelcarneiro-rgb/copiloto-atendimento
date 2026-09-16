@@ -184,16 +184,32 @@ header h1 {
   color: #99acc2;
   margin-top: 2px;
 }
+.msg-tag-audio-linha {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
 .msg-tag-audio {
-  display: block;
-  width: fit-content;
   font-size: 10px;
   font-weight: 600;
   color: #4c2a85;
   background: #e6d9f7;
   padding: 1px 7px;
   border-radius: 999px;
-  margin-bottom: 4px;
+}
+.btn-retranscrever {
+  font-size: 10px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid #cbd6e2;
+  background: #fff;
+  color: #516f90;
+  cursor: pointer;
+}
+.btn-retranscrever:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .section-title {

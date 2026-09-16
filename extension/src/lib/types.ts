@@ -71,10 +71,11 @@ export interface MensagemExtraida {
   texto: string;
   hora: string | null;
   /**
-   * URL do áudio (nota de voz), presente só enquanto a mensagem ainda não
-   * foi transcrita (pedido do Raphael, 2026-09-15). `hubspot-reader.ts`
-   * resolve isso pra texto antes de disparar `conversa-atualizada` — nunca
-   * é enviado ao backend (ver `api.ts`).
+   * URL do áudio (nota de voz), quando a mensagem veio de uma nota de voz
+   * (pedido do Raphael, 2026-09-15). Continua presente mesmo depois de
+   * `texto` já ter sido transcrito — o side panel usa isso pra oferecer
+   * "Retranscrever" quando o reconhecimento saiu ruim. Nunca é enviado ao
+   * backend (ver `api.ts::suggest()`, que remove esse campo antes de mandar).
    */
   audioUrl?: string | null;
   /** Texto veio de transcrição de nota de voz (pode ter erro de reconhecimento) — só pra exibição, nunca enviado ao backend. */
@@ -126,7 +127,8 @@ export type MensagemRuntime =
   | { tipo: "ativacao-mudou"; threadId: string; ativo: boolean }
   | { tipo: "pedir-estado"; threadId: string }
   | { tipo: "dispensar-lembrete-24h"; threadId: string }
-  | { tipo: "baixar-audio"; url: string };
+  | { tipo: "baixar-audio"; url: string }
+  | { tipo: "retranscrever-audio"; audioUrl: string };
 
 /** Resposta de `{ tipo: "baixar-audio" }`, via `sendResponse` (não é um `MensagemRuntime`). */
 export type BaixarAudioResponse = { ok: true; base64: string; mimeType: string } | { ok: false };

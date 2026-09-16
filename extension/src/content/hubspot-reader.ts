@@ -4,7 +4,7 @@
 import { getConfigCached, seletoresCalibrados } from "../lib/config-cache";
 import { maskPII } from "../lib/pii";
 import { buscarContextoLead, transcreverAudio } from "../lib/api";
-import { hashThreadId } from "../lib/hash";
+import { hashThreadId, sha256Hex } from "../lib/hash";
 import {
   extrairConversa,
   extrairEmpresaAssociada,
@@ -79,10 +79,44 @@ async function resolverContextoLead(
   };
 }
 
-// Cache de transcrições por URL de áudio: o `MutationObserver` reprocessa a
-// conversa inteira a cada mudança no DOM, e sem isso a mesma nota de voz
-// seria baixada e transcrita de novo (custo em dobro) toda vez.
-const transcricoesCache = new Map<string, string>();
+// Cache de transcrições por URL de áudio, persistido em chrome.storage.local
+// (não um Map em memória — achado real, 2026-09-15: um Map se perde toda
+// vez que o content script recarrega — reload da extensão, navegação,
+// reabrir a conversa — e a mesma nota de voz era transcrita de novo, gerando
+// inclusive um texto DIFERENTE do anterior (o modelo não é 100%
+// determinístico), o que confundia mais do que ajudava). Chave: hash da
+// URL do áudio (a URL em si tem parâmetros de assinatura longos, hash evita
+// isso e não guarda o token assinado em texto puro no storage).
+const CACHE_TRANSCRICOES_KEY = "transcricoes_audio_cache";
+type CacheTranscricoes = Record<string, string>;
+
+async function lerCacheTranscricoes(): Promise<CacheTranscricoes> {
+  const { [CACHE_TRANSCRICOES_KEY]: cache } = (await chrome.storage.local.get(CACHE_TRANSCRICOES_KEY)) as {
+    [CACHE_TRANSCRICOES_KEY]?: CacheTranscricoes;
+  };
+  return cache ?? {};
+}
+
+async function obterTranscricaoCache(audioUrl: string): Promise<string | null> {
+  const chave = await sha256Hex(audioUrl);
+  const cache = await lerCacheTranscricoes();
+  return cache[chave] ?? null;
+}
+
+async function definirTranscricaoCache(audioUrl: string, texto: string): Promise<void> {
+  const chave = await sha256Hex(audioUrl);
+  const cache = await lerCacheTranscricoes();
+  cache[chave] = texto;
+  await chrome.storage.local.set({ [CACHE_TRANSCRICOES_KEY]: cache });
+}
+
+/** Pedido do Raphael, 2026-09-15: opção manual de mandar transcrever de novo quando a transcrição saiu ruim. */
+async function removerTranscricaoCache(audioUrl: string): Promise<void> {
+  const chave = await sha256Hex(audioUrl);
+  const cache = await lerCacheTranscricoes();
+  delete cache[chave];
+  await chrome.storage.local.set({ [CACHE_TRANSCRICOES_KEY]: cache });
+}
 
 /**
  * O download em si roda no service worker, não aqui — a URL do áudio
@@ -105,7 +139,7 @@ function pedirDownloadDeAudio(url: string): Promise<BaixarAudioResponse> {
 async function resolverTexto(m: MensagemExtraida, threadHash: string): Promise<string> {
   if (!m.audioUrl) return m.texto;
 
-  const cacheHit = transcricoesCache.get(m.audioUrl);
+  const cacheHit = await obterTranscricaoCache(m.audioUrl);
   if (cacheHit) return cacheHit;
 
   const audio = await pedirDownloadDeAudio(m.audioUrl);
@@ -118,7 +152,7 @@ async function resolverTexto(m: MensagemExtraida, threadHash: string): Promise<s
       threadHash,
     });
     const textoFinal = texto.trim() || "[Áudio enviado — transcrição veio vazia]";
-    transcricoesCache.set(m.audioUrl, textoFinal);
+    await definirTranscricaoCache(m.audioUrl, textoFinal);
     return textoFinal;
   } catch (err) {
     console.error("transcreverAudio() falhou:", err);
@@ -226,8 +260,11 @@ async function processarConversa(threadId: string) {
       hora: m.hora,
       // Pedido do Raphael, 2026-09-15: marca no painel que o texto veio de
       // uma nota de voz transcrita (pode ter erro de reconhecimento), não
-      // foi digitado pelo lead/atendente.
+      // foi digitado pelo lead/atendente. `audioUrl` some antes de ir pro
+      // backend (api.ts::suggest() remove esse campo), só serve aqui pro
+      // side panel poder pedir uma retranscrição dessa nota específica.
       viaAudio: Boolean(m.audioUrl),
+      audioUrl: m.audioUrl ?? null,
     })),
   );
 
@@ -316,6 +353,10 @@ chrome.runtime.onMessage.addListener(
   ) => {
     if (msg.tipo === "pedir-estado" && threadIdAtual) {
       processarConversa(threadIdAtual);
+      return;
+    }
+    if (msg.tipo === "retranscrever-audio" && threadIdAtual) {
+      removerTranscricaoCache(msg.audioUrl).then(() => processarConversa(threadIdAtual!));
       return;
     }
     if (msg.tipo === "inserir-texto") {
