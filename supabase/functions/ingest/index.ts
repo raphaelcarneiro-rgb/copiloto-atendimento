@@ -4,6 +4,8 @@
 //   - tipo='pdf' com ref="gdoc:<id>"     → exporta um Google Doc (Drive API)
 //   - tipo='pdf' com ref="storage:<bkt>/<path>" → baixa do Supabase Storage
 //   - tipo='url'        → busca a página e limpa o HTML
+//   - tipo='arquivo' com ref="storage:<bkt>/<path>" → baixa do Storage, aceita
+//     .pdf/.txt/.md (upload via portal admin, Etapa 12)
 // Cada fonte tem um único `documents`; ao mudar o hash, os `chunks` são
 // substituídos por completo (RF08: reprocessa só quando o hash muda).
 //
@@ -37,7 +39,7 @@ type Db = ReturnType<typeof createServiceClient>;
 
 interface SourceRow {
   id: string;
-  tipo: "sheet" | "pdf" | "url" | "faq";
+  tipo: "sheet" | "pdf" | "url" | "faq" | "arquivo";
   ref: string;
   nome: string;
   categoria: string | null;
@@ -369,6 +371,44 @@ async function ingestPdfStorage(db: Db, source: SourceRow, storageRef: string): 
   return { source: source.nome, status: "ok", chunks: synced.chunks };
 }
 
+/**
+ * `ref` no formato "storage:<bucket>/<caminho/arquivo.ext>" — tipo='arquivo'
+ * (Etapa 12, upload via portal admin, pedido do Raphael 2026-09-16). Aceita
+ * PDF (extraído com `extractPdfText`, mesma lib do `pdf` legado) e texto
+ * simples `.txt`/`.md` (decodificado direto, sem lib nenhuma) — os dois
+ * caminhos convergem no mesmo `chunkText()`.
+ */
+async function ingestArquivoStorage(db: Db, source: SourceRow, storageRef: string): Promise<SyncResult> {
+  const [bucket, ...pathParts] = storageRef.split("/");
+  const path = pathParts.join("/");
+  if (!bucket || !path) throw new Error(`ref inválida para arquivo do Storage: "${source.ref}"`);
+
+  const { data: file, error: downloadErr } = await db.storage.from(bucket).download(path);
+  if (downloadErr) throw new Error(`Storage download falhou: ${downloadErr.message}`);
+
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const extensao = path.toLowerCase().split(".").pop() ?? "";
+  let text: string;
+  if (extensao === "pdf") {
+    text = await extractPdfText(bytes);
+  } else if (extensao === "txt" || extensao === "md") {
+    text = new TextDecoder("utf-8").decode(bytes);
+  } else {
+    throw new Error(`extensão de arquivo não suportada: ".${extensao}" (aceitos: pdf, txt, md)`);
+  }
+  if (!text.trim()) throw new Error("arquivo sem texto extraível (PDF pode ser digitalizado sem OCR)");
+
+  const chunks = chunkText(text);
+  const chunkInputs: ChunkInput[] = chunks.map((c) => ({
+    conteudo: c,
+    metadados: { tipo: source.categoria ?? "arquivo" },
+  }));
+
+  const synced = await syncDocumentChunks(db, source, text, chunkInputs);
+  if (!synced) return { source: source.nome, status: "sem_alteracao" };
+  return { source: source.nome, status: "ok", chunks: synced.chunks };
+}
+
 async function ingestUrlSource(db: Db, source: SourceRow): Promise<SyncResult> {
   const text = await fetchUrlAsText(source.ref);
   if (!text.trim()) throw new Error("página sem texto extraível");
@@ -412,6 +452,13 @@ async function ingestSource(db: Db, source: SourceRow): Promise<SyncResult> {
 
   if (source.tipo === "url") {
     return ingestUrlSource(db, source);
+  }
+
+  if (source.tipo === "arquivo") {
+    if (!source.ref.startsWith("storage:")) {
+      throw new Error(`ref de arquivo deve começar com "storage:": "${source.ref}"`);
+    }
+    return ingestArquivoStorage(db, source, source.ref.replace(/^storage:/, ""));
   }
 
   throw new Error(`tipo de fonte não suportado: ${source.tipo}`);

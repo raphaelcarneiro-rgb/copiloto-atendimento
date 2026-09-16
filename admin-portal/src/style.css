@@ -1,0 +1,227 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font-family: -apple-system, "Segoe UI", sans-serif;
+  font-size: 14px;
+  color: #33475b;
+  background: #f5f8fa;
+}
+#app {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.login-box,
+.acesso-negado {
+  max-width: 420px;
+  margin: 80px auto;
+  text-align: center;
+  background: #fff;
+  border: 1px solid #dfe3eb;
+  border-radius: 10px;
+  padding: 32px;
+}
+.login-box button,
+.acesso-negado button {
+  margin-top: 16px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  background: #00a4bd;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+.erro {
+  color: #9b2c2c;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+header h1 {
+  font-size: 20px;
+  margin: 0;
+}
+.auth-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #7c98b6;
+}
+.auth-area button {
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid #cbd6e2;
+  background: #fff;
+  cursor: pointer;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid #dfe3eb;
+  margin-bottom: 20px;
+}
+.tab-btn {
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  color: #7c98b6;
+  border-bottom: 2px solid transparent;
+}
+.tab-btn.tab-ativa {
+  color: #00a4bd;
+  border-bottom-color: #00a4bd;
+  font-weight: 600;
+}
+
+h2 {
+  font-size: 15px;
+  color: #33475b;
+  margin: 24px 0 10px;
+}
+
+.form-nova-fonte {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 480px;
+  background: #fff;
+  border: 1px solid #dfe3eb;
+  border-radius: 10px;
+  padding: 16px;
+}
+.campo-radio {
+  display: flex;
+  gap: 20px;
+}
+.form-nova-fonte input[type="text"],
+.form-nova-fonte input[type="url"],
+.form-nova-fonte input[type="file"] {
+  padding: 8px;
+  border: 1px solid #cbd6e2;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+}
+.form-nova-fonte button {
+  align-self: flex-start;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  background: #00a4bd;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+.form-nova-fonte button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.status-form {
+  font-size: 12px;
+  color: #7c98b6;
+}
+
+.tabela-fontes {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid #dfe3eb;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.tabela-fontes th,
+.tabela-fontes td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid #eef1f6;
+  font-size: 13px;
+}
+.tabela-fontes th {
+  background: #f5f8fa;
+  color: #7c98b6;
+  font-weight: 600;
+}
+.status-ok {
+  color: #14532d;
+}
+.status-erro {
+  color: #9b2c2c;
+}
+.status-pendente {
+  color: #92400e;
+}
+.acoes {
+  display: flex;
+  gap: 6px;
+}
+.acoes button {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #cbd6e2;
+  background: #fff;
+  cursor: pointer;
+  font-size: 12px;
+}
+.btn-perigo {
+  color: #9b2c2c;
+  border-color: #f3c6c6 !important;
+}
+
+.campo-prompt {
+  background: #fff;
+  border: 1px solid #dfe3eb;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+.campo-prompt label {
+  font-weight: 600;
+  font-size: 13px;
+  display: block;
+  margin-bottom: 4px;
+}
+.descricao-prompt {
+  font-size: 12px;
+  color: #7c98b6;
+  margin: 0 0 8px;
+}
+.campo-prompt textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #cbd6e2;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  resize: vertical;
+}
+.acoes-prompt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+.acoes-prompt button {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: none;
+  background: #00a4bd;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+.acoes-prompt button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

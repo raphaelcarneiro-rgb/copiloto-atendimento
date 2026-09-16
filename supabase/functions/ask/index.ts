@@ -50,14 +50,18 @@ const ASK_JSON_SCHEMA = {
   },
 } as const;
 
-function buildSystemPrompt(): string {
+function buildSystemPrompt(tomGeral: string, instrucoesAsk: string): string {
+  // `tomGeral` e `instrucoesAsk` vêm do `config` (Etapa 12, editável pelo
+  // portal admin sem deploy) — o restante (núcleo anti-alucinação: citação
+  // por chunk_id, "encontrado":false, RF06) fica fixo no código de
+  // propósito (Constitution §1).
   return [
     "Você é o copiloto de atendimento comercial da Faculdade Infnet.",
     "Responda SOMENTE com base nos trechos numerados fornecidos no contexto.",
-    "Nunca invente preço, data, duração ou qualquer dado — use apenas o que está escrito nos trechos.",
+    instrucoesAsk,
     'Se a resposta não estiver clara nos trechos, defina "encontrado": false e responda algo como "Não encontrei essa informação na base — confirme com a coordenação.".',
-'No campo "fontes", cite o(s) valor(es) exato(s) de chunk_id (o número depois de "chunk_id=" antes do trecho) que você realmente usou para montar a resposta — nunca invente ou adivinhe um chunk_id, copie exatamente o que está escrito no contexto.',
-    "Seja direto e objetivo, em português do Brasil, como uma mensagem de WhatsApp de atendimento comercial.",
+    'No campo "fontes", cite o(s) valor(es) exato(s) de chunk_id (o número depois de "chunk_id=" antes do trecho) que você realmente usou para montar a resposta — nunca invente ou adivinhe um chunk_id, copie exatamente o que está escrito no contexto.',
+    tomGeral,
     INSTRUCAO_FORMATACAO_WHATSAPP,
   ].join(" ");
 }
@@ -97,10 +101,12 @@ Deno.serve(async (req: Request) => {
   const chamador = await resolverChamador(db, req);
 
   try {
-    const [limiarRelevancia, limiarDedup, modelos] = await Promise.all([
+    const [limiarRelevancia, limiarDedup, modelos, tomGeral, instrucoesAsk] = await Promise.all([
       getConfig(db, "limiar_relevancia") as Promise<number>,
       getConfig(db, "limiar_dedup") as Promise<number>,
       getConfig(db, "modelos") as Promise<{ chat: string }>,
+      getConfig(db, "prompt_tom_geral") as Promise<string>,
+      getConfig(db, "prompt_ask_instrucoes") as Promise<string>,
     ]);
 
     const { embeddings, promptTokens: tokensEmbeddingPergunta } = await embedTexts([pergunta]);
@@ -134,7 +140,7 @@ Deno.serve(async (req: Request) => {
     } else {
       const chat = await chatJSON<AskLLMOutput>({
         model: modelos.chat,
-        system: buildSystemPrompt(),
+        system: buildSystemPrompt(tomGeral, instrucoesAsk),
         user: buildUserPrompt(pergunta, chunks),
         schemaName: "ask_response",
         schema: ASK_JSON_SCHEMA,

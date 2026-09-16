@@ -102,7 +102,20 @@ function buildSchema(etapasValidas: string[]) {
   } as const;
 }
 
-function buildSystemPrompt(playbook: PlaybookRow[], empresaAssociada: string | null, modo: "resposta" | "follow_up"): string {
+interface PromptsEditaveis {
+  tomGeral: string;
+  aberturaResposta: string;
+  aberturaFollowup: string;
+  fechamentoResposta: string;
+  fechamentoFollowup: string;
+}
+
+function buildSystemPrompt(
+  playbook: PlaybookRow[],
+  empresaAssociada: string | null,
+  modo: "resposta" | "follow_up",
+  prompts: PromptsEditaveis,
+): string {
   const roteiro = playbook
     .sort((a, b) => a.ordem - b.ordem)
     .map(
@@ -113,10 +126,11 @@ function buildSystemPrompt(playbook: PlaybookRow[], empresaAssociada: string | n
     )
     .join("\n");
 
-  const instrucaoAbertura =
-    modo === "follow_up"
-      ? "Você vê a conversa recente. O ATENDENTE mandou a última mensagem e o lead ainda não respondeu — sua tarefa é sugerir de 1 a 2 mensagens curtas de FOLLOW-UP (reengajamento), não uma resposta a uma pergunta nova. Não repita a mesma pergunta/mensagem já enviada; ofereça algo levemente diferente pra reengajar (ex.: reforçar um benefício já discutido, perguntar objetivamente se ficou alguma dúvida, retomar o próximo passo natural do roteiro). NUNCA invente prazo, desconto ou urgência que não esteja fundamentada nos trechos do contexto ou já dita na conversa."
-      : "Você vê a conversa recente. Uma ou mais mensagens do FINAL da conversa são do lead e ainda não foram respondidas — tente cobrir TODAS elas na mesma sugestão, quando fizer sentido, não só a última.";
+  // Trechos abaixo (abertura/fechamento/tom) vêm do `config` — editáveis
+  // pelo portal admin sem deploy (Etapa 12). O restante (RF06, formato de
+  // citação, filtro de incerteza, JSON Schema) fica fixo no código de
+  // propósito — é o núcleo anti-alucinação (Constitution §1).
+  const instrucaoAbertura = modo === "follow_up" ? prompts.aberturaFollowup : prompts.aberturaResposta;
 
   return [
     "Você é o copiloto de atendimento comercial da Faculdade Infnet, ajudando um atendente humano a responder um lead pelo WhatsApp.",
@@ -133,10 +147,8 @@ function buildSystemPrompt(playbook: PlaybookRow[], empresaAssociada: string | n
     empresaAssociada
       ? `A empresa do lead JÁ está associada no CRM do HubSpot: "${empresaAssociada}". NUNCA pergunte o nome da empresa em 'perguntas_para_lead' nem na sugestão — ela já é conhecida. Use esse nome pra procurar o convênio dela nos trechos do contexto e responder/calcular o desconto diretamente; se não achar essa empresa nos trechos recuperados, registre a dúvida em 'lacunas' (não pergunte de novo o nome, pergunte outra coisa se precisar, tipo confirmar o convênio com a coordenação).`
       : "",
-    modo === "follow_up"
-      ? "Sempre gere pelo menos 1 sugestão de follow-up nesse modo, mesmo que a última mensagem do lead pareça encerrar o assunto (ex.: um agradecimento) — o objetivo aqui é reengajar quem parou de responder."
-      : "Se nenhuma mensagem do lead pedir informação (ex.: só um agradecimento), devolva 'sugestoes' vazio.",
-    "Seja direto e objetivo, em português do Brasil, como uma mensagem de WhatsApp de atendimento comercial.",
+    modo === "follow_up" ? prompts.fechamentoFollowup : prompts.fechamentoResposta,
+    prompts.tomGeral,
     INSTRUCAO_FORMATACAO_WHATSAPP,
   ].join(" ");
 }
@@ -237,7 +249,17 @@ Deno.serve(async (req: Request) => {
   const chamador = await resolverChamador(db, req);
 
   try {
-    const [limiarRelevancia, limiarDedup, modelos, playbookResult] = await Promise.all([
+    const [
+      limiarRelevancia,
+      limiarDedup,
+      modelos,
+      playbookResult,
+      tomGeral,
+      aberturaResposta,
+      aberturaFollowup,
+      fechamentoResposta,
+      fechamentoFollowup,
+    ] = await Promise.all([
       getConfig(db, "limiar_relevancia") as Promise<number>,
       getConfig(db, "limiar_dedup") as Promise<number>,
       getConfig(db, "modelos") as Promise<{ chat: string }>,
@@ -245,11 +267,23 @@ Deno.serve(async (req: Request) => {
         .from("playbook")
         .select("etapa, ordem, objetivo, script, perguntas_chave")
         .eq("ativo", true) as unknown as Promise<{ data: PlaybookRow[] | null; error: { message: string } | null }>,
+      getConfig(db, "prompt_tom_geral") as Promise<string>,
+      getConfig(db, "prompt_suggest_abertura_resposta") as Promise<string>,
+      getConfig(db, "prompt_suggest_abertura_followup") as Promise<string>,
+      getConfig(db, "prompt_suggest_fechamento_resposta") as Promise<string>,
+      getConfig(db, "prompt_suggest_fechamento_followup") as Promise<string>,
     ]);
     if (playbookResult.error) throw new Error(`playbook.select falhou: ${playbookResult.error.message}`);
     const playbook = playbookResult.data ?? [];
     if (playbook.length === 0) throw new Error("tabela playbook está vazia — cadastre as etapas primeiro");
     const etapasValidas = playbook.map((p) => p.etapa);
+    const prompts: PromptsEditaveis = {
+      tomGeral,
+      aberturaResposta,
+      aberturaFollowup,
+      fechamentoResposta,
+      fechamentoFollowup,
+    };
 
     let tokensEmbeddingPergunta = 0;
 
@@ -345,7 +379,7 @@ Deno.serve(async (req: Request) => {
     } else {
       const chat = await chatJSON<SuggestLLMOutput>({
         model: modelos.chat,
-        system: buildSystemPrompt(playbook, empresaAssociada, modo),
+        system: buildSystemPrompt(playbook, empresaAssociada, modo, prompts),
         user: buildUserPrompt(mensagens, chunks, empresaAssociada, modo),
         schemaName: "suggest_response",
         schema: buildSchema(etapasValidas),
