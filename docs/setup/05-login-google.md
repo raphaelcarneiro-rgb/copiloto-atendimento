@@ -1,4 +1,6 @@
-# Login real (RF09) — o que já existe e o que falta configurar
+# Login real (RF09) — configurado e testado (2026-09-14)
+
+> Este guia documenta como o login foi configurado. Todos os passos abaixo já foram feitos e validados ao vivo (Raphael logou com `raphael.carneiro@infnet.edu.br`, criou `profiles` com `papel: admin`). Mantido como referência para reconfigurar em outro ambiente/projeto Supabase, ou se o provedor Google precisar ser reautorizado.
 
 ## O que já existe (código, testado)
 
@@ -16,13 +18,12 @@
   pública (comportamento de hoje, nada quebra).
 - **Side panel:** botão "Entrar com Google" / e-mail + "Sair" no
   cabeçalho.
-- **Backend, novo:** `supabase/functions/_shared/auth_context.ts` —
-  resolve o usuário e papel reais a partir do token, pronto pra ser usado
-  em `gaps`/`relatorios` quando você decidir exigir login de verdade
-  nessas rotas (hoje elas ainda aceitam a anon key sozinha, de propósito
-  — ver nota no fim).
+- **Backend:** `supabase/functions/_shared/auth_context.ts` — resolve o
+  usuário e papel reais a partir do token; usado por `gaps`, `relatorios`,
+  `fontes` e `admin-config` pra exigir `curador`/`admin` de verdade
+  (ver nota no fim).
 
-## O que falta (passos manuais, fora do meu alcance)
+## Passos manuais já concluídos (referência, não repetir)
 
 ### 1. Google Cloud Console — criar o OAuth Client ID
 
@@ -68,13 +69,20 @@ No mesmo projeto do Google Cloud onde já existe a conta de serviço
    banco (RF09).
 4. Se dar certo, o cabeçalho passa a mostrar seu e-mail + botão "Sair".
 
-## Decisão pendente: exigir login em `gaps`/`relatorios`?
+## Decisão resolvida: `gaps`/`relatorios` já exigem login de verdade
 
-Hoje essas duas Edge Functions (e as páginas `admin/curadoria.html` e
-`admin/relatorios.html`) continuam aceitando qualquer chamada com a anon
-key pública — **não fiz elas exigirem login ainda**, de propósito: se eu
-travasse isso agora, você ficaria sem acesso a essas páginas até terminar
-os passos 1–4 acima. Depois de testar o login e confirmar que funciona,
-me avise que eu troco `gaps`/`relatorios` pra exigir um usuário
-`curador`/`admin` de verdade (usando o `auth_context.ts` que já deixei
-pronto) em vez de aceitar qualquer um com a anon key.
+Depois do teste de login confirmado (2026-09-14), `gaps` (GET/classificar/
+aprovar exigem `curador`/`admin`; proposta exige qualquer membro
+autenticado) e `relatorios` (exige `admin`) passaram a rejeitar a anon key
+sozinha — testado com `curl`/PowerShell, os dois devolvem 403 sem um JWT de
+usuário real. `admin/curadoria.html` e `admin/relatorios.html` (páginas
+locais, sem OAuth próprio) ganharam um campo "Colar token de acesso" —
+o token é copiado do side panel da extensão (botão de ícone ao lado de
+"Sair") e colado uma vez, fica salvo em `localStorage` daquele navegador.
+
+O portal admin novo (`admin-portal/`, Etapa 12, ver
+[07-portal-admin.md](07-portal-admin.md)) resolve isso de um jeito melhor
+para os casos de uso que cobre (conteúdo e prompts): login OAuth de
+verdade, sem precisar copiar token nenhum. `curadoria`/`relatorios`
+continuam com o fluxo de token colado por enquanto — migrá-los pro mesmo
+portal é um upgrade natural, ainda não feito.

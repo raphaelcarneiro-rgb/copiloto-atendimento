@@ -38,16 +38,17 @@ raphael.carneiro@infnet.edu.br
 
 A chave privada da conta de serviço (arquivo JSON baixado no Cloud Console) fica guardada como Secret na Edge Function, nunca em texto plano no repositório ou em planilhas.
 
-## Planilhas já identificadas como fonte
+## Planilhas cadastradas como fonte (atualizado 2026-09-16)
 
-| Planilha | Uso | Acesso do Raphael | Status |
-|---|---|---|---|
-| Manual de Boas Práticas — Atendimento B2B WhatsApp (v3) | Playbook comercial (via extração de texto, não Sheets API — é um Google Doc) | proprietário | pronto para ingestão de documento |
-| Calendário das faculdades Infnet e ECDD | Datas de início de turmas | proprietário | pronto para ingestão de planilha |
-| B2B \| Empresas Conveniadas (2023 em diante) | Lista de empresas conveniadas | organizador (Drive Compartilhado) | pronto para ingestão de planilha |
-| Calendário Infnet (feriados) | Lembrete de 24h (RF10–RF14) | a criar | pendente — ver nota abaixo |
+| Planilha | Uso | Status |
+|---|---|---|
+| Manual de Boas Práticas — Atendimento B2B WhatsApp (v3) | Playbook comercial (extração de texto do Google Doc) | ativa, sincronizando |
+| Calendário das faculdades Infnet e ECDD | Datas de início de turmas + descoberta automática das páginas de curso (coluna "Mais Informações") | ativa, sincronizando |
+| B2B \| Empresas Conveniadas (2023 em diante) | Lista de empresas conveniadas, incluindo % de desconto | ativa, sincronizando |
+| Calendário Infnet — Feriados | Lembrete de 24h (RF10–RF14) | ativa — criada em 2026-09-14 (`1bu0o0d8fZKLhJuIc73CvTeDwrSO-5Tp6POX8CZyH0Hw`), **fonte única de verdade** — substituiu o seed manual da migration `20260913000700_seed_inicial.sql` |
+| Copiloto \| Páginas Institucionais | Lista dedicada de URLs institucionais (convênio, admissão, sobre, como funciona) | ativa — 8 páginas indexadas |
 
-**Nota sobre feriados:** o calendário de feriados (nacionais, RJ, 15/10) ainda precisa virar uma planilha própria (ou aba dedicada) para ser sincronizado como fonte estruturada (`feriados`). Os 23 feriados já estão no banco via seed manual (migration `20260913000700_seed_inicial.sql`); a planilha serve para facilitar manutenção contínua sem precisar de SQL.
+Desde a Etapa 12 (2026-09-16), fontes do tipo arquivo (PDF/TXT/MD) ou URL avulsa também podem ser cadastradas direto pelo **portal admin** (`admin-portal/`, ver [07-portal-admin.md](07-portal-admin.md)), sem precisar de SQL manual nem de pedir pra mim. Planilhas do Google Sheets continuam precisando de cadastro manual em `sources` (domain-wide delegation, ver seção acima) — o portal não cobre esse tipo ainda.
 
 ## Como pegar o ID de uma planilha
 

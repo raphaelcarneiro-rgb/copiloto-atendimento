@@ -63,17 +63,21 @@ select * from net._http_response order by created desc limit 5; -- últimas cham
 ```
 Não é preciso mais chamar manualmente — só use o `curl` acima para depurar um erro específico.
 
-## Fontes suportadas hoje
+## Fontes suportadas hoje (atualizado 2026-09-16)
 
 | Tipo | `ref` | Uso |
 |---|---|---|
-| `sheet` | ID da planilha | categoria `calendario_cursos`, `convenios` ou `feriados` |
+| `sheet` | ID da planilha | categoria `calendario_cursos`, `convenios`, `feriados` ou `lista_urls` |
 | `pdf` | `gdoc:<id do Google Doc>` | exporta o Doc como texto via Drive API |
-| `pdf` | `storage:<bucket>/<caminho>` | baixa do bucket privado `fontes-pdf` no Storage e extrai texto (biblioteca `unpdf`) — **implementado, ainda sem teste com arquivo real** |
+| `pdf` | `storage:<bucket>/<caminho>` | baixa do bucket privado `fontes-pdf` e extrai texto (`unpdf`) — **ainda sem teste com um arquivo PDF real enviado** (nenhum PDF de verdade chegou ao bucket até agora) |
+| `arquivo` (Etapa 12) | `storage:fontes-pdf/<caminho>` | PDF, TXT ou MD, decidido pela extensão do arquivo — cadastrado pelo **portal admin** (`admin-portal/`), não precisa mais de SQL manual nem de mim |
 | `url` | a URL | busca a página e limpa o HTML |
+| `faq` | (sem `ref` de arquivo) | gerada automaticamente quando o curador aprova uma lacuna como FAQ (`gaps` → `faq_curada`) — nunca cadastrada manualmente |
 
-Para adicionar um PDF de verdade: subir o arquivo no bucket `fontes-pdf` (Storage → New bucket já existe → Upload) e cadastrar a fonte:
+**Pra adicionar um PDF/TXT/MD hoje, use o portal admin** (mais simples, dispara a indexação na hora) em vez do `insert` manual abaixo — mas o caminho manual continua funcionando, útil pra depurar:
 ```sql
 insert into public.sources (tipo, ref, nome, categoria) values
-  ('pdf', 'storage:fontes-pdf/nome-do-arquivo.pdf', 'Nome legível', 'categoria-livre');
+  ('arquivo', 'storage:fontes-pdf/nome-do-arquivo.pdf', 'Nome legível', 'categoria-livre');
+-- depois, force a indexação sem esperar o cron de 15 min:
+-- POST /functions/v1/ingest {"source_id": "<id gerado acima>"}
 ```
