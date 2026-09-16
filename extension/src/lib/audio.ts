@@ -19,11 +19,12 @@ export interface AudioBaixado {
 export async function baixarAudioComoBase64(url: string): Promise<AudioBaixado | null> {
   try {
     const res = await fetch(url, { credentials: "include" });
-    // Log temporário (2026-09-15): a falha real ainda não foi diagnosticada
-    // ao vivo — pode ser CORS num domínio de redirecionamento fora de
-    // `host_permissions` (a URL é um "signed-url-redirect") ou cookie de
-    // sessão do HubSpot não acompanhando um fetch da extensão (SameSite).
-    // Ver DevTools → extensão → "service worker" → Console.
+    // Log mantido de propósito (não é temporário): foi o que permitiu
+    // diagnosticar, em 2026-09-15, um bug real de CORS num domínio de
+    // redirecionamento fora de `host_permissions` (a URL é um
+    // "signed-url-redirect" do HubSpot que redireciona pra um domínio de
+    // CDN diferente) — corrigido, mas o log continua útil pra qualquer
+    // problema parecido no futuro (ex.: HubSpot trocar de domínio de novo).
     console.log("[copiloto] baixarAudioComoBase64:", url, "→ status", res.status, "url final", res.url);
     if (!res.ok) {
       console.error("[copiloto] download de áudio falhou com status", res.status, await res.text().catch(() => "(sem corpo)"));
