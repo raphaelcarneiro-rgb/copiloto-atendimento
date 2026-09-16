@@ -517,7 +517,7 @@ function renderSugestoes(resposta: SuggestResponse, resultadoEl: HTMLElement, st
     bloco.className = "ask-resposta";
 
     const texto = document.createElement("p");
-    texto.textContent = s.texto;
+    renderTextoFormatado(texto, s.texto);
     bloco.appendChild(texto);
     bloco.appendChild(criarBadgeConfianca(resposta.confianca));
 
@@ -644,6 +644,32 @@ const RÓTULOS_CONFIANCA: Record<Confianca, string> = {
   baixa: "confiança baixa",
 };
 
+/**
+ * Renderiza o texto sugerido (formatado pro WhatsApp, ver
+ * supabase/functions/_shared/formatacao.ts) dentro de `container`: `\n`
+ * vira quebra de linha visível e `*trecho*` vira negrito — só na PRÉVIA.
+ * O texto copiado/inserido no HubSpot continua sendo a string crua (com
+ * asteriscos e \n literais), que é o que o WhatsApp precisa pra formatar
+ * do lado do lead. Constrói por nós de texto/elementos (nunca innerHTML
+ * com o texto do modelo) pra não abrir brecha de injeção.
+ */
+function renderTextoFormatado(container: HTMLElement, texto: string) {
+  const linhas = texto.split("\n");
+  linhas.forEach((linha, i) => {
+    const partes = linha.split(/(\*[^*]+\*)/g);
+    for (const parte of partes) {
+      if (parte.startsWith("*") && parte.endsWith("*") && parte.length > 2) {
+        const strong = document.createElement("strong");
+        strong.textContent = parte.slice(1, -1);
+        container.appendChild(strong);
+      } else if (parte) {
+        container.appendChild(document.createTextNode(parte));
+      }
+    }
+    if (i < linhas.length - 1) container.appendChild(document.createElement("br"));
+  });
+}
+
 function criarBadgeConfianca(confianca: Confianca): HTMLElement {
   const span = document.createElement("span");
   span.className = `badge badge-${confianca}`;
@@ -728,7 +754,7 @@ function renderRespostaAsk(resposta: AskResponse) {
   bloco.className = "ask-resposta";
 
   const texto = document.createElement("p");
-  texto.textContent = resposta.resposta;
+  renderTextoFormatado(texto, resposta.resposta);
   bloco.appendChild(texto);
 
   bloco.appendChild(criarBadgeConfianca(resposta.confianca));

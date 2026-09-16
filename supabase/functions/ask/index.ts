@@ -13,6 +13,7 @@ import { maskPII } from "../_shared/pii.ts";
 import { jsonComCors, respondCorsPreflight } from "../_shared/cors.ts";
 import { registrarLacuna } from "../_shared/lacunas.ts";
 import { resolverChamador } from "../_shared/auth_context.ts";
+import { INSTRUCAO_FORMATACAO_WHATSAPP } from "../_shared/formatacao.ts";
 
 // Maior que o antigo padrão (8): os evals da etapa 10 (2026-09-14)
 // mostraram que perguntas sobre uma empresa de convênio específica às
@@ -57,6 +58,7 @@ function buildSystemPrompt(): string {
     'Se a resposta não estiver clara nos trechos, defina "encontrado": false e responda algo como "Não encontrei essa informação na base — confirme com a coordenação.".',
 'No campo "fontes", cite o(s) valor(es) exato(s) de chunk_id (o número depois de "chunk_id=" antes do trecho) que você realmente usou para montar a resposta — nunca invente ou adivinhe um chunk_id, copie exatamente o que está escrito no contexto.',
     "Seja direto e objetivo, em português do Brasil, como uma mensagem de WhatsApp de atendimento comercial.",
+    INSTRUCAO_FORMATACAO_WHATSAPP,
   ].join(" ");
 }
 

@@ -22,6 +22,7 @@ import { maskPII } from "../_shared/pii.ts";
 import { jsonComCors, respondCorsPreflight } from "../_shared/cors.ts";
 import { registrarLacuna } from "../_shared/lacunas.ts";
 import { resolverChamador } from "../_shared/auth_context.ts";
+import { INSTRUCAO_FORMATACAO_WHATSAPP } from "../_shared/formatacao.ts";
 
 interface MensagemEntrada {
   autor: "lead" | "atendente";
@@ -136,6 +137,7 @@ function buildSystemPrompt(playbook: PlaybookRow[], empresaAssociada: string | n
       ? "Sempre gere pelo menos 1 sugestão de follow-up nesse modo, mesmo que a última mensagem do lead pareça encerrar o assunto (ex.: um agradecimento) — o objetivo aqui é reengajar quem parou de responder."
       : "Se nenhuma mensagem do lead pedir informação (ex.: só um agradecimento), devolva 'sugestoes' vazio.",
     "Seja direto e objetivo, em português do Brasil, como uma mensagem de WhatsApp de atendimento comercial.",
+    INSTRUCAO_FORMATACAO_WHATSAPP,
   ].join(" ");
 }
 

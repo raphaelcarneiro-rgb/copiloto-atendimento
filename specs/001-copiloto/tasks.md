@@ -236,5 +236,23 @@ Requisitos: RF09, RF21 (estrutura), RF22 (config), constitution §4, §9.
 - [x] `npx vitest run` 34/34, build limpo.
 - **Falta:** teste manual ao vivo no HubSpot — em especial ver o chip de contagem regressiva junto dos outros 4 do cabeçalho, e testar o botão "Sugerir follow-up" numa conversa real onde a consultora ficou sem resposta.
 
+## Tag de áudio + divergência de transcrição — confirmados ao vivo (pedido do Raphael, 2026-09-15)
+- [x] **Tag "🎙️ Áudio" confirmada funcionando ao vivo:** "deu certo, mas quero que vc bote alguma tag mostrando que aquele texto é do áudio" — já estava implementada (achado anterior), só faltava a confirmação visual do Raphael.
+- [x] **Divergência de transcrição entre 2 prints, root-caused e corrigida:** mesmo achado documentado acima (cache em memória perdido a cada reload do content script) — confirmado ao vivo depois de mover o cache pra `chrome.storage.local` (chave = hash da URL do áudio) e adicionar o botão manual "🔁 Retranscrever". "recarreguei, ficou bom."
+
+## Cor de fundo do cabeçalho (pedido do Raphael, 2026-09-15)
+- [x] **Pedido:** "Coloque uma cor de fundo no cabeçalho do copiloto sem que os labels existentes fiquem sem contraste. Estou achando tudo muito pálido." `#topo-fixo` ganhou gradiente escuro (`linear-gradient(135deg, #012d40, #01647d)`). Só o texto solto sem fundo próprio (título, thread-id, e-mail, ícones de auth) virou branco/translúcido — os chips coloridos do cabeçalho (nome/empresa/estado/convênio/janela) já tinham contraste próprio (texto escuro em fundo pastel) e não precisaram mudar. Confirmado ao vivo: "recarreguei, ficou bom."
+
+## Cache persistido de transcrição de áudio (pedido do Raphael, 2026-09-15)
+- [x] Já coberto na seção "Achados reais testando o cabeçalho ao vivo" acima (cache `chrome.storage.local` + botão "Retranscrever") — pedido e confirmação ("recarreguei, ficou bom.") vieram juntos com a pergunta sobre a divergência de transcrição.
+
+## Formatação estilo WhatsApp no texto sugerido pela IA (pedido do Raphael, 2026-09-15)
+- [x] **Pedido:** "Quando a sugestão for enviar um bloco de texto, é possível que o copiloto formate melhor, fazendo espaçamentos (enter) entre assuntos diferentes no mesmo bloco, negritos de trechos mais relevantes e na pergunta que for feita?" — print mostrava um parágrafo denso sem quebras.
+- [x] **Decisão de sintaxe:** o texto sugerido vai direto pro composer do WhatsApp (via "Inserir na conversa" ou colado manualmente) — por isso a instrução pede a sintaxe de formatação DO PRÓPRIO WhatsApp (`*negrito*` com um asterisco, quebra de linha dupla entre assuntos), nunca markdown de verdade (`**negrito**`, `#`, listas com `-`), que apareceria como caracteres literais pro lead.
+- [x] Nova `supabase/functions/_shared/formatacao.ts` (`INSTRUCAO_FORMATACAO_WHATSAPP`), importada e anexada ao fim de `buildSystemPrompt()` tanto em `suggest` quanto em `ask` (compartilhada, evita duplicar o texto da instrução). Deployado: `ask` v12, `suggest` v15.
+- [x] **Lado do side panel:** antes, o texto da sugestão/resposta ia direto pra `textContent` de um `<p>` — o HTML colapsaria `\n` e mostraria os asteriscos literais na PRÉVIA (mesmo que o WhatsApp os interpretasse depois de colado). Nova função `renderTextoFormatado()` em `main.ts` constrói a prévia por nós de DOM (nunca `innerHTML` com texto do modelo): `\n` vira `<br>` visível, `*trecho*` vira `<strong>`. Aplicada em `renderSugestoes()` (cards de `suggest`/follow-up) e `renderRespostaAsk()` (`ask`). O texto copiado/inserido no HubSpot continua sendo a string crua (com asteriscos e `\n` literais) — é isso que o WhatsApp precisa pra formatar de verdade do lado do lead.
+- [x] `npx vitest run` 34/34, `npm run build` limpo.
+- **Falta:** teste manual ao vivo confirmando que o modelo segue a instrução de formatação e que a prévia (negrito + quebras) e o texto realmente enviado ao WhatsApp aparecem corretos.
+
 ## Dependências externas
 - [~] Material comercial: roteiro por etapa, objeções, planilhas de preço/convênio (Raphael)
