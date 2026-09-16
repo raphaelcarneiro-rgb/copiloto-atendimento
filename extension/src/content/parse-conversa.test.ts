@@ -118,7 +118,7 @@ describe("extrairConversa", () => {
 });
 
 describe("extrairEmpresaAssociada", () => {
-  it("retorna null sem seletor calibrado (ainda não temos o HTML real do painel de contato)", () => {
+  it("retorna null sem seletor calibrado (fallback de segurança, mesmo já tendo o seletor real calibrado hoje)", () => {
     const dom = new JSDOM(`<div><span class="empresa">Binário.Net</span></div>`);
     expect(extrairEmpresaAssociada(dom.window.document, undefined)).toBeNull();
   });

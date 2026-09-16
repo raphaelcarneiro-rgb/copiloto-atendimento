@@ -27,9 +27,10 @@ minutos. Nenhum passo aqui exige acesso técnico além do Chrome em si.
    zip em si).
 6. Fixe o ícone do Copiloto na barra do Chrome (ícone de peça de quebra-
    cabeça → alfinete ao lado do nome da extensão).
-
-Pronto — não precisa de login por enquanto (isso ainda está sendo
-implementado; a extensão funciona sem conta própria nesta fase).
+7. Abra o painel lateral e clique em **"Entrar com Google"**, usando sua
+   conta `@infnet.edu.br`. O login não é obrigatório pra ver sugestões,
+   mas sem ele você não recebe avisos de "sua dúvida foi respondida" nem
+   consegue ser identificado no relatório de uso — vale a pena fazer.
 
 ## Como usar
 
@@ -38,13 +39,29 @@ implementado; a extensão funciona sem conta própria nesta fase).
    inferior direito da tela.
 3. Abra o painel lateral do Chrome (ícone da extensão, ou `Ctrl+Shift+.`
    dependendo da sua configuração) para ver:
-   - a conversa extraída;
+   - no cabeçalho: nome, empresa, estado e convênio do lead (lidos direto
+     do CRM do HubSpot), mais um chip mostrando quanto tempo falta pra
+     fechar a janela de 24h do WhatsApp daquela conversa;
+   - a conversa extraída, com negrito/quebra de linha reais (o texto
+     enviado pro WhatsApp usa `*asterisco*` pra negrito — o painel mostra
+     isso já formatado, mais fácil de ler);
+   - notas de voz do lead aparecem transcritas automaticamente, com uma
+     tag roxa "🎙️ Áudio" (pode ter erro de reconhecimento — se a
+     transcrição saiu estranha, clique em "🔁 Retranscrever" ao lado dela);
+   - imagem ou arquivo enviado pelo lead vira um marcador de texto (ex.:
+     "[Imagem enviada — conteúdo não lido pelo copiloto]") — o copiloto não
+     lê o conteúdo de imagens, só avisa que teve um anexo ali;
    - sugestões automáticas assim que o lead manda mensagem nova, já
      identificando em qual etapa do roteiro comercial a conversa está;
+   - se a ÚLTIMA mensagem da conversa for sua (a consultora ficou sem
+     resposta do lead), aparece uma seção "Lead sem resposta" te dizendo
+     até quando vale a pena mandar mais uma mensagem, com um botão
+     "Sugerir follow-up" (ação manual — só dispara se você clicar);
    - um campo para perguntar livremente ("tem desconto pro convênio X?").
 4. Em cada sugestão: **Copiar** (pra colar você mesmo) ou **Inserir na
    conversa** (coloca direto no campo de resposta do HubSpot — você ainda
-   decide quando mandar).
+   decide quando mandar). Depois de inserida, a sugestão some do painel
+   pra não parecer que ainda está pendente.
 5. Dê 👍/👎 nas sugestões — isso ajuda a melhorar o sistema com o tempo.
 6. Se aparecer um aviso de **janela de 24h fechando**, isso significa que
    a última mensagem do lead foi há quase 24h e o WhatsApp vai deixar de

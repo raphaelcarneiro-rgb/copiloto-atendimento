@@ -1,7 +1,8 @@
 // Mascaramento defensivo de PII (RF04, constitution §4). O plano prevê isso
-// principalmente no lado da extensão (lib/pii.ts, ainda não construída);
-// esta versão roda no backend como segunda camada, para qualquer texto que
-// vire lacuna registrada (nunca deve reter telefone/e-mail/CPF do lead).
+// principalmente no lado da extensão (`extension/src/lib/pii.ts`, mesma
+// lógica, duplicada de propósito); esta versão roda no backend como segunda
+// camada, para qualquer texto que vire lacuna registrada (nunca deve reter
+// telefone/e-mail/CPF do lead).
 
 const RE_EMAIL = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
 const RE_CPF = /\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/g;

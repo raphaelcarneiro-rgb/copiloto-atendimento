@@ -1,20 +1,16 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://copiloto.infnet.edu.br/contracts/ask.schema.json",
-  "title": "Resposta do copiloto a uma pergunta livre (US3, RF05 simplificado)",
+  "title": "Resposta do copiloto a uma pergunta livre (US3, RF05/RF06)",
+  "description": "Corpo da resposta HTTP de POST /functions/v1/ask (não o schema interno usado só na chamada ao LLM — este inclui os campos que a Edge Function acrescenta depois de validar as citações e registrar o uso). Requisição: {pergunta: string, thread_hash?: string, match_count?: number}. Atualizado 2026-09-16.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["resposta", "fontes", "encontrado", "confianca"],
+  "required": ["resposta", "encontrado", "confianca", "fontes", "lacuna_registrada", "usage_log_id"],
   "properties": {
     "resposta": {
       "type": "string",
       "minLength": 1,
-      "description": "Resposta direta e fundamentada nos trechos numerados do contexto, ou uma frase dizendo que não foi encontrada na base."
-    },
-    "fontes": {
-      "type": "array",
-      "description": "IDs dos trechos (chunk_id) do contexto realmente usados para montar a resposta. Validados no backend contra os chunks recuperados nesta requisição (RF06).",
-      "items": { "type": "integer" }
+      "description": "Resposta direta e fundamentada nos trechos numerados do contexto, ou uma frase dizendo que não foi encontrada na base. Formatada no estilo WhatsApp (*negrito*, quebra de linha dupla entre assuntos), não markdown."
     },
     "encontrado": {
       "type": "boolean",
@@ -23,6 +19,27 @@
     "confianca": {
       "type": "string",
       "enum": ["alta", "media", "baixa"]
+    },
+    "fontes": {
+      "type": "array",
+      "description": "Fontes citadas, já resolvidas com o trecho completo (RF06: só chunk_id que realmente estava no conjunto recuperado nesta requisição chega aqui).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["chunk_id", "trecho"],
+        "properties": {
+          "chunk_id": { "type": "integer" },
+          "trecho": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "lacuna_registrada": {
+      "type": "boolean",
+      "description": "true quando `encontrado` é false e uma lacuna nova (ou reforço de uma existente, RF16) foi gravada em knowledge_gaps."
+    },
+    "usage_log_id": {
+      "type": ["integer", "null"],
+      "description": "id da linha em usage_logs desta chamada — usado pelo cliente pra vincular o feedback (Edge Function `feedback`)."
     }
   }
 }

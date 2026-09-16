@@ -20,7 +20,12 @@ from pg_trigger
 where tgrelid = 'auth.users'::regclass and not tgisinternal
 order by tgname;
 
--- 4. Configuração e calendário (esperado: 18 chaves; 23 feriados de 2026-10-12 a 2027-12-25)
+-- 4. Configuração e calendário (na fundação, etapa 1: 18 chaves; hoje cresce
+--    a cada etapa nova — ex.: Etapa 12 acrescentou 6 chaves de prompt
+--    editável. Confira que não falta nenhuma que uma Edge Function espera,
+--    não um número fixo. Feriados: 23 de 2026-10-12 a 2027-12-25 na
+--    fundação; a fonte real é a planilha "Calendário Infnet — Feriados"
+--    desde 2026-09-14, que pode ter mudado a lista)
 select chave, valor from public.config order by chave;
 select count(*) as feriados, min(data) as primeiro, max(data) as ultimo from public.feriados;
 

@@ -47,7 +47,7 @@ export { EMBEDDING_MODEL };
 
 export interface TranscricaoResult {
   texto: string;
-  /** 0 quando a API não devolve `usage` por token para este modelo (formato ainda não confirmado ao vivo) — o chamador cai no fallback por duração. */
+  /** Normalmente vem preenchido — confirmado ao vivo que a API devolve `usage.input_tokens`/`output_tokens` de verdade. Fica 0 só como rede de segurança (algum modelo/resposta futura sem `usage`), e nesse caso o chamador cai no fallback por duração. */
   tokensEntrada: number;
   tokensSaida: number;
 }

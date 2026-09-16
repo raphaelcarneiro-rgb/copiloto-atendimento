@@ -15,9 +15,10 @@
 // `proposta` (RF17) aceita qualquer membro autenticado (atendente incluso).
 //
 // Pendência remanescente do RF20: mesmo com login, `curador_id` ainda fica
-// null nas aprovações (não usado pra nada ainda) e a notificação individual
-// "sua dúvida agora tem resposta" não está implementada — falta decidir
-// como e onde mostrar isso no side panel.
+// null nas aprovações (não usado pra nada ainda). A notificação individual
+// "sua dúvida agora tem resposta" JÁ está implementada — ver a Edge
+// Function `notificacoes` (GET, exige login) e a seção "Novidades" do side
+// panel, que faz polling a cada 30s.
 
 import { createServiceClient, getConfig } from "../_shared/db.ts";
 import { embedTexts } from "../_shared/openai.ts";

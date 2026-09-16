@@ -1,18 +1,19 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://copiloto.infnet.edu.br/contracts/suggestion.schema.json",
-  "title": "Sugestão do copiloto (RF05)",
+  "title": "Sugestão do copiloto (US2, RF05/RF06)",
+  "description": "Corpo da resposta HTTP de POST /functions/v1/suggest (não o schema interno usado só na chamada ao LLM — `etapa_atual` vem restrito por enum às etapas reais do playbook, e `script_etapa` é sempre copiado da tabela, nunca escrito pelo modelo). Requisição: {mensagens: {autor: 'lead'|'atendente', texto: string, hora: string|null}[], thread_hash?: string, match_count?: number, empresa_associada?: string, modo?: 'resposta'|'follow_up'}. `modo: 'follow_up'` (2026-09-15) exige que a última mensagem seja do atendente e muda o foco pra sugerir reengajamento em vez de responder o lead. Atualizado 2026-09-16.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["etapa", "script_etapa", "sugestoes", "perguntas_para_lead", "alertas", "lacunas", "confianca"],
+  "required": ["etapa", "script_etapa", "sugestoes", "perguntas_para_lead", "alertas", "lacunas", "confianca", "lacuna_registrada", "usage_log_id"],
   "properties": {
     "etapa": {
       "type": "string",
-      "description": "Chave da etapa do playbook detectada na conversa."
+      "description": "Chave da etapa do playbook detectada na conversa (uma das etapas ativas em public.playbook — o LLM nunca inventa uma etapa nova)."
     },
     "script_etapa": {
       "type": "string",
-      "description": "Script base da etapa, copiado do playbook."
+      "description": "Script base da etapa, copiado do playbook (nunca escrito pelo LLM)."
     },
     "sugestoes": {
       "type": "array",
@@ -23,15 +24,23 @@
         "additionalProperties": false,
         "required": ["texto", "fontes"],
         "properties": {
-          "texto": { "type": "string", "minLength": 1 },
+          "texto": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Mensagem exata que o atendente colaria/inseriria pro lead — formatada no estilo WhatsApp (*negrito*, quebra de linha dupla entre assuntos), não markdown."
+          },
           "fontes": {
             "type": "array",
-            "description": "IDs de chunks recuperados na requisição (validados no backend, RF06).",
-            "items": { "type": "integer" }
-          },
-          "verificada": {
-            "type": "boolean",
-            "description": "Preenchido pelo backend: false quando alguma fonte não pertence aos chunks recuperados."
+            "description": "Fontes citadas, já resolvidas com o trecho completo (RF06: só chunk_id que realmente estava no conjunto recuperado nesta requisição chega aqui — sugestão sem nenhuma fonte válida não aparece aqui, vira lacuna).",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["chunk_id", "trecho"],
+              "properties": {
+                "chunk_id": { "type": "integer" },
+                "trecho": { "type": ["string", "null"] }
+              }
+            }
           }
         }
       }
@@ -42,16 +51,25 @@
     },
     "alertas": {
       "type": "array",
+      "description": "Reservado pelo schema, sempre vazio hoje de propósito — o lembrete de 24h é inteiramente client-side (extension/src/background/window-guard.ts), a Edge Function não tem acesso a esse estado.",
       "items": { "type": "string" }
     },
     "lacunas": {
       "type": "array",
-      "description": "Dúvidas do lead que a base não cobre (RF15).",
+      "description": "Dúvidas que a base não cobre (RF15) — inclui tanto as que o LLM reportou quanto sugestões descartadas por fonte inválida ou por soarem incertas (PADRAO_INCERTEZA).",
       "items": { "type": "string" }
     },
     "confianca": {
       "type": "string",
       "enum": ["alta", "media", "baixa"]
+    },
+    "lacuna_registrada": {
+      "type": "boolean",
+      "description": "true quando pelo menos uma lacuna nova (ou reforço de uma existente, RF16) foi gravada em knowledge_gaps."
+    },
+    "usage_log_id": {
+      "type": ["integer", "null"],
+      "description": "id da linha em usage_logs desta chamada — usado pelo cliente pra vincular o feedback (Edge Function `feedback`)."
     }
   }
 }
