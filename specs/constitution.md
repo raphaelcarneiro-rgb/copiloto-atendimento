@@ -37,3 +37,4 @@ Somente contas `@infnet.edu.br` autenticadas acessam o sistema. Permissões segu
 
 ### Histórico
 - 2026-09-13: versão inicial (plano v4 aprovado por Raphael Carneiro).
+- 2026-09-16: nenhum princípio mudou. Registrado aqui porque a Etapa 12 (portal admin, RF23 em `spec.md`) testa diretamente o Princípio 1 — a interface expõe só um subconjunto fechado de trechos de prompt (tom/abertura/fechamento) para edição sem deploy; o núcleo anti-alucinação (fundamentação, citação, validação RF06, filtro de incerteza) permanece fixo no código, de propósito.

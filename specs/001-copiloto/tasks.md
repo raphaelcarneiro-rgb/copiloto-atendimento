@@ -280,6 +280,10 @@ Requisitos: RF09, RF21 (estrutura), RF22 (config), constitution §4, §9.
 - **Falta:** subir o repositório pro GitHub e conectar o Vercel (passos manuais do Raphael, documentados); teste de ponta a ponta do portal publicado (upload real de conteúdo, edição de prompt refletindo numa sugestão real).
 - **Fora de escopo desta rodada:** migrar `admin/curadoria.html`/`admin/relatorios.html` pro mesmo portal (upgrade natural, não pedido agora).
 
+## Specs atualizados antes de subir pro GitHub (pedido do Raphael, 2026-09-16)
+- [x] `specs/001-copiloto/spec.md` e `plan.md` estavam parados desde 2026-09-13 (spec) e com trechos desatualizados no plan (dizia "Side Panel React" — nunca foi React; não mencionava login, áudio, API do HubSpot pro contexto do lead, formatação WhatsApp, nem a Etapa 12). Atualizados: US6 estendida (portal admin), novo RF23 (prompts editáveis com a mesma allowlist fechada do `admin-config`), arquitetura corrigida (TS puro, novas Edge Functions, API do HubSpot), seção nova "Portal admin (Etapa 12)", "Distribuição" separada em hoje/planejado (Etapa 13), "áudio" removido de fora de escopo (foi implementado). `constitution.md` ganhou uma linha no histórico de governança (nenhum princípio mudou, só documentando que a Etapa 12 testa o Princípio 1 e passou).
+- **Achado:** o Google Doc externo do Raphael ("Infnet Copiloto de Atendimento — Plano (Spec Driven Development) v5", no Drive dele) também estava parado em 2026-09-14 — não refletia nenhuma etapa 6 em diante. Como a ferramenta de Drive disponível só edita metadados (título/pasta) de um Google Doc existente, não o conteúdo, uma versão v6 nova foi criada do zero (mesmo padrão das v3/v4/v5 anteriores) com o status consolidado até 2026-09-16.
+
 ## Etapa 13 — Distribuição da extensão com auto-update (planejada, não iniciada)
 - [ ] Ver plano completo (`update_url` + bucket `extension-updates` já preparado na Etapa 12 + script de release + política do Google Workspace) na mesma seção "Etapas 12–13" do plano SDD. Adiada a pedido do Raphael pra depois do portal de conteúdo (prioridade confirmada: conteúdo primeiro).
 

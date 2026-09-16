@@ -1,5 +1,7 @@
 # Spec 001 — Copiloto de Atendimento
 
+> Atualizado em 2026-09-16: US6 estendida (portal admin web, Etapa 12), RF23 novo (prompts editáveis), "fora de escopo" corrigido (áudio deixou de ser fora de escopo — implementado na etapa de qualidade pós-piloto).
+
 - **Status:** aprovada (2026-09-13)
 - **Responsável:** Raphael Carneiro (gestor, TI e curador)
 - **Constitution:** [../constitution.md](../constitution.md)
@@ -19,7 +21,7 @@ Os consultores comerciais respondem leads pelo inbox do HubSpot (`app.hubspot.co
 | Expediente | Seg–sex, 09h–19h, almoço incluso; fuso America/Sao_Paulo |
 | Lembrete 24h | Só conversas ativadas; 120 min de antecedência |
 | Feriados | Nacionais, estaduais RJ, municipais Rio de Janeiro, 15/10; Carnaval seg–qua de cinzas; Corpus Christi |
-| Distribuição | Zip numa pasta do Google Drive + manual (modo desenvolvedor) |
+| Distribuição | Hoje: zip numa pasta do Google Drive + manual (modo desenvolvedor). Planejado (Etapa 13): auto-update via bucket público do Supabase + política do Google Workspace, pras máquinas gerenciadas |
 
 ## Histórias de usuário
 - **US1:** Como atendente, ativo o copiloto numa conversa e vejo o painel lateral com a etapa detectada e o script base.
@@ -27,7 +29,7 @@ Os consultores comerciais respondem leads pelo inbox do HubSpot (`app.hubspot.co
 - **US3:** Pergunto livremente ao copiloto e recebo resposta fundamentada.
 - **US4:** Copio ou insiro a sugestão no campo de resposta; se a janela de 24h estiver fechada, o painel avisa e sugere template.
 - **US5:** Dou feedback (positivo/negativo + motivo) em cada sugestão.
-- **US6:** Como admin, cadastro fontes, acompanho a sincronização e edito o roteiro por etapa.
+- **US6:** Como admin, cadastro fontes (arquivo PDF/TXT/MD ou URL, pelo portal web `admin-portal/`, Etapa 12), acompanho a sincronização e edito o roteiro por etapa. Também ajusto, pelo mesmo portal, os trechos de tom/abertura/fechamento do que a IA sugere, sem precisar de deploy de código.
 - **US7:** Como gestor, vejo uso, aceite, lacunas e tempo de curadoria.
 - **US8:** Como atendente, sou lembrado antes de a janela de 24h fechar, sobretudo quando expira fora do expediente.
 - **US9:** Dúvidas que a base não cobre viram lacunas; atendentes propõem respostas; o curador aprova; o copiloto passa a responder com fonte.
@@ -66,6 +68,9 @@ Os consultores comerciais respondem leads pelo inbox do HubSpot (`app.hubspot.co
 - **RF21:** Cada chamada à OpenAI DEVE registrar modelo, tokens de entrada/saída/cache, tipo, usuário e `thread_hash`; o custo em US$ e R$ é calculado por `precos_modelo` e pela cotação em `config`. O gestor DEVE ver custo por conversa, consultor, dia, mês e tipo, média por conversa e projeção. QUANDO o mês atingir 80% e 100% do teto, o gestor DEVE ser alertado por e-mail e no relatório. Atendentes não veem custos.
 - **RF22:** A extensão DEVE comparar sua versão com `versao_minima`/`versao_atual`, avisar sobre versão nova e se desativar abaixo da mínima. O sistema DEVE apagar mensalmente registros com mais de 18 meses.
 
+### Portal admin (Etapa 12, 2026-09-16)
+- **RF23:** O sistema DEVE oferecer uma interface web (com login, restrita a `admin`) para (a) cadastrar fontes de conteúdo — arquivo PDF/TXT/MD ou URL — sem SQL manual, disparando a indexação imediatamente; e (b) editar um conjunto FECHADO de trechos de prompt (tom, abertura e fechamento das mensagens sugeridas), sem exigir deploy de código. O núcleo anti-alucinação do prompt (instrução de fundamentação, formato de citação, validação RF06, filtro de incerteza, JSON Schema) NÃO PODE ser exposto para edição por essa interface — continua fixo no código (Constitution §1).
+
 ## Requisitos não funcionais
 - Latência p90 ≤ 6s até a primeira sugestão (streaming).
 - Orçamento de IA do MVP: R$ 100/mês.
@@ -78,4 +83,6 @@ Os consultores comerciais respondem leads pelo inbox do HubSpot (`app.hubspot.co
 - Um atendente instala e ativa a extensão sozinho em ≤ 10 min com o manual.
 
 ## Fora de escopo (v1)
-Envio automático; áudio/imagem; escrita no CRM; outros canais; lembrete para conversas não ativadas; aprendizado sem curadoria; Chrome Web Store.
+Envio automático; escrita no CRM; outros canais; lembrete para conversas não ativadas; aprendizado sem curadoria; Chrome Web Store; auto-update da extensão (planejado, Etapa 13 — hoje é instalação/atualização manual via Drive).
+
+*(Nota 2026-09-16: transcrição de áudio deixou de ser fora de escopo — implementada e validada ao vivo, ver `tasks.md`. Leitura de imagem continua fora: uma mensagem só-imagem vira um marcador genérico, "[Imagem enviada — conteúdo não lido pelo copiloto]", sem OCR.)*

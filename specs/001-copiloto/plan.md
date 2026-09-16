@@ -1,36 +1,44 @@
 # Plan 001 — Copiloto de Atendimento
 
+> Atualizado em 2026-09-16 (etapas 1–12 concluídas ou em conclusão; etapa 13 planejada, não iniciada). Ver `tasks.md` para o changelog detalhado de cada achado real.
+
 Como a [spec](spec.md) será construída. Mudanças de arquitetura atualizam este arquivo antes do código.
 
 ## Arquitetura
 
 ```
-[HubSpot inbox] ──content script (só se ativo)──► [Side Panel React] ◄── [Service worker: window-guard]
+[HubSpot inbox] ──content script (só se ativo)──► [Side Panel, TS puro] ◄── [Service worker: window-guard]
                                                          │ JWT Supabase
                                                          ▼
-                              [Edge Functions: config / suggest / ask / gaps / ingest / cost-alert]
+        [Edge Functions: config / suggest / ask / feedback / gaps / ingest / fontes / admin-config /
+                          contexto-lead / convenio / relatorios / cost-alert / transcrever-audio]
                                      │                                 │
                                      ▼                                 ▼
-             [Postgres: pgvector + FTS + tabelas estruturadas + RLS]   [OpenAI: chat + embeddings]
+             [Postgres: pgvector + FTS + tabelas estruturadas + RLS]   [OpenAI: chat, embeddings, transcrição]
+                                     ▲                                 ▲
+                    [pg_cron] ── Sheets / PDF/TXT/MD / URL / FAQ curada │
+                                     ▲                        [HubSpot CRM API: nome/empresa/estado/convênio]
+             [admin-portal/: portal web — conteúdo + prompts editáveis]
                                      ▲
-                    [pg_cron] ── Sheets / PDF / URL / FAQ curada
-                                     ▲
-                        [Página admin: Curadoria + Relatórios]
+                        [admin/: páginas locais — Curadoria + Relatórios]
 ```
+
+**Nota de arquitetura (2026-09-15):** nome, empresa e estado do lead vêm da **API REST do HubSpot** (`_shared/hubspot.ts::buscarContextoLead`, via Private App token), não mais de seletores de DOM — um dado de contato divergente do texto livre do CRM (campo "Nome da empresa" vs. associação real) provou que ler isso do HTML era frágil. O texto das mensagens da conversa continua vindo do DOM (não há necessidade equivalente de trocar isso ainda).
 
 ## Componentes
 
-### Extensão (Chrome MV3, TypeScript + Vite) — `extension/` — **construída e testada ao vivo no HubSpot real desde 2026-09-14**
+### Extensão (Chrome MV3, TypeScript + Vite, **sem framework** — DOM direto) — `extension/` — **construída e testada ao vivo no HubSpot real desde 2026-09-14**
 | Módulo | Responsabilidade | Status |
 |---|---|---|
-| `manifest.json` | `side_panel`, `background` (service worker), `content_scripts` em `app.hubspot.com/live-messages/*`; `key` RSA fixa para ID estável | ✅ |
-| `content/hubspot-reader.ts` | `threadId` da URL (regex); `MutationObserver` nas mensagens (`childList`+`characterData`+`attributes` — a lista do HubSpot é virtualizada e recicla nós) → `{autor, texto, hora}`; injeta botão flutuante "Ativar copiloto" (`position:fixed`, sem depender de seletor) | ✅ |
+| `manifest.json` | `side_panel`, `background` (service worker), `content_scripts` em `app.hubspot.com/live-messages/*`; `key` RSA fixa para ID estável; `host_permissions` inclui os domínios de API/CDN do HubSpot usados pra ler CRM e baixar áudio | ✅ |
+| `content/hubspot-reader.ts` | `threadId` da URL (regex); `MutationObserver` nas mensagens (`childList`+`characterData`+`attributes` — a lista do HubSpot é virtualizada e recicla nós) → `{autor, texto, hora, viaAudio, audioUrl}`; injeta botão flutuante "Ativar copiloto"; resolve nome/empresa/estado/convênio via API do HubSpot (`resolverContextoLead`, com fallback pro DOM se a API falhar); cache persistido (`chrome.storage.local`) de transcrição de áudio, com opção manual de retranscrever | ✅ |
 | `content/composer.ts` | Insere texto no campo de resposta via `document.execCommand('insertText', ...)` (ProseMirror não aceita `.textContent` direto) | ✅ |
-| `sidepanel/` | Conversa extraída, sugestões automáticas (etapa do roteiro, script, perguntas, lacunas), chat livre (`ask`), feedback | ✅ |
-| `background/service-worker.ts` | Abre o side panel; retransmite mensagens do content script pro side panel (que não recebe `onMessage` de aba diretamente) | ✅ (parcial — `window-guard`/alarms da etapa 6 ainda não existem) |
-| `lib/business-hours.ts` | `isBusinessTime`, `lastBusinessMomentBefore`, `reminderSchedule` (funções puras) | ⏳ etapa 6 |
-| `lib/pii.ts`, `lib/hash.ts` | Mascaramento de telefone/e-mail/CPF; hash SHA-256 do `threadId` (nunca envia o id real do HubSpot ao backend) | ✅ |
-| `lib/api.ts` | Cliente das Edge Functions com a anon key pública; JWT de usuário anexado quando existir sessão (`chrome.identity.launchWebAuthFlow` ainda não conectado — funciona hoje sem login, RLS aberta pela anon key) | ✅ (parcial — login real adiado) |
+| `sidepanel/` | Conversa extraída (com negrito/quebras reais na prévia, tag de áudio); cabeçalho com nome/empresa/estado/convênio/contagem regressiva da janela de 24h; sugestões automáticas (etapa do roteiro, script, perguntas, lacunas); follow-up manual quando o atendente fica sem resposta; chat livre (`ask`); copiar/inserir (some do painel após inserido)/feedback | ✅ |
+| `background/service-worker.ts` + `background/window-guard.ts` | Abre o side panel; retransmite mensagens do content script; baixa áudio (contorna CORS); estado por conversa ativa + `chrome.alarms`/`chrome.notifications` pro lembrete de 24h (RF10–RF14) | ✅ |
+| `lib/business-hours.ts` | `isBusinessTime`, `lastBusinessMomentBefore`, `reminderSchedule` (funções puras, 16 testes) | ✅ |
+| `lib/pii.ts`, `lib/hash.ts` | Mascaramento de telefone/e-mail/CPF; `sha256Hex` genérico (hash do `threadId` e da URL de áudio cacheada) | ✅ |
+| `lib/auth.ts` | Login Google real via `chrome.identity.launchWebAuthFlow` contra o Supabase Auth, restrito a `@infnet.edu.br` | ✅ |
+| `lib/api.ts` | Cliente das Edge Functions; anexa o JWT do usuário quando há sessão, cai pra anon key sem login | ✅ |
 
 ### Backend (Supabase) — `supabase/`
 **Modelo de dados** (migrations em `supabase/migrations/`):
@@ -46,27 +54,30 @@ Como a [spec](spec.md) será construída. Mudanças de arquitetura atualizam est
 
 **Acesso ao Google Sheets:** via *domain-wide delegation* (não compartilhamento manual por arquivo — ver [docs/setup/02-planilhas-fonte.md](../../docs/setup/02-planilhas-fonte.md) para o histórico da decisão). A conta de serviço `copiloto-sheets-reader` está autorizada no Admin Console da Infnet (Client ID `102223072074030067145`, escopo `spreadsheets.readonly`) a impersonar `raphael.carneiro@infnet.edu.br`. A Edge Function `ingest` gera o JWT da conta de serviço com `subject = raphael.carneiro@infnet.edu.br`, o que dá acesso de leitura a qualquer planilha que esse usuário já tenha, sem precisar compartilhar cada arquivo individualmente.
 
-**Edge Functions** (etapas 2–9):
-- `config`: seletores, expediente, antecedência, feriados dos próximos 12 meses, versões. CORS habilitado (`_shared/cors.ts`) — chamada direto do content script/side panel, então precisa responder `OPTIONS` sem exigir JWT.
-- `suggest` (implementado 2026-09-14) / `ask` (implementado):
-  1. embute a(s) mensagem(ns) sem resposta e busca híbrida (vetor + FTS, RRF) — `suggest` roda uma busca por **cada** mensagem do lead ainda sem resposta (não só a última nem todas juntas num embedding só — ver "achados" no `tasks.md`, etapa 8) mais uma busca do contexto amplo, e junta os candidatos por `chunk_id`/maior similaridade;
-  2. `facts`/`feriados` (hoje só `feriados` é consultado de fato; preço de curso ainda não está em `facts` — ver "Dívida" abaixo);
-  3. prompt com prefixo estável, incluindo o roteiro completo do `playbook` no `suggest`;
-  4. saída JSON Schema — `suggest` também classifica `etapa_atual`, restrito por `enum` às etapas reais da tabela `playbook`; o texto do script devolvido vem sempre da tabela, nunca do LLM;
-  5. validação de citações (RF06);
-  6. registro de lacunas;
-  7. `usage_logs` (retorna `usage_log_id` para o `feedback` linkar).
-- `feedback` (implementado): `POST {usage_log_id, aceita?, feedback?, feedback_motivo?}` — atualiza a linha correspondente em `usage_logs` (sem tabela nova).
-- `gaps`: propostas (atendente); fila, classificação e aprovação (curador). **Não implementado ainda** (etapa 8 restante).
-- `ingest`: Sheets (service account), PDF (Storage), URL, FAQ → `facts`/`feriados`/`chunks`; só reprocessa quando o hash muda. Ganhou um caminho genérico de **lista de URLs** (`sources.categoria = 'lista_urls'`, planilha só com colunas URL/Nome) que registra/desativa uma `source` tipo `url` por linha — reaproveitado também para as páginas de curso descobertas automaticamente a partir do link "Mais Informações" da planilha de calendário (via `spreadsheets.get?includeGridData=true`, porque `values.get` só devolve o texto visível da fórmula `HYPERLINK`, não a URL real).
-- `cost-alert`: e-mail ao gestor em 80% e 100% do teto, uma vez por limiar/mês (`cost_alerts`). **Não implementado ainda** (etapa 9).
+**Edge Functions** (todas ativas em produção, exceto onde indicado):
+- `config`: seletores, expediente, antecedência, feriados dos próximos 12 meses, versões. CORS habilitado (`_shared/cors.ts`).
+- `suggest` / `ask`:
+  1. embute a(s) mensagem(ns) sem resposta e busca híbrida (vetor + FTS, RRF) — `suggest` roda uma busca por **cada** mensagem do lead ainda sem resposta mais uma busca do contexto amplo, e junta os candidatos por `chunk_id`/maior similaridade (ver "achados" no `tasks.md`, etapa 8);
+  2. `facts`/`feriados`;
+  3. prompt montado em duas camadas: um núcleo FIXO no código (instrução "responda só com o contexto", formato de citação por `chunk_id`, RF06, filtro de frases de incerteza `PADRAO_INCERTEZA`, JSON Schema — é o mecanismo anti-alucinação, Constitution §1, nunca editável fora de deploy) mais **trechos editáveis vindos do `config`** (tom geral, abertura e fechamento por modo — Etapa 12, ver `admin-config` abaixo) e a instrução de formatação estilo WhatsApp (`_shared/formatacao.ts`, `*negrito*`/quebra de linha, não markdown de verdade);
+  4. saída JSON Schema — `suggest` também classifica `etapa_atual`, restrito por `enum` às etapas reais da tabela `playbook`, e devolve `script_etapa` sempre da tabela; `suggest` aceita `modo: "resposta" | "follow_up"` (follow-up: sugere reengajamento quando quem ficou sem resposta foi o lead);
+  5. validação de citações (RF06) e registro de lacunas;
+  6. `usage_logs` (retorna `usage_log_id` para o `feedback` linkar).
+- `feedback`: `POST {usage_log_id, aceita?, feedback?}` — atualiza a linha correspondente em `usage_logs`.
+- `gaps`: propostas (atendente); fila, classificação e aprovação (curador) — grava `faq_curada`, bloqueia FAQ com preço/data (RF19).
+- `notificacoes`: lacunas aprovadas que o usuário logado perguntou ("sua dúvida agora tem resposta").
+- `contexto-lead`: `GET ?thread_id=` — resolve nome/cargo/estado/empresa via API REST do HubSpot (`_shared/hubspot.ts`, Private App token) e já embute o convênio da empresa associada num payload só.
+- `convenio`: `GET ?empresa=` — fallback standalone de busca de convênio por nome de empresa (usado quando `contexto-lead` cai no fallback de DOM).
+- `transcrever-audio`: transcreve nota de voz do WhatsApp (`gpt-4o-mini-transcribe`), custo pelo mesmo pipeline de `usage_logs`.
+- `relatorios`, `cost-alert`: relatório de custo/uso (admin-only) e alerta por e-mail (Gmail API, domain-wide delegation) em 80%/100% do teto.
+- `ingest`: Sheets (service account), PDF/TXT/MD (Storage, `tipo='arquivo'` desde a Etapa 12), Google Doc, URL → `facts`/`feriados`/`chunks`; só reprocessa quando o hash muda. Caminho genérico de **lista de URLs** (planilha só com colunas URL/Nome) registra/desativa uma `source` tipo `url` por linha — reaproveitado pras páginas de curso descobertas a partir do calendário.
+- `fontes` (Etapa 12, admin-only): CRUD de `sources` pro portal admin — cria e já dispara a ingestão na hora (chama `ingest` com `{source_id}`, sem esperar o cron).
+- `admin-config` (Etapa 12, admin-only): edita só uma allowlist fechada de 6 chaves de prompt em `config` (ver item 3 acima) — nunca uma chave arbitrária.
 
-**pg_cron:** (`ingest-fontes-15min` já em produção; os demais entram nas etapas indicadas)
-- Sheets, feriados e FAQ: a cada 15 min — **em produção** desde 2026-09-14, chama `ingest` via `pg_net.http_post` com a anon key pública (não é segredo) e timeout de 120s.
-- URLs e PDFs: hoje sincronizados no mesmo job de 15 min (dataset pequeno); separar para diário se o volume crescer.
-- FAQs vencidas: diariamente (etapa 8).
-- `cost-alert`: a cada hora (etapa 9).
-- Retenção de 18 meses: mensalmente (etapa 9).
+**pg_cron:**
+- Sheets, feriados, URLs e FAQ: a cada 15 min (`ingest-fontes-15min`), chama `ingest` via `pg_net.http_post`.
+- `cost-alert-hora`: a cada hora.
+- `retencao-mensal`: dia 1 às 03:30, apaga `usage_logs`/`gap_proposals`/lacunas descartadas com mais de `config.retencao_meses` (18).
 
 ## Segurança e acesso
 - **Login:** Google OAuth via Supabase Auth, com três camadas:
@@ -87,7 +98,7 @@ Como a [spec](spec.md) será construída. Mudanças de arquitetura atualizam est
 | `usage_logs` | admin | insert do próprio usuário; update/delete admin |
 
 - Views com `security_invoker = true`: herdam a RLS, então custo só é visível para admin.
-- Edge Functions usam a service role apenas no servidor; a chave da OpenAI fica em segredo das funções.
+- Edge Functions usam a service role apenas no servidor (bypassa RLS por padrão) — por isso `relatorios`, `gaps`, `fontes` e `admin-config` verificam o papel explicitamente via `_shared/auth_context.ts::resolverChamador` antes de qualquer leitura/escrita sensível, em vez de confiar só na RLS. A chave da OpenAI fica em segredo das funções.
 
 ## Custo
 - **Modelos do MVP:** `gpt-5.6-luna` para chat e classificação (US$ 0,20 entrada / 0,02 cache / 0,25 escrita em cache / 1,20 saída por 1M tokens). `gpt-5.6-terra` fica como alternativa, se os evals exigirem. Embeddings: `text-embedding-3-small`.
@@ -141,10 +152,16 @@ A tabela `feriados` é sincronizada da planilha "Calendário Infnet — Feriados
 - `ultimoMomentoUtil` = maior instante de expediente ≤ `expiraEm`. Se for anterior a `ultimaMsgLead`, a conversa fica "sem janela útil".
 - Notificação em `min(expiraEm, ultimoMomentoUtil) − 120 min`, nunca antes de `ultimaMsgLead`.
 
+## Portal admin (Etapa 12, `admin-portal/`)
+Página web pública com login (Google OAuth via Supabase Auth, redirect clássico — mais simples que o `chrome.identity` da extensão porque aqui existe uma origem HTTPS de verdade), restrita a `admin`, hospedada fora do Supabase (GitHub + Vercel). Mesmo estilo de código do resto do projeto: TS puro, sem framework, sem SDK do Supabase (só `fetch`). Duas abas:
+- **Conteúdo:** sobe um arquivo (PDF/TXT/MD, direto pro bucket `fontes-pdf` via REST do Storage) ou cadastra uma URL; a Edge Function `fontes` cria a `source` e já dispara `ingest` na hora. Lista/ativa/desativa/exclui fontes existentes.
+- **Prompts:** edita as 6 chaves de `config` que alimentam `suggest`/`ask` (ver "Backend Supabase — Edge Functions" acima) via `admin-config`, sem precisar de deploy de código.
+
+Substitui, para esses dois casos de uso, a necessidade de SQL manual ou de uma sessão comigo — o próprio admin cadastra conteúdo e ajusta tom quando quiser. `admin/curadoria.html` e `admin/relatorios.html` continuam como páginas locais separadas (fora de escopo migrá-las agora).
+
 ## Distribuição
-- Build gera `copiloto-infnet-vX.Y.Z.zip`, publicado na pasta do Google Drive da equipe.
-- Manual em `docs/manual`.
-- `config.versao_minima`/`versao_atual` controlam os avisos de atualização.
+- **Hoje:** build gera `copiloto-infnet-vX.Y.Z.zip`, publicado na pasta do Google Drive da equipe; manual em `docs/manual`; `config.versao_minima`/`versao_atual` controlam os avisos de atualização (instalação sempre manual, "Carregar sem compactação").
+- **Planejado (Etapa 13, não iniciada):** auto-update de verdade via `manifest.json`'s `update_url` apontando pra um bucket público do Supabase Storage (`extension-updates`, já criado) servindo `updates.xml` + `.crx` assinado — só funciona de fato pra máquinas force-instaladas via política do Google Workspace (`ExtensionInstallForcelist`); "Carregar sem compactação" nunca atualiza sozinho, então o fluxo manual acima continua existindo em paralelo pra quem não estiver nessa política.
 
 ## Riscos
 | Risco | Mitigação |
