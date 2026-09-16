@@ -139,7 +139,7 @@ function renderConversa(conversa: ConversaExtraida) {
       div.appendChild(linhaAudio);
     }
     const texto = document.createElement("span");
-    texto.textContent = msg.texto;
+    renderTextoFormatado(texto, msg.texto);
     div.appendChild(texto);
     if (msg.hora) {
       const hora = document.createElement("span");

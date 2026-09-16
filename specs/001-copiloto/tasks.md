@@ -260,5 +260,12 @@ Requisitos: RF09, RF21 (estrutura), RF22 (config), constitution §4, §9.
 - [x] `npx vitest run` 34/34, build limpo.
 - **Falta:** teste manual ao vivo confirmando que o card some do jeito esperado.
 
+## Confirmado ao vivo: card some após inserir + negrito real na "Conversa extraída" (pedido do Raphael, 2026-09-15)
+- [x] **Confirmado ao vivo:** "deu certo" — o card da sugestão realmente some do painel depois de inserida (achado da seção anterior).
+- [x] **Pedido novo:** "sei que o WhatsApp bota negrito com * antes e depois das palavras, mas na visão do usuário, acaba ficando ruim de ler. Se possível trocar, só na visualização do copiloto, botar negritos reais." O `renderTextoFormatado()` (criado pra prévia das sugestões/respostas) já existia, mas a "Conversa extraída" (bolhas de mensagem no painel) ainda usava `textContent` puro, mostrando os asteriscos literais das mensagens já enviadas pelo atendente. Corrigido: `renderConversa()` agora usa `renderTextoFormatado()` também nas bolhas — negrito real e quebras de linha na visualização do copiloto, mantendo os asteriscos/`\n` literais só no que é copiado/inserido/enviado de fato pro WhatsApp.
+- [x] `npx vitest run` 34/34, build limpo.
+
+**Pergunta do Raphael sobre o botão "Sugerir follow-up" continuar aparecendo depois de mandar o follow-up:** é o comportamento esperado hoje — a seção "Lead sem resposta" aparece sempre que a ÚLTIMA mensagem da conversa é do atendente (RF de design da própria etapa, não distingue "primeira mensagem sem resposta" de "follow-up que também ainda não teve resposta"). Como o follow-up enviado vira a nova última mensagem do atendente, a seção reaparece corretamente informando que o lead também não respondeu a ELA ainda — não é um bug de duplicação, é a mesma lógica reagindo a um estado novo e genuíno. Se incomodar na prática, dá pra adicionar um cooldown (ex.: não reoferecer o botão nos primeiros N minutos depois de um follow-up ter sido inserido) — não implementado ainda, fica registrado como ideia caso o Raphael confirme que quer essa mudança.
+
 ## Dependências externas
 - [~] Material comercial: roteiro por etapa, objeções, planilhas de preço/convênio (Raphael)
