@@ -150,6 +150,7 @@ Deno.serve(async (req: Request) => {
       cursosCandidatos,
       empresaAssociada,
       estadoLead,
+      chunks,
     );
 
     let resultado: AskLLMOutput;

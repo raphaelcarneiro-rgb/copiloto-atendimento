@@ -331,3 +331,6 @@ Com convenio, o bloco de preco agora manda apresentar PRIMEIRO todas as formas s
 
 ### Portal admin: aba Duvidas (2026-09-21)
 Nova aba no admin-portal que lista as lacunas abertas (knowledge_gaps, via Edge Function gaps ja existente) com propostas de atendentes, e permite: ensinar (POST aprovar -> FAQ curada indexada), marcar como resolvida via conteudo/prompt (atualizar_fonte), ja existia, ou descartar. Sem mudanca de backend. Nota: o texto da lacuna registrada pelo suggest e a descricao escrita pelo modelo, nao a fala literal do lead.
+
+### Gatilho de escassez verdadeiro (2026-09-21)
+_shared/precos.ts injeta 'PRAZOS REAIS' no bloco de preco (so quando ha estado do lead): (1) validade do valor = semana vigente + 6 dias (domingo); (2) inicio da turma (regex 'Inicio previsto' do chunk de calendario) e prazo de matricula = 3 dias uteis antes do inicio (fins de semana e feriados com conta_como_folga fora), nunca matricula no dia do inicio; se o prazo ja passou, a IA nao oferece matricula nessa turma e registra lacuna. Instrucao: uma frase leve no fim + pergunta de avanco; proibido inventar vagas/urgencia. suggest v21, ask v17. Observacao: o modelo tende a citar so a validade do valor (mais curto); o prazo de matricula so entra se ele optar por citar o inicio da turma.

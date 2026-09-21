@@ -11,6 +11,84 @@ type Db = ReturnType<typeof createServiceClient>;
 
 interface ChunkComMetadados {
   metadados: Record<string, unknown>;
+  conteudo?: string;
+}
+
+const DIAS_UTEIS_ANTES_DO_INICIO = 3;
+
+function isoUtc(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
+
+function somarDias(iso: string, dias: number): string {
+  const d = new Date(`${iso}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + dias);
+  return isoUtc(d);
+}
+
+function dataBr(iso: string): string {
+  const [, m, d] = iso.split("-");
+  return `${d}/${m}`;
+}
+
+/** "Início previsto: 05/10/2026" do chunk de calendário do curso → "2026-10-05". */
+function extrairInicioTurma(chunks: ChunkComMetadados[], curso: string): string | null {
+  for (const c of chunks) {
+    const meta = c.metadados as { tipo?: string; curso?: unknown } | null;
+    if (meta?.tipo !== "calendario_cursos" || meta?.curso !== curso) continue;
+    const m = c.conteudo?.match(/In[ií]cio previsto:\s*(\d{2})\/(\d{2})\/(\d{4})/);
+    if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+  }
+  return null;
+}
+
+/** Matrículas encerram, em geral, 3 dias úteis antes do início das aulas (regra do Raphael, 2026-09-21). */
+async function calcularPrazoMatricula(db: Db, inicioIso: string): Promise<string> {
+  const { data } = await db
+    .from("feriados")
+    .select("data")
+    .eq("conta_como_folga", true)
+    .gte("data", somarDias(inicioIso, -21))
+    .lte("data", inicioIso);
+  const folgas = new Set(((data ?? []) as { data: string }[]).map((f) => f.data));
+  let atual = inicioIso;
+  let contados = 0;
+  while (contados < DIAS_UTEIS_ANTES_DO_INICIO) {
+    atual = somarDias(atual, -1);
+    const diaSemana = new Date(`${atual}T00:00:00Z`).getUTCDay();
+    if (diaSemana !== 0 && diaSemana !== 6 && !folgas.has(atual)) contados++;
+  }
+  return atual;
+}
+
+/** Únicos prazos verdadeiros que podem virar gatilho de escassez — nunca inventar outros. */
+async function montarTextoPrazos(
+  db: Db,
+  chunks: ChunkComMetadados[],
+  curso: string,
+  semanaVigenteIso: string,
+): Promise<string> {
+  const hoje = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
+  const validadeValor = somarDias(semanaVigenteIso, 6);
+  const partes: string[] = [`o valor acima vale até domingo, ${dataBr(validadeValor)}`];
+
+  const inicio = extrairInicioTurma(chunks, curso);
+  let matriculasEncerradas = false;
+  if (inicio) {
+    const limite = await calcularPrazoMatricula(db, inicio);
+    if (limite < hoje) {
+      matriculasEncerradas = true;
+    } else {
+      partes.push(
+        `a próxima turma começa em ${dataBr(inicio)} e as matrículas, em geral, encerram até ${dataBr(limite)} (${DIAS_UTEIS_ANTES_DO_INICIO} dias úteis antes do início, para dar tempo de preparar os acessos) — NÃO se aceita matrícula no dia do início das aulas`,
+      );
+    }
+  }
+
+  if (matriculasEncerradas && inicio) {
+    return ` PRAZOS: a turma que começa em ${dataBr(inicio)} provavelmente já teve as matrículas encerradas (encerram, em geral, ${DIAS_UTEIS_ANTES_DO_INICIO} dias úteis antes do início). NÃO ofereça matrícula nessa turma nem use escassez — diga que vai confirmar a turma disponível com a coordenação (registre em 'lacunas').`;
+  }
+  return ` PRAZOS REAIS (os ÚNICOS que podem ser usados como gatilho de escassez): ${partes.join("; ")}. Ao apresentar o preço, encerre a mensagem com UMA frase leve citando esses prazos (ex.: "esse valor vale até domingo (DD/MM)"), seguida de uma pergunta simples que encaminhe o fechamento (ex.: se quer que você explique os próximos passos da matrícula). Sempre que citar o início da turma, cite junto até quando vai a matrícula — nunca deixe o lead entender que dá para se matricular até o dia do início. Sem tom de pressão. NUNCA invente outros prazos, vagas limitadas ou urgência ("últimas vagas", "só hoje").`;
 }
 
 interface PrecoCursoResultado {
@@ -81,6 +159,7 @@ export async function montarBlocoPrecoOficial(
   cursosCandidatos: string[],
   empresaAssociada: string | null,
   estadoLead: string | null,
+  chunks: ChunkComMetadados[] = [],
 ): Promise<{ bloco: string; injetado: boolean }> {
   let bloco = "";
   let injetado = false;
@@ -151,6 +230,9 @@ export async function montarBlocoPrecoOficial(
     }
     if (textoConvenio) {
       bloco += ` ESTRUTURA OBRIGATÓRIA quando há convênio: apresente PRIMEIRO todas as formas de pagamento SEM o convênio, e DEPOIS, em bloco separado, todas as formas COM o convênio — para o lead enxergar a economia. Não omita nenhum dos dois blocos.`;
+    }
+    if (estadoLead) {
+      bloco += await montarTextoPrazos(db, chunks, curso, preco.semana_vigente);
     }
   }
 
