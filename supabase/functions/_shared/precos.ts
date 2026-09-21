@@ -149,6 +149,9 @@ export async function montarBlocoPrecoOficial(
     if (formas.length > 1) {
       bloco += ` IMPORTANTE: ao apresentar o preço, liste TODAS as formas de pagamento acima (Pix, cartão parcelado em 12x e 18x, recorrente e boleto), uma por linha — nunca mostre só a mais barata/à vista.`;
     }
+    if (textoConvenio) {
+      bloco += ` ESTRUTURA OBRIGATÓRIA quando há convênio: apresente PRIMEIRO todas as formas de pagamento SEM o convênio, e DEPOIS, em bloco separado, todas as formas COM o convênio — para o lead enxergar a economia. Não omita nenhum dos dois blocos.`;
+    }
   }
 
   return { bloco, injetado };

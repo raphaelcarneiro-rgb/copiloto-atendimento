@@ -326,3 +326,5 @@ Requisitos: RF09, RF21 (estrutura), RF22 (config), constitution §4, §9.
 
 ### Ajuste pos-Etapa 14 (2026-09-21): todas as formas de pagamento
 A sugestao de preco mostrava so o Pix. _shared/precos.ts agora instrui a listar TODAS as formas (Pix, 18x, 12x, recorrente 13x, boleto 13x) e calcula tambem as parcelas do valor com convenio. Testado ao vivo (MG + convenio Theos 10%): valores conferidos manualmente. suggest v18, ask v15. Extensao versao 0.2.0 (zip enviado ao Raphael para o Drive).
+
+Com convenio, o bloco de preco agora manda apresentar PRIMEIRO todas as formas sem convenio e DEPOIS todas com convenio (pedido do Raphael, 2026-09-21). Testado ao vivo (MG + Theos): Pix 11.024,99 -> 9.922,49; 18x 695,72 -> 626,15. suggest v19, ask v16.
