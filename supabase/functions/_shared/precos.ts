@@ -124,8 +124,9 @@ async function montarTextoPrazos(
   semanaVigenteIso: string,
 ): Promise<string> {
   const hoje = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
-  const validadeValor = somarDias(semanaVigenteIso, 6);
-  const partes: string[] = [`o valor acima vale até domingo, ${dataBr(validadeValor)}`];
+  // Regra do Raphael (2026-09-21): a validade é sempre a sexta-feira da semana vigente, nunca domingo.
+  const validadeValor = somarDias(semanaVigenteIso, 4);
+  const partes: string[] = [`o valor acima vale até sexta-feira, ${dataBr(validadeValor)}`];
 
   const inicio = extrairInicioTurma(chunks, curso);
   let matriculasEncerradas = false;
@@ -143,7 +144,7 @@ async function montarTextoPrazos(
   if (matriculasEncerradas && inicio) {
     return ` PRAZOS: a turma que começa em ${dataBr(inicio)} provavelmente já teve as matrículas encerradas (encerram, em geral, ${DIAS_UTEIS_ANTES_DO_INICIO} dias úteis antes do início). NÃO ofereça matrícula nessa turma nem use escassez — diga que vai confirmar a turma disponível com a coordenação (registre em 'lacunas').`;
   }
-  return ` PRAZOS REAIS (os ÚNICOS que podem ser usados como gatilho de escassez): ${partes.join("; ")}. Ao apresentar o preço, encerre a mensagem com UMA frase leve citando esses prazos (ex.: "esse valor vale até domingo (DD/MM)"), seguida de uma pergunta simples que encaminhe o fechamento (ex.: se quer que você explique os próximos passos da matrícula). Sempre que citar o início da turma, cite junto até quando vai a matrícula — nunca deixe o lead entender que dá para se matricular até o dia do início. Sem tom de pressão. NUNCA invente outros prazos, vagas limitadas ou urgência ("últimas vagas", "só hoje").`;
+  return ` PRAZOS REAIS (os ÚNICOS que podem ser usados como gatilho de escassez): ${partes.join("; ")}. Ao apresentar o preço, encerre a mensagem com UMA frase leve citando esses prazos (ex.: "esse valor vale até sexta-feira (DD/MM)" — NUNCA diga domingo), seguida de uma pergunta simples que encaminhe o fechamento (ex.: se quer que você explique os próximos passos da matrícula). Sempre que citar o início da turma, cite junto até quando vai a matrícula — nunca deixe o lead entender que dá para se matricular até o dia do início. Sem tom de pressão. NUNCA invente outros prazos, vagas limitadas ou urgência ("últimas vagas", "só hoje").`;
 }
 
 interface PrecoCursoResultado {
@@ -272,16 +273,16 @@ export async function montarBlocoPrecoOficial(
     injetado = true;
     bloco += `\n\nDADOS OFICIAIS DE PREÇO para "${preco.produto_encontrado}" (use EXATAMENTE estes números — se o curso perguntado pelo lead não for este, ignore este bloco e registre a dúvida em 'lacunas'/responda "não encontrado" em vez de usar um valor de outro curso):`;
     if (estadoLead === "RJ") {
-      if (linhasRj) bloco += ` Residente no Rio de Janeiro: ${linhasRj}.`;
+      if (linhasRj) bloco += ` Valores para este lead: ${linhasRj}. NÃO mencione que são valores "para residentes no Rio de Janeiro" nem pergunte o estado — o lead já é conhecido; apenas apresente os valores.`;
     } else if (estadoLead) {
-      if (linhasForaRj) bloco += ` Fora do Rio de Janeiro: ${linhasForaRj}.`;
+      if (linhasForaRj) bloco += ` Valores para este lead: ${linhasForaRj}. NÃO mencione que são valores "para quem mora fora do Rio de Janeiro" nem pergunte o estado — o lead já é conhecido; apenas apresente os valores.`;
     } else {
       bloco +=
         " O estado do lead ainda não é conhecido — ANTES de informar um valor específico, pergunte se ele mora no Rio de Janeiro ou fora. Pode adiantar que o valor muda conforme o estado, mas NÃO informe nenhum valor exato ainda.";
     }
     bloco += textoConvenio;
     if (formas.length > 1) {
-      bloco += ` IMPORTANTE: ao apresentar o preço, liste TODAS as formas de pagamento acima (Pix, cartão parcelado em 12x e 18x, recorrente e boleto), uma por linha — nunca mostre só a mais barata/à vista.`;
+      bloco += ` IMPORTANTE: ao apresentar o preço, liste TODAS as formas de pagamento acima, uma por linha, e SOMENTE elas — nunca mostre só a mais barata/à vista e nunca acrescente outras formas.`;
     }
     if (textoConvenio) {
       bloco += ` ESTRUTURA OBRIGATÓRIA quando há convênio: apresente PRIMEIRO todas as formas de pagamento SEM o convênio, e DEPOIS, em bloco separado, todas as formas COM o convênio — para o lead enxergar a economia. Não omita nenhum dos dois blocos.`;
