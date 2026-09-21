@@ -64,6 +64,40 @@ export async function identificarCursoCitado(db: Db, textos: string[]): Promise<
   return null;
 }
 
+/**
+ * Trechos da página oficial do curso identificado (fonte com o mesmo nome do
+ * curso no catálogo), sempre incluídos no contexto: a grade completa fica
+ * espalhada em vários chunks e a busca por similaridade nem sempre traz todos
+ * (achado 2026-09-21: o modelo listava só "as principais disciplinas").
+ */
+export async function buscarTrechosDoCurso(
+  db: Db,
+  curso: string,
+): Promise<
+  { chunk_id: number; document_id: string; conteudo: string; metadados: Record<string, unknown>; similaridade: number; rrf_score: number }[]
+> {
+  const { data: fontes } = await db.from("sources").select("id").eq("nome", curso).eq("ativo", true);
+  const sourceIds = ((fontes ?? []) as { id: string }[]).map((f) => f.id);
+  if (sourceIds.length === 0) return [];
+  const { data: docs } = await db.from("documents").select("id").in("source_id", sourceIds);
+  const docIds = ((docs ?? []) as { id: string }[]).map((d) => d.id);
+  if (docIds.length === 0) return [];
+  const { data: chunks } = await db
+    .from("chunks")
+    .select("id, document_id, conteudo, metadados")
+    .in("document_id", docIds)
+    .order("ordem", { ascending: true })
+    .limit(12);
+  return ((chunks ?? []) as { id: number; document_id: string; conteudo: string; metadados: Record<string, unknown> }[]).map((c) => ({
+    chunk_id: c.id,
+    document_id: c.document_id,
+    conteudo: c.conteudo,
+    metadados: c.metadados ?? {},
+    similaridade: 0,
+    rrf_score: 0,
+  }));
+}
+
 export function blocoCursoIdentificado(curso: string | null): string {
   if (!curso) return "";
   return `\n\nCURSO IDENTIFICADO PELA MENSAGEM DO LEAD: "${curso}". Fale SOMENTE deste curso — use apenas trechos do contexto que sejam claramente deste curso e NUNCA misture nem substitua por cursos parecidos da mesma área (outro MBA ou graduação com tema semelhante). Se os trechos recuperados forem de outro curso, ignore-os.`;

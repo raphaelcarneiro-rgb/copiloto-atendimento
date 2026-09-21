@@ -25,6 +25,7 @@ import { resolverChamador } from "../_shared/auth_context.ts";
 import { INSTRUCAO_FORMATACAO_WHATSAPP } from "../_shared/formatacao.ts";
 import {
   blocoCursoIdentificado,
+  buscarTrechosDoCurso,
   extrairCursosCandidatos,
   identificarCursoCitado,
   montarBlocoPrecoOficial,
@@ -365,7 +366,10 @@ Deno.serve(async (req: Request) => {
         if (!atual || c.similaridade > atual.similaridade) melhorPorChunk.set(c.chunk_id, c);
       }
     }
-    const chunks = [...melhorPorChunk.values()].sort((a, b) => b.similaridade - a.similaridade);
+    const chunksBusca = [...melhorPorChunk.values()].sort((a, b) => b.similaridade - a.similaridade);
+    const chunksDoCurso = cursoIdentificado ? await buscarTrechosDoCurso(db, cursoIdentificado) : [];
+    const idsJaPresentes = new Set(chunksBusca.map((c) => c.chunk_id));
+    const chunks = [...chunksBusca, ...chunksDoCurso.filter((c) => !idsJaPresentes.has(c.chunk_id))];
 
     const idsRecuperados = new Set(chunks.map((c) => c.chunk_id));
     const melhorSimilaridade = chunks[0]?.similaridade ?? 0;

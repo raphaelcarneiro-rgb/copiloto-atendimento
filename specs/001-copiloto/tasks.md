@@ -343,3 +343,6 @@ Achado real: 'MBA em cibersegurança' virou o MBA de Gestao de Riscos (a pagina d
 
 ### Mensagem de apresentacao mais curta (2026-09-21)
 So config (prompt_suggest_fechamento_resposta, editavel na aba Prompts): abertura de 1 frase, grade em no maximo 4 bullets so com o tema, frase que antecede cada lista em negrito, 4-6 termos-chave em negrito, validade + prazo de matricula numa linha, CTA final em negrito. Sem deploy. Teste ao vivo (cibersegurança/Stefanini): ~1000 caracteres. Limite: o modelo nem sempre poe o valor do Pix em negrito.
+
+### Grade completa ou nenhuma (2026-09-21)
+Problema: 'Principais disciplinas' listava so 4 das 8. Causa: as 8 disciplinas estao em 3 chunks e a busca por similaridade nem sempre traz todos. Correcao: buscarTrechosDoCurso() em _shared/precos.ts injeta SEMPRE os chunks da pagina oficial (source com o mesmo nome do curso) quando o curso e identificado (suggest v24; ask nao usa ainda); prompt: lista COMPLETA ou nenhuma, sem 'principais'; tambem proibidas interjeicoes iniciais (Entendo!/Claro!). Testado: 8/8 disciplinas, titulos iguais ao site. Custo: ~+5k tokens por sugestao quando ha curso identificado.
