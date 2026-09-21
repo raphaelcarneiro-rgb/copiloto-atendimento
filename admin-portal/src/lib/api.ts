@@ -85,6 +85,48 @@ export function salvarPrompt(accessToken: string, chave: string, valor: string):
   return chamar("admin-config", accessToken, { method: "PATCH", body: JSON.stringify({ chave, valor }) });
 }
 
+export interface PropostaAtendente {
+  id: string;
+  resposta_mascarada: string;
+  fonte_url: string | null;
+  origem: string;
+  criado_em: string;
+}
+
+export interface Lacuna {
+  id: string;
+  pergunta_mascarada: string;
+  contagem: number;
+  primeira_vez: string;
+  ultima_vez: string;
+  destaque: boolean;
+  propostas: PropostaAtendente[];
+}
+
+export function listarLacunas(accessToken: string): Promise<{ fila: Lacuna[] }> {
+  return chamar("gaps", accessToken);
+}
+
+export function aprovarLacunaComoFaq(
+  accessToken: string,
+  params: { gapId: string; pergunta: string; resposta: string },
+): Promise<{ ok: true }> {
+  return chamar("gaps", accessToken, {
+    method: "POST",
+    body: JSON.stringify({ acao: "aprovar", gap_id: params.gapId, pergunta: params.pergunta, resposta: params.resposta }),
+  });
+}
+
+export function classificarLacuna(
+  accessToken: string,
+  params: { gapId: string; status: "ja_existia" | "atualizar_fonte" | "descartada"; notas: string },
+): Promise<{ ok: true }> {
+  return chamar("gaps", accessToken, {
+    method: "POST",
+    body: JSON.stringify({ acao: "classificar", gap_id: params.gapId, status: params.status, notas_curador: params.notas }),
+  });
+}
+
 /**
  * Upload direto pro bucket "fontes-pdf" via REST do Storage (sem SDK do
  * Supabase, mesmo estilo do resto do projeto) — a sessão do próprio usuário

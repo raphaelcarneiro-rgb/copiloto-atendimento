@@ -5,14 +5,18 @@
 import { getSessao, iniciarLogin, logout, type SessaoUsuario } from "./lib/auth";
 import {
   alternarFonteAtiva,
+  aprovarLacunaComoFaq,
+  classificarLacuna,
   criarFonteArquivo,
   criarFonteUrl,
   excluirFonte,
   listarFontes,
+  listarLacunas,
   listarPrompts,
   salvarPrompt,
   subirArquivoFontesPdf,
   type Fonte,
+  type Lacuna,
   type PromptEditavel,
 } from "./lib/api";
 
@@ -264,6 +268,114 @@ function renderCampoPrompt(sessao: SessaoUsuario, prompt: PromptEditavel): HTMLE
   ]);
 }
 
+// --- Aba Dúvidas (curadoria de lacunas) -------------------------------------
+
+async function renderListaLacunas(container: HTMLElement, sessao: SessaoUsuario) {
+  container.textContent = "Carregando dúvidas…";
+  let fila: Lacuna[];
+  try {
+    ({ fila } = await listarLacunas(sessao.access_token));
+  } catch (err) {
+    container.textContent = `Erro ao listar dúvidas: ${err instanceof Error ? err.message : err}`;
+    return;
+  }
+  container.innerHTML = "";
+  if (fila.length === 0) {
+    container.append(el("p", { textContent: "Nenhuma dúvida em aberto. 🎉" }));
+    return;
+  }
+  for (const lacuna of fila) container.append(renderCartaoLacuna(container, sessao, lacuna));
+}
+
+function renderCartaoLacuna(container: HTMLElement, sessao: SessaoUsuario, lacuna: Lacuna): HTMLElement {
+  const resposta = el("textarea", {
+    rows: 4,
+    placeholder: "Escreva a resposta correta. Ela vira uma FAQ curada e o copiloto passa a usá-la em até alguns segundos. (Preço, valor e data não podem — vêm da planilha.)",
+  }) as HTMLTextAreaElement;
+  const notas = el("input", { type: "text", placeholder: "Nota (opcional) — o que você fez ou por quê" }) as HTMLInputElement;
+  const status = el("span", { className: "status-form" });
+
+  const executar = async (acao: () => Promise<unknown>) => {
+    status.textContent = "Salvando…";
+    try {
+      await acao();
+      await renderListaLacunas(container, sessao);
+    } catch (err) {
+      status.textContent = `Erro: ${err instanceof Error ? err.message : err}`;
+    }
+  };
+
+  const btnEnsinar = el("button", {
+    textContent: "Ensinar (criar FAQ)",
+    onclick: () => {
+      if (!resposta.value.trim()) {
+        status.textContent = "Escreva a resposta primeiro.";
+        return;
+      }
+      executar(() =>
+        aprovarLacunaComoFaq(sessao.access_token, {
+          gapId: lacuna.id,
+          pergunta: lacuna.pergunta_mascarada,
+          resposta: resposta.value.trim(),
+        }),
+      );
+    },
+  });
+  const btnResolvido = el("button", {
+    textContent: "Resolvi com conteúdo/prompt",
+    onclick: () =>
+      executar(() => classificarLacuna(sessao.access_token, { gapId: lacuna.id, status: "atualizar_fonte", notas: notas.value })),
+  });
+  const btnJaExistia = el("button", {
+    textContent: "Já existia na base",
+    onclick: () =>
+      executar(() => classificarLacuna(sessao.access_token, { gapId: lacuna.id, status: "ja_existia", notas: notas.value })),
+  });
+  const btnDescartar = el("button", {
+    textContent: "Descartar",
+    className: "btn-perigo",
+    onclick: () =>
+      executar(() => classificarLacuna(sessao.access_token, { gapId: lacuna.id, status: "descartada", notas: notas.value })),
+  });
+
+  const propostas = lacuna.propostas.map((p) =>
+    el("div", { className: "proposta" }, [
+      el("strong", { textContent: "Proposta de atendente: " }),
+      p.resposta_mascarada,
+      p.fonte_url ? ` (fonte: ${p.fonte_url})` : "",
+    ]),
+  );
+
+  return el("div", { className: `cartao-lacuna${lacuna.destaque ? " destaque" : ""}` }, [
+    el("div", { className: "lacuna-pergunta", textContent: lacuna.pergunta_mascarada }),
+    el("div", {
+      className: "lacuna-meta",
+      textContent: `Perguntada ${lacuna.contagem}x · última vez ${formatarData(lacuna.ultima_vez)}${lacuna.destaque ? " · frequente" : ""}`,
+    }),
+    ...propostas,
+    resposta,
+    notas,
+    el("div", { className: "acoes" }, [btnEnsinar, btnResolvido, btnJaExistia, btnDescartar]),
+    status,
+  ]);
+}
+
+function renderAbaDuvidas(sessao: SessaoUsuario): HTMLElement {
+  const secao = el("section", { className: "aba-duvidas" });
+  const lista = el("div");
+  secao.append(
+    el("h2", { textContent: "Dúvidas que o copiloto não soube responder" }),
+    el("p", {
+      className: "descricao-prompt",
+      textContent:
+        "Ensine escrevendo a resposta aqui (vira FAQ), ou resolva pela aba Conteúdo (novo documento) / Prompts e depois marque como resolvida.",
+    }),
+    lista,
+  );
+  renderListaLacunas(lista, sessao);
+  return secao;
+}
+
 // --- Layout principal ------------------------------------------------------
 
 function renderApp(sessao: SessaoUsuario) {
@@ -279,26 +391,30 @@ function renderApp(sessao: SessaoUsuario) {
 
   const tabConteudoBtn = el("button", { textContent: "Conteúdo", className: "tab-btn tab-ativa" });
   const tabPromptsBtn = el("button", { textContent: "Prompts", className: "tab-btn" });
-  const nav = el("nav", { className: "tabs" }, [tabConteudoBtn, tabPromptsBtn]);
+  const tabDuvidasBtn = el("button", { textContent: "Dúvidas", className: "tab-btn" });
+  const nav = el("nav", { className: "tabs" }, [tabConteudoBtn, tabDuvidasBtn, tabPromptsBtn]);
 
   const conteudoSecao = renderAbaConteudo(sessao);
+  const duvidasSecao = renderAbaDuvidas(sessao);
   const promptsSecao = renderAbaPrompts(sessao);
+  duvidasSecao.hidden = true;
   promptsSecao.hidden = true;
 
-  tabConteudoBtn.onclick = () => {
-    conteudoSecao.hidden = false;
-    promptsSecao.hidden = true;
-    tabConteudoBtn.classList.add("tab-ativa");
-    tabPromptsBtn.classList.remove("tab-ativa");
-  };
-  tabPromptsBtn.onclick = () => {
-    conteudoSecao.hidden = true;
-    promptsSecao.hidden = false;
-    tabPromptsBtn.classList.add("tab-ativa");
-    tabConteudoBtn.classList.remove("tab-ativa");
-  };
+  const abas: Array<[HTMLElement, HTMLElement]> = [
+    [tabConteudoBtn, conteudoSecao],
+    [tabDuvidasBtn, duvidasSecao],
+    [tabPromptsBtn, promptsSecao],
+  ];
+  for (const [btn, secao] of abas) {
+    btn.onclick = () => {
+      for (const [b, s] of abas) {
+        s.hidden = s !== secao;
+        b.classList.toggle("tab-ativa", b === btn);
+      }
+    };
+  }
 
-  app.append(header, nav, conteudoSecao, promptsSecao);
+  app.append(header, nav, conteudoSecao, duvidasSecao, promptsSecao);
 }
 
 (async () => {
