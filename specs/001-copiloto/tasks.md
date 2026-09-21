@@ -340,3 +340,6 @@ Achado real: 'MBA em cibersegurança' virou o MBA de Gestao de Riscos (a pagina d
 
 ### Ajustes de apresentacao de preco/curso (2026-09-21, pedido do Raphael)
 1) grade curricular detalhada em bullets (•) — instrucao anexada em config.prompt_suggest_fechamento_resposta + formatacao.ts agora permite •; 2) formas cartao_recorrente_13x e boleto_13x desativadas em formas_pagamento_cursos (ativo=false, reversivel); 3) validade do valor = sexta-feira da semana vigente (semana+4), nunca domingo; 4) nao citar 'RJ'/'fora do RJ' quando o estado ja e conhecido; 5) mensagem termina com UMA pergunta em negrito que e um CTA (config). suggest v23, ask v19.
+
+### Mensagem de apresentacao mais curta (2026-09-21)
+So config (prompt_suggest_fechamento_resposta, editavel na aba Prompts): abertura de 1 frase, grade em no maximo 4 bullets so com o tema, frase que antecede cada lista em negrito, 4-6 termos-chave em negrito, validade + prazo de matricula numa linha, CTA final em negrito. Sem deploy. Teste ao vivo (cibersegurança/Stefanini): ~1000 caracteres. Limite: o modelo nem sempre poe o valor do Pix em negrito.
