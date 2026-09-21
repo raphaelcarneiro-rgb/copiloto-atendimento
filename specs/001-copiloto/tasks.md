@@ -323,3 +323,6 @@ Requisitos: RF09, RF21 (estrutura), RF22 (config), constitution §4, §9.
 
 ## Dependências externas
 - [~] Material comercial: roteiro por etapa, objeções, planilhas de preço/convênio (Raphael)
+
+### Ajuste pos-Etapa 14 (2026-09-21): todas as formas de pagamento
+A sugestao de preco mostrava so o Pix. _shared/precos.ts agora instrui a listar TODAS as formas (Pix, 18x, 12x, recorrente 13x, boleto 13x) e calcula tambem as parcelas do valor com convenio. Testado ao vivo (MG + convenio Theos 10%): valores conferidos manualmente. suggest v18, ask v15. Extensao versao 0.2.0 (zip enviado ao Raphael para o Drive).

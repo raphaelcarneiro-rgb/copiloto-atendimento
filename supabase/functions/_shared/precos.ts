@@ -127,8 +127,10 @@ export async function montarBlocoPrecoOficial(
         const base = estadoLead === "RJ" ? preco.valor_final_rj : preco.valor_final;
         if (base != null) {
           const valorComConvenio = base * (1 - convenio.desconto_pct / 100);
+          const detalheConvenio =
+            formas.length > 0 ? montarLinhasFormasPagamento(valorComConvenio, formas) : formatarMoedaBrl(valorComConvenio);
           textoConvenio =
-            ` Com o convênio da empresa "${empresaAssociada}" (${convenio.desconto_pct}% de desconto adicional sobre esse valor), o total fica em ${formatarMoedaBrl(valorComConvenio)} — cite essa parceria ao informar esse valor. NUNCA invente um código de cupom combinando os dois descontos; se o lead quiser fechar assim, diga que esse código específico precisa ser gerado pela equipe de Suporte.`;
+            ` Com o convênio da empresa "${empresaAssociada}" (${convenio.desconto_pct}% de desconto adicional sobre esse valor), ficam assim: ${detalheConvenio} — cite essa parceria ao informar esses valores e apresente TODAS essas formas de pagamento também. NUNCA invente um código de cupom combinando os dois descontos; se o lead quiser fechar assim, diga que esse código específico precisa ser gerado pela equipe de Suporte.`;
         }
       }
     }
@@ -144,6 +146,9 @@ export async function montarBlocoPrecoOficial(
         " O estado do lead ainda não é conhecido — ANTES de informar um valor específico, pergunte se ele mora no Rio de Janeiro ou fora. Pode adiantar que o valor muda conforme o estado, mas NÃO informe nenhum valor exato ainda.";
     }
     bloco += textoConvenio;
+    if (formas.length > 1) {
+      bloco += ` IMPORTANTE: ao apresentar o preço, liste TODAS as formas de pagamento acima (Pix, cartão parcelado em 12x e 18x, recorrente e boleto), uma por linha — nunca mostre só a mais barata/à vista.`;
+    }
   }
 
   return { bloco, injetado };

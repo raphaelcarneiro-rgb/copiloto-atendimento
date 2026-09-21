@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Copiloto de Atendimento — Infnet",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Sugestões fundamentadas e lembrete da janela de 24h do WhatsApp para o inbox do HubSpot. Nunca envia mensagens sozinho.",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzZwA/AmtNEyn5CX8bz+4kYUdAJtzkYLioP768QRjkQ+Gb00iiTkOvAhsISQhr1OFXS7nnCKjUDr8g8DveZQnrjtoZIE848Wfuy0gKSvGQOs2bAX2SOv7udrKXXVBL432KjvjK0Kkpf7Oq1Mr14vrbpDtHyhYsdyoDWkuXax+BYn/ICqAswsPW3wLVAA+H3U0AUZJKz1oulLZiEOh51AiW/cJ/XFMXZaT4XTukUOgpHn+4U8UBUzEexp4YBVUpMH34JSY5PGLzDUCJ6UA2KFYglDbO1d+ZiXxuLpNZJqYw8HTAqo8z0xmH7N8AdZyUMwg4ZUrLaObue0uoyM1/wvZbwIDAQAB",
   "action": {
