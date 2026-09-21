@@ -14,6 +14,61 @@ interface ChunkComMetadados {
   conteudo?: string;
 }
 
+const STOPWORDS_CURSO = new Set([
+  "sobre", "informacoes", "informacao", "curso", "cursos", "quero", "saber", "gostaria", "conhecer", "valor", "valores",
+  "preco", "quanto", "custa", "qual", "quais", "como", "funciona", "para", "pela", "pelo", "mais", "esse", "essa",
+  "esta", "este", "live", "faculdade", "graduacao", "pos", "posgraduacao", "tenho", "interesse", "ola", "obrigado",
+  "obrigada", "duvida", "duvidas", "nome", "aulas", "aula",
+]);
+
+function normalizarTexto(s: string): string {
+  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+}
+
+function tokensDeCurso(s: string, filtrarStopwords: boolean): string[] {
+  return normalizarTexto(s)
+    .split(/[^a-z0-9]+/)
+    .filter((t) => (t.length >= 4 || t === "mba") && !(filtrarStopwords && STOPWORDS_CURSO.has(t)));
+}
+
+/**
+ * Descobre, por palavras da própria mensagem do lead, de qual curso do catálogo
+ * (calendário) ele está falando. Só devolve quando há UM vencedor claro — em
+ * empate (ex.: "engenharia" bate com vários) devolve null e deixa a busca
+ * normal decidir. Achado real (2026-09-21): "MBA em cibersegurança" virou o
+ * MBA de Gestão de Riscos porque o trecho da página dele fala muito de
+ * cibersegurança e o modelo se ancorou nele.
+ */
+export async function identificarCursoCitado(db: Db, textos: string[]): Promise<string | null> {
+  const { data } = await db.from("chunks").select("metadados").eq("metadados->>tipo", "calendario_cursos");
+  const catalogo = [
+    ...new Set(((data ?? []) as { metadados: { curso?: unknown } }[]).map((r) => r.metadados?.curso).filter((c): c is string => typeof c === "string")),
+  ];
+  const tokensPorCurso = catalogo.map((c) => ({ curso: c, tokens: new Set(tokensDeCurso(c, false)) }));
+
+  for (const texto of textos) {
+    const leadTokens = new Set(tokensDeCurso(texto, true));
+    if (leadTokens.size === 0) continue;
+    const pontuados = tokensPorCurso
+      .map(({ curso, tokens }) => {
+        const comuns = [...leadTokens].filter((t) => tokens.has(t));
+        const semMba = comuns.filter((t) => t !== "mba");
+        return { curso, score: comuns.length, semMba: semMba.length };
+      })
+      .filter((p) => p.semMba >= 1)
+      .sort((a, b) => b.score - a.score);
+    if (pontuados.length === 0) continue;
+    if (pontuados.length > 1 && pontuados[1].score === pontuados[0].score) continue;
+    return pontuados[0].curso;
+  }
+  return null;
+}
+
+export function blocoCursoIdentificado(curso: string | null): string {
+  if (!curso) return "";
+  return `\n\nCURSO IDENTIFICADO PELA MENSAGEM DO LEAD: "${curso}". Fale SOMENTE deste curso — use apenas trechos do contexto que sejam claramente deste curso e NUNCA misture nem substitua por cursos parecidos da mesma área (outro MBA ou graduação com tema semelhante). Se os trechos recuperados forem de outro curso, ignore-os.`;
+}
+
 const DIAS_UTEIS_ANTES_DO_INICIO = 3;
 
 function isoUtc(d: Date): string {

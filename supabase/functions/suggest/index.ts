@@ -23,7 +23,12 @@ import { jsonComCors, respondCorsPreflight } from "../_shared/cors.ts";
 import { registrarLacuna } from "../_shared/lacunas.ts";
 import { resolverChamador } from "../_shared/auth_context.ts";
 import { INSTRUCAO_FORMATACAO_WHATSAPP } from "../_shared/formatacao.ts";
-import { extrairCursosCandidatos, montarBlocoPrecoOficial } from "../_shared/precos.ts";
+import {
+  blocoCursoIdentificado,
+  extrairCursosCandidatos,
+  identificarCursoCitado,
+  montarBlocoPrecoOficial,
+} from "../_shared/precos.ts";
 
 interface MensagemEntrada {
   autor: "lead" | "atendente";
@@ -339,7 +344,13 @@ Deno.serve(async (req: Request) => {
       .map((m) => m.texto)
       .join(" \n ");
 
-    const consultasIndividuais = [...new Set(mensagensNaoRespondidas.map((m) => m.texto))];
+    const cursoIdentificado = await identificarCursoCitado(db, [
+      textoNaoRespondido,
+      ...mensagens.filter((m) => m.autor === "lead").map((m) => m.texto).reverse(),
+    ]);
+    const consultasIndividuais = [
+      ...new Set([...mensagensNaoRespondidas.map((m) => m.texto), ...(cursoIdentificado ? [cursoIdentificado] : [])]),
+    ];
     const [resultadosIndividuais, chunksAmpla] = await Promise.all([
       Promise.all(consultasIndividuais.map((texto) => buscar(texto))),
       contextoRecente === textoNaoRespondido ? Promise.resolve([]) : buscar(contextoRecente),
@@ -365,7 +376,9 @@ Deno.serve(async (req: Request) => {
     // `buscar_convenio_empresa` direto (chamada determinística — antes
     // vinha de busca vetorial em texto, dívida de arquitetura do RF07
     // fechada aqui de graça).
-    const cursosCandidatos = extrairCursosCandidatos(chunks);
+    const cursosCandidatos = [
+      ...new Set([...(cursoIdentificado ? [cursoIdentificado] : []), ...extrairCursosCandidatos(chunks)]),
+    ].slice(0, 2);
     const { bloco: blocoPrecoOficial, injetado: precoOficialInjetado } = await montarBlocoPrecoOficial(
       db,
       cursosCandidatos,
@@ -400,7 +413,7 @@ Deno.serve(async (req: Request) => {
       const chat = await chatJSON<SuggestLLMOutput>({
         model: modelos.chat,
         system: buildSystemPrompt(playbook, empresaAssociada, modo, prompts),
-        user: buildUserPrompt(mensagens, chunks, empresaAssociada, modo, blocoPrecoOficial),
+        user: buildUserPrompt(mensagens, chunks, empresaAssociada, modo, blocoCursoIdentificado(cursoIdentificado) + blocoPrecoOficial),
         schemaName: "suggest_response",
         schema: buildSchema(etapasValidas),
       });

@@ -14,7 +14,12 @@ import { jsonComCors, respondCorsPreflight } from "../_shared/cors.ts";
 import { registrarLacuna } from "../_shared/lacunas.ts";
 import { resolverChamador } from "../_shared/auth_context.ts";
 import { INSTRUCAO_FORMATACAO_WHATSAPP } from "../_shared/formatacao.ts";
-import { extrairCursosCandidatos, montarBlocoPrecoOficial } from "../_shared/precos.ts";
+import {
+  blocoCursoIdentificado,
+  extrairCursosCandidatos,
+  identificarCursoCitado,
+  montarBlocoPrecoOficial,
+} from "../_shared/precos.ts";
 
 // Maior que o antigo padrão (8): os evals da etapa 10 (2026-09-14)
 // mostraram que perguntas sobre uma empresa de convênio específica às
@@ -144,7 +149,10 @@ Deno.serve(async (req: Request) => {
 
     // Etapa 14: mesma detecção determinística de preço que o `suggest` usa
     // — ver `_shared/precos.ts`.
-    const cursosCandidatos = extrairCursosCandidatos(chunks);
+    const cursoIdentificado = await identificarCursoCitado(db, [pergunta]);
+    const cursosCandidatos = [
+      ...new Set([...(cursoIdentificado ? [cursoIdentificado] : []), ...extrairCursosCandidatos(chunks)]),
+    ].slice(0, 2);
     const { bloco: blocoPrecoOficial, injetado: precoOficialInjetado } = await montarBlocoPrecoOficial(
       db,
       cursosCandidatos,
@@ -171,7 +179,7 @@ Deno.serve(async (req: Request) => {
       const chat = await chatJSON<AskLLMOutput>({
         model: modelos.chat,
         system: buildSystemPrompt(tomGeral, instrucoesAsk),
-        user: buildUserPrompt(pergunta, chunks, blocoPrecoOficial),
+        user: buildUserPrompt(pergunta, chunks, blocoCursoIdentificado(cursoIdentificado) + blocoPrecoOficial),
         schemaName: "ask_response",
         schema: ASK_JSON_SCHEMA,
         // sem "temperature": gpt-5.6-luna só aceita o valor padrão (ver
