@@ -64,6 +64,7 @@ interface SugestaoLLM {
 // um desses concorre por vaga nas metades da busca estreita/ampla — achado
 // real testando o cálculo de preço com desconto (etapa 8, 2026-09-14).
 const MATCH_COUNT_PADRAO = 12;
+const PAGINA_SOBRE_INFNET = "https://posgraduacao.infnet.edu.br/ead/sobre/";
 
 // Rede de segurança além da instrução no prompt (achado real, 2026-09-14:
 // o modelo às vezes respondia a maior parte da pergunta certo, mas
@@ -369,7 +370,17 @@ Deno.serve(async (req: Request) => {
     const chunksBusca = [...melhorPorChunk.values()].sort((a, b) => b.similaridade - a.similaridade);
     const chunksDoCurso = cursoIdentificado ? await buscarTrechosDoCurso(db, cursoIdentificado) : [];
     const idsJaPresentes = new Set(chunksBusca.map((c) => c.chunk_id));
-    const chunks = [...chunksBusca, ...chunksDoCurso.filter((c) => !idsJaPresentes.has(c.chunk_id))];
+    // Conversa curta = provavelmente nova: garante os trechos institucionais
+    // (página "Sobre") no contexto, pra IA poder apresentar a Faculdade Infnet
+    // e a metodologia antes de falar de grade/valores (pedido do Raphael, 2026-09-25).
+    const chunksInstitucionais =
+      modo === "resposta" && mensagens.length <= 12 ? await buscarTrechosDoCurso(db, PAGINA_SOBRE_INFNET) : [];
+    const idsExtras = new Set([...idsJaPresentes, ...chunksDoCurso.map((c) => c.chunk_id)]);
+    const chunks = [
+      ...chunksBusca,
+      ...chunksDoCurso.filter((c) => !idsJaPresentes.has(c.chunk_id)),
+      ...chunksInstitucionais.filter((c) => !idsExtras.has(c.chunk_id)),
+    ];
 
     const idsRecuperados = new Set(chunks.map((c) => c.chunk_id));
     const melhorSimilaridade = chunks[0]?.similaridade ?? 0;
