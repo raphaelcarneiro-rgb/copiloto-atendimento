@@ -26,7 +26,14 @@ import {
 // vezes não apareciam no top-8 porque competem com ~200 outras empresas
 // espalhadas em ~10 chunks, mais dezenas de cursos — o mesmo tipo de
 // achado que já tinha motivado o `suggest` a subir seu match_count.
-const MATCH_COUNT_PADRAO = 16;
+// Achado real (2026-10-02, pergunta de aluno sobre dispensa de disciplinas por
+// formação anterior): o trecho certo (passo a passo de aproveitamento de
+// estudos) existe na base mas ficava na posição ~32 do ranking — páginas de
+// divulgação do curso citado na pergunta (que só compartilham o NOME do
+// curso, não o assunto) dominam o topo. Subiu de 16 para 40 depois de
+// confirmar, com uma função de diagnóstico temporária chamando match_chunks
+// direto, que o trecho certo só aparece dentro do top 40, nunca do top 16.
+const MATCH_COUNT_PADRAO = 40;
 
 interface ChunkResultado {
   chunk_id: number;
