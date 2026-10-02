@@ -95,11 +95,17 @@ async function renderTabelaFontes(container: HTMLElement, sessao: SessaoUsuario)
   );
   const corpo = el("tbody");
   for (const f of fontes) {
+    const statusAcao = el("span", { className: "status-form" });
     const btnAlternar = el("button", {
       textContent: f.ativo ? "Desativar" : "Ativar",
       onclick: async () => {
-        await alternarFonteAtiva(sessao.access_token, f.id, !f.ativo);
-        renderTabelaFontes(container, sessao);
+        statusAcao.textContent = "";
+        try {
+          await alternarFonteAtiva(sessao.access_token, f.id, !f.ativo);
+          renderTabelaFontes(container, sessao);
+        } catch (err) {
+          statusAcao.textContent = `Erro: ${err instanceof Error ? err.message : err}`;
+        }
       },
     });
     const btnExcluir = el("button", {
@@ -107,8 +113,13 @@ async function renderTabelaFontes(container: HTMLElement, sessao: SessaoUsuario)
       className: "btn-perigo",
       onclick: async () => {
         if (!confirm(`Excluir a fonte "${f.nome}" e todo o conteúdo indexado dela?`)) return;
-        await excluirFonte(sessao.access_token, f.id);
-        renderTabelaFontes(container, sessao);
+        statusAcao.textContent = "";
+        try {
+          await excluirFonte(sessao.access_token, f.id);
+          renderTabelaFontes(container, sessao);
+        } catch (err) {
+          statusAcao.textContent = `Erro: ${err instanceof Error ? err.message : err}`;
+        }
       },
     });
     corpo.append(
@@ -119,7 +130,7 @@ async function renderTabelaFontes(container: HTMLElement, sessao: SessaoUsuario)
         el("td", { className: `status status-${f.status}`, textContent: f.erro ? `${f.status}: ${f.erro}` : f.status }),
         el("td", { textContent: formatarData(f.ultima_sync) }),
         el("td", { textContent: f.ativo ? "sim" : "não" }),
-        el("td", { className: "acoes" }, [btnAlternar, btnExcluir]),
+        el("td", { className: "acoes" }, [btnAlternar, btnExcluir, statusAcao]),
       ]),
     );
   }
