@@ -289,7 +289,13 @@ export async function montarBlocoPrecoOficial(
           : formatarMoedaBrl(preco.valor_final_rj);
 
     let textoConvenio = "";
-    if (empresaAssociada) {
+    // Só calcula o convênio quando o estado já é conhecido — com estado
+    // desconhecido, `base` seria sempre o valor "fora do RJ" por padrão
+    // mesmo sem confirmação, criando um bloco contradizendo a própria
+    // instrução de "não informe valor nenhum ainda" (achado real, 2026-10-08:
+    // isso fez o modelo inventar uma pergunta estranha sobre "usar o
+    // convênio" em vez de simplesmente perguntar o estado do lead).
+    if (empresaAssociada && estadoLead) {
       const { data: convenioData } = await db.rpc("buscar_convenio_empresa", { p_empresa: empresaAssociada });
       const convenio = (convenioData as ConvenioResultado[] | null)?.[0];
       if (convenio?.desconto_pct != null) {
@@ -312,7 +318,10 @@ export async function montarBlocoPrecoOficial(
       if (linhasForaRj) bloco += ` Valores para este lead: ${linhasForaRj}. NÃO mencione que são valores "para quem mora fora do Rio de Janeiro" nem pergunte o estado — o lead já é conhecido; apenas apresente os valores.`;
     } else {
       bloco +=
-        " O estado do lead ainda não é conhecido — ANTES de informar um valor específico, pergunte se ele mora no Rio de Janeiro ou fora. Pode adiantar que o valor muda conforme o estado, mas NÃO informe nenhum valor exato ainda.";
+        " O estado do lead ainda não é conhecido — ANTES de informar um valor específico, pergunte se ele mora no Rio de Janeiro ou fora. Pode adiantar que o valor muda conforme o estado, mas NÃO informe nenhum valor exato ainda." +
+        (empresaAssociada
+          ? ` A ÚNICA pergunta pendente aqui é o estado do lead — o convênio da empresa "${empresaAssociada}" já é conhecido e será aplicado automaticamente assim que o estado vier; NUNCA pergunte se o lead "quer considerar" o convênio ou se "fará a matrícula usando" o convênio, isso não é uma escolha dele.`
+          : "");
     }
     bloco += textoConvenio;
     if (formas.length > 1) {
