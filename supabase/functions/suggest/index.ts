@@ -346,12 +346,33 @@ Deno.serve(async (req: Request) => {
       .map((m) => m.texto)
       .join(" \n ");
 
+    // Achado real (2026-10-08, print do Raphael): quando o lead responde só
+    // "Sim" confirmando uma pergunta que o PRÓPRIO atendente fez nomeando um
+    // curso específico (ex.: "Quer que eu te envie o investimento do MBA em
+    // Data Science, agora?"), o nome do curso nunca aparece em NENHUMA
+    // mensagem do lead — identificarCursoCitado só olhava mensagens do lead
+    // e sempre devolvia null nesse caso, então o preço nunca era encontrado
+    // mesmo com os trechos certos do curso disponíveis na base. Usa a ÚLTIMA
+    // mensagem do atendente imediatamente anterior à sequência não
+    // respondida como candidato de ÚLTIMA prioridade (só entra em jogo
+    // quando nenhuma mensagem do lead identifica um curso sozinha).
+    const indiceUltimoAtendente = mensagens.length - mensagensNaoRespondidas.length - 1;
+    const ultimaMsgAtendente =
+      indiceUltimoAtendente >= 0 && mensagens[indiceUltimoAtendente].autor === "atendente"
+        ? mensagens[indiceUltimoAtendente].texto
+        : null;
+
     const cursoIdentificado = await identificarCursoCitado(db, [
       textoNaoRespondido,
       ...mensagens.filter((m) => m.autor === "lead").map((m) => m.texto).reverse(),
+      ...(ultimaMsgAtendente ? [ultimaMsgAtendente] : []),
     ]);
     const consultasIndividuais = [
-      ...new Set([...mensagensNaoRespondidas.map((m) => m.texto), ...(cursoIdentificado ? [cursoIdentificado] : [])]),
+      ...new Set([
+        ...mensagensNaoRespondidas.map((m) => m.texto),
+        ...(cursoIdentificado ? [cursoIdentificado] : []),
+        ...(ultimaMsgAtendente ? [ultimaMsgAtendente] : []),
+      ]),
     ];
     const [resultadosIndividuais, chunksAmpla] = await Promise.all([
       Promise.all(consultasIndividuais.map((texto) => buscar(texto))),
