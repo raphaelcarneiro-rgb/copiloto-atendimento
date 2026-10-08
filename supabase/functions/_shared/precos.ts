@@ -318,9 +318,9 @@ export async function montarBlocoPrecoOficial(
       if (linhasForaRj) bloco += ` Valores para este lead: ${linhasForaRj}. NÃO mencione que são valores "para quem mora fora do Rio de Janeiro" nem pergunte o estado — o lead já é conhecido; apenas apresente os valores.`;
     } else {
       bloco +=
-        " O estado do lead ainda não é conhecido — ANTES de informar um valor específico, pergunte se ele mora no Rio de Janeiro ou fora. Pode adiantar que o valor muda conforme o estado, mas NÃO informe nenhum valor exato ainda." +
+        ' O estado do lead ainda não é conhecido — ANTES de informar um valor específico, pergunte de forma natural e genérica onde ele mora ou de onde está falando (ex.: "De qual cidade você está falando?" ou "Me conta de onde você é?") — NUNCA pergunte literalmente "você mora no Rio de Janeiro ou fora?": isso soa como uma pergunta de faixa de preço, não uma pergunta genuína sobre a pessoa. Pode adiantar que o valor muda conforme a localização, mas NÃO informe nenhum valor exato ainda.' +
         (empresaAssociada
-          ? ` A ÚNICA pergunta pendente aqui é o estado do lead — o convênio da empresa "${empresaAssociada}" já é conhecido e será aplicado automaticamente assim que o estado vier; NUNCA pergunte se o lead "quer considerar" o convênio ou se "fará a matrícula usando" o convênio, isso não é uma escolha dele.`
+          ? ` A ÚNICA pergunta pendente aqui é de onde o lead é — o convênio da empresa "${empresaAssociada}" já é conhecido e será aplicado automaticamente assim que a localização vier; NUNCA pergunte se o lead "quer considerar" o convênio ou se "fará a matrícula usando" o convênio, isso não é uma escolha dele.`
           : "");
     }
     bloco += textoConvenio;
