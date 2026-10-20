@@ -73,6 +73,22 @@ export interface SuggestResponse {
   confianca: "alta" | "media" | "baixa";
   lacuna_registrada: boolean;
   usage_log_id: number | null;
+  /** O copiloto não sabe qual curso o lead quer (empate real) e não gerou sugestão: o atendente precisa escolher. */
+  precisa_confirmar_curso?: boolean;
+  /** Curso(s) que o backend usou, na ordem de atendimento (até 2). */
+  cursos_identificados?: string[];
+  curso_confianca?: "exata" | "inferida" | "ambigua" | "nenhuma" | "manual";
+  /** Opções do empate, quando `precisa_confirmar_curso`. */
+  cursos_candidatos?: string[];
+  /** Nomes oficiais de todos os cursos, para o atendente trocar/escolher. */
+  catalogo_cursos?: string[];
+}
+
+export interface OpcoesCursoSuggest {
+  /** Cursos escolhidos pelo atendente (até 2, na ordem de atendimento): o backend não tenta adivinhar. */
+  cursosForcados?: string[];
+  /** Seguir mesmo sem saber o curso (o atendente recusou escolher). */
+  ignorarAmbiguidade?: boolean;
 }
 
 export function suggest(
@@ -81,6 +97,7 @@ export function suggest(
   empresaAssociada?: string | null,
   modo?: "resposta" | "follow_up",
   estadoLead?: string | null,
+  opcoesCurso?: OpcoesCursoSuggest,
 ): Promise<SuggestResponse> {
   // `audioUrl` é só um estado intermediário de transcrição (ver
   // hubspot-reader.ts) — nunca deve sair do navegador, mesmo que por algum
@@ -94,6 +111,8 @@ export function suggest(
       empresa_associada: empresaAssociada ?? undefined,
       modo: modo ?? undefined,
       estado_lead: estadoLead ?? undefined,
+      cursos_forcados: opcoesCurso?.cursosForcados?.length ? opcoesCurso.cursosForcados : undefined,
+      ignorar_ambiguidade: opcoesCurso?.ignorarAmbiguidade ? true : undefined,
     }),
   });
 }

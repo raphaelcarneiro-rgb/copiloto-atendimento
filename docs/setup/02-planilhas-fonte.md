@@ -43,6 +43,7 @@ A chave privada da conta de serviço (arquivo JSON baixado no Cloud Console) fic
 | Planilha | Uso | Status |
 |---|---|---|
 | Manual de Boas Práticas — Atendimento B2B WhatsApp (v3) | Playbook comercial (extração de texto do Google Doc) | ativa, sincronizando |
+| Manual do Aluno \| Graduação \| Faculdade Infnet \| Faculdade ECDD | Regras acadêmicas da graduação (extração de texto do Google Doc, `gdoc:1f1X-9SuN02CYcXcNlFrzsJ_Xb9y6AUwRQ8B2782e8vk`, categoria `manual_aluno`) | ativa desde 2026-10-13 — substituiu o `.md` enviado pelo portal (desativado). Cadastrar como `url` não funciona: o Doc é privado e a busca devolve 401 |
 | Calendário das faculdades Infnet e ECDD | Datas de início de turmas + descoberta automática das páginas de curso (coluna "Mais Informações") | ativa, sincronizando |
 | B2B \| Empresas Conveniadas (2023 em diante) | Lista de empresas conveniadas, incluindo % de desconto | ativa, sincronizando |
 | Calendário Infnet — Feriados | Lembrete de 24h (RF10–RF14) | ativa — criada em 2026-09-14 (`1bu0o0d8fZKLhJuIc73CvTeDwrSO-5Tp6POX8CZyH0Hw`), **fonte única de verdade** — substituiu o seed manual da migration `20260913000700_seed_inicial.sql` |

@@ -375,6 +375,62 @@ header h1 {
   letter-spacing: 0.02em;
   color: #0091ae;
 }
+.suggest-curso {
+  margin: 0 16px 8px;
+  padding: 8px 10px;
+  background: #fff;
+  border: 1px solid #dfe3eb;
+  border-radius: 10px;
+  font-size: 11px;
+  color: #33475b;
+}
+.suggest-curso-pergunta {
+  border-color: #f5c26b;
+  background: #fff8ea;
+}
+.suggest-curso-linha {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.suggest-curso-rotulo {
+  color: #7c98b6;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: 10px;
+}
+.suggest-curso-nome {
+  font-weight: 600;
+}
+.suggest-curso-origem {
+  color: #7c98b6;
+  font-style: italic;
+}
+.suggest-curso button {
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  border: 1px solid #cbd6e2;
+  background: #f5f8fa;
+  cursor: pointer;
+  text-align: left;
+}
+.suggest-curso-opcoes {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+.suggest-curso select {
+  width: 100%;
+  font-size: 11px;
+  padding: 4px;
+  border: 1px solid #cbd6e2;
+  border-radius: 6px;
+  background: #fff;
+}
 .suggest-status {
   margin: 4px 16px 8px;
   font-size: 11px;

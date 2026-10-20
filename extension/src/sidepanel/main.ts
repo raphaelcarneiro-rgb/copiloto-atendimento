@@ -33,6 +33,7 @@ const askInputEl = document.getElementById("ask-input") as HTMLTextAreaElement;
 const askEnviarEl = document.getElementById("ask-enviar") as HTMLButtonElement;
 const suggestStatusEl = document.getElementById("suggest-status")!;
 const suggestResultadoEl = document.getElementById("suggest-resultado")!;
+const suggestCursoEl = document.getElementById("suggest-curso")!;
 const authAreaEl = document.getElementById("auth-area")!;
 const secaoNotificacoesEl = document.getElementById("secao-notificacoes")!;
 const notificacoesEl = document.getElementById("notificacoes")!;
@@ -554,12 +555,172 @@ function renderSugestoes(resposta: SuggestResponse, resultadoEl: HTMLElement, st
   }
 }
 
-async function dispararSuggestSeNecessario(conversa: ConversaExtraida) {
+// --- Curso em jogo: o atendente confirma/corrige (pedido do Raphael, 2026-10-19) ---
+// O copiloto às vezes erra o curso que o lead pediu (nomes parecidos). Em vez de
+// adivinhar: se há empate real, PERGUNTA aqui antes de gerar; e sempre dá pra
+// trocar o curso (até 2, na ordem de atendimento). A escolha vale só para esta
+// conversa e fica salva localmente até o atendente voltar ao automático.
+
+const CURSOS_ESCOLHIDOS_KEY = "copiloto_cursos_escolhidos";
+let catalogoCursos: string[] = [];
+
+async function lerCursosEscolhidos(threadId: string): Promise<string[]> {
+  try {
+    const { [CURSOS_ESCOLHIDOS_KEY]: mapa } = (await chrome.storage.local.get(CURSOS_ESCOLHIDOS_KEY)) as {
+      [CURSOS_ESCOLHIDOS_KEY]?: Record<string, string[]>;
+    };
+    return mapa?.[threadId] ?? [];
+  } catch {
+    return [];
+  }
+}
+
+async function gravarCursosEscolhidos(threadId: string, cursos: string[]) {
+  try {
+    const { [CURSOS_ESCOLHIDOS_KEY]: mapa } = (await chrome.storage.local.get(CURSOS_ESCOLHIDOS_KEY)) as {
+      [CURSOS_ESCOLHIDOS_KEY]?: Record<string, string[]>;
+    };
+    const novo = { ...(mapa ?? {}) };
+    if (cursos.length > 0) novo[threadId] = cursos;
+    else delete novo[threadId];
+    await chrome.storage.local.set({ [CURSOS_ESCOLHIDOS_KEY]: novo });
+  } catch (err) {
+    console.error("gravarCursosEscolhidos() falhou:", err);
+  }
+}
+
+function esconderControleCurso() {
+  suggestCursoEl.hidden = true;
+  suggestCursoEl.innerHTML = "";
+}
+
+function criarSelectCurso(rotuloVazio: string, valorAtual: string | undefined, extras: string[] = []): HTMLSelectElement {
+  const select = document.createElement("select");
+  const vazio = document.createElement("option");
+  vazio.value = "";
+  vazio.textContent = rotuloVazio;
+  select.appendChild(vazio);
+  const nomes = [...new Set([...catalogoCursos, ...extras])];
+  for (const nome of nomes) {
+    const op = document.createElement("option");
+    op.value = nome;
+    op.textContent = nome;
+    select.appendChild(op);
+  }
+  select.value = valorAtual && nomes.includes(valorAtual) ? valorAtual : "";
+  return select;
+}
+
+function renderControleCurso(conversa: ConversaExtraida, resposta: SuggestResponse, forcados: string[]) {
+  if (resposta.catalogo_cursos?.length) catalogoCursos = resposta.catalogo_cursos;
+  suggestCursoEl.hidden = false;
+  suggestCursoEl.innerHTML = "";
+  suggestCursoEl.classList.toggle("suggest-curso-pergunta", !!resposta.precisa_confirmar_curso);
+
+  const aplicar = async (cursos: string[]) => {
+    await gravarCursosEscolhidos(conversa.threadId, cursos);
+    await dispararSuggestSeNecessario(conversa, { forcar: true });
+  };
+
+  if (resposta.precisa_confirmar_curso) {
+    const titulo = document.createElement("div");
+    titulo.className = "suggest-curso-linha";
+    titulo.innerHTML = "";
+    const rotulo = document.createElement("span");
+    rotulo.className = "suggest-curso-nome";
+    rotulo.textContent = "Qual curso o lead quer? Não tenho certeza — escolha para eu gerar a resposta certa:";
+    titulo.appendChild(rotulo);
+    suggestCursoEl.appendChild(titulo);
+
+    const opcoes = document.createElement("div");
+    opcoes.className = "suggest-curso-opcoes";
+    for (const candidato of resposta.cursos_candidatos ?? []) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = candidato;
+      btn.onclick = () => aplicar([candidato]);
+      opcoes.appendChild(btn);
+    }
+    const outro = criarSelectCurso("Outro curso…", undefined, resposta.cursos_candidatos ?? []);
+    outro.onchange = () => {
+      if (outro.value) aplicar([outro.value]);
+    };
+    opcoes.appendChild(outro);
+    const semEscolher = document.createElement("button");
+    semEscolher.type = "button";
+    semEscolher.textContent = "Gerar mesmo sem escolher curso";
+    semEscolher.onclick = () => dispararSuggestSeNecessario(conversa, { forcar: true, ignorarAmbiguidade: true });
+    opcoes.appendChild(semEscolher);
+    suggestCursoEl.appendChild(opcoes);
+    return;
+  }
+
+  const cursos = resposta.cursos_identificados ?? [];
+  const manual = forcados.length > 0;
+  const linha = document.createElement("div");
+  linha.className = "suggest-curso-linha";
+  const rotulo = document.createElement("span");
+  rotulo.className = "suggest-curso-rotulo";
+  rotulo.textContent = cursos.length > 1 ? "Cursos" : "Curso";
+  const nome = document.createElement("span");
+  nome.className = "suggest-curso-nome";
+  nome.textContent =
+    cursos.length === 0
+      ? "não identificado"
+      : cursos.length === 1
+        ? cursos[0]
+        : cursos.map((c, i) => `${i + 1}º ${c}`).join("  ·  ");
+  const origem = document.createElement("span");
+  origem.className = "suggest-curso-origem";
+  origem.textContent = manual ? "(escolhido por você)" : cursos.length > 0 ? "(automático)" : "";
+  const trocar = document.createElement("button");
+  trocar.type = "button";
+  trocar.textContent = cursos.length === 0 ? "Escolher curso" : "Trocar";
+  linha.append(rotulo, nome, origem, trocar);
+  suggestCursoEl.appendChild(linha);
+
+  const painel = document.createElement("div");
+  painel.className = "suggest-curso-opcoes";
+  painel.hidden = true;
+  const primeiro = criarSelectCurso("1º curso…", cursos[0]);
+  const segundo = criarSelectCurso("2º curso (opcional — só depois de validar o 1º)…", cursos[1]);
+  const acoes = document.createElement("div");
+  acoes.className = "suggest-curso-linha";
+  const btnAplicar = document.createElement("button");
+  btnAplicar.type = "button";
+  btnAplicar.textContent = "Aplicar e gerar de novo";
+  btnAplicar.onclick = () => {
+    const escolhidos = [primeiro.value, segundo.value].filter((c) => c && c.length > 0);
+    if (escolhidos.length === 0) return;
+    aplicar([...new Set(escolhidos)]);
+  };
+  acoes.appendChild(btnAplicar);
+  if (manual) {
+    const btnAuto = document.createElement("button");
+    btnAuto.type = "button";
+    btnAuto.textContent = "Voltar ao automático";
+    btnAuto.onclick = () => aplicar([]);
+    acoes.appendChild(btnAuto);
+  }
+  painel.append(primeiro, segundo, acoes);
+  suggestCursoEl.appendChild(painel);
+  trocar.onclick = () => {
+    painel.hidden = !painel.hidden;
+  };
+}
+
+async function dispararSuggestSeNecessario(
+  conversa: ConversaExtraida,
+  opcoes: { forcar?: boolean; ignorarAmbiguidade?: boolean } = {},
+) {
   const ultima = conversa.mensagens[conversa.mensagens.length - 1];
-  if (!ultima || ultima.autor !== "lead") return; // RF02: só reage a mensagem nova do lead
+  if (!ultima || ultima.autor !== "lead") {
+    esconderControleCurso(); // RF02: só reage a mensagem nova do lead
+    return;
+  }
 
   const chave = `${conversa.threadId}::${ultima.texto}`;
-  if (chave === ultimaMensagemSugerida) return; // já processamos essa mensagem
+  if (!opcoes.forcar && chave === ultimaMensagemSugerida) return; // já processamos essa mensagem
   ultimaMensagemSugerida = chave;
 
   suggestStatusEl.hidden = false;
@@ -568,7 +729,17 @@ async function dispararSuggestSeNecessario(conversa: ConversaExtraida) {
 
   try {
     const threadHash = await hashThreadId(conversa.threadId);
-    const resposta = await suggest(conversa.mensagens, threadHash, conversa.empresaAssociada, undefined, conversa.estadoLead);
+    const cursosForcados = await lerCursosEscolhidos(conversa.threadId);
+    const resposta = await suggest(conversa.mensagens, threadHash, conversa.empresaAssociada, undefined, conversa.estadoLead, {
+      cursosForcados,
+      ignorarAmbiguidade: opcoes.ignorarAmbiguidade,
+    });
+    if (conversa.threadId !== threadIdAtual) return; // o atendente trocou de conversa durante a chamada
+    renderControleCurso(conversa, resposta, cursosForcados);
+    if (resposta.precisa_confirmar_curso) {
+      suggestStatusEl.hidden = true;
+      return;
+    }
     renderSugestoes(resposta, suggestResultadoEl, suggestStatusEl);
   } catch (err) {
     suggestStatusEl.hidden = false;
@@ -635,6 +806,7 @@ followupAvaliarBtn.addEventListener("click", async () => {
       conversaAtual.empresaAssociada,
       "follow_up",
       conversaAtual.estadoLead,
+      { cursosForcados: await lerCursosEscolhidos(conversaAtual.threadId) },
     );
     renderSugestoes(resposta, followupResultadoEl, followupStatusEl);
   } catch (err) {

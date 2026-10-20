@@ -25,11 +25,13 @@ import { resolverChamador } from "../_shared/auth_context.ts";
 import { INSTRUCAO_FORMATACAO_WHATSAPP } from "../_shared/formatacao.ts";
 import {
   blocoCursoIdentificado,
+  blocoDisciplinasOficiais,
   buscarTrechosDoCurso,
+  carregarCatalogoCursos,
   extrairCursosCandidatos,
-  identificarCursoCitado,
   montarBlocoPrecoOficial,
 } from "../_shared/precos.ts";
+import { identificarCursosNaConversa, validarCursosForcados } from "../_shared/cursos.ts";
 
 interface MensagemEntrada {
   autor: "lead" | "atendente";
@@ -74,6 +76,15 @@ const PAGINA_SOBRE_INFNET = "https://posgraduacao.infnet.edu.br/ead/sobre/";
 // sugestão inteira vira lacuna em vez de arriscar deixar passar.
 const PADRAO_INCERTEZA =
   /n[ãa]o tenho (essa )?informa[çc][ãa]o|n[ãa]o tenho certeza|no momento,? n[ãa]o (sei|tenho)|n[ãa]o sei informar|posso verificar (essa|isso|essa possibilidade)|vou verificar e (te )?retorno|n[ãa]o consigo confirmar/i;
+
+// Teto de desconto de convênio ("bolsas de até 30% nas pós"): vem do texto de
+// marketing do site, não do percentual REAL da empresa do lead (ex.: 10%). Quando
+// o lead descobre que tem direito a menos, acha pouco (print 8, 2026-10-19 —
+// decisão do Raphael: nunca mencionar). Só vale citar se a conversa já fala de
+// matrículas simultâneas/vários cursos, que é onde esse teto se aplica.
+const PADRAO_TETO_DESCONTO = /at[ée]\s+\d{1,2}\s*%/i;
+const CONTEXTO_MATRICULAS_SIMULTANEAS =
+  /simult[aâ]nea|m[uú]ltiplas? matr[ií]culas?|mais de um curso|dois cursos|dois ou mais cursos|v[aá]rios cursos|matr[ií]cula(s)? conjunta/i;
 
 interface SuggestLLMOutput {
   etapa_atual: string;
@@ -203,6 +214,10 @@ Deno.serve(async (req: Request) => {
     empresa_associada?: string;
     estado_lead?: string;
     modo?: "resposta" | "follow_up";
+    /** Cursos escolhidos pelo atendente na interface (até 2, na ordem de atendimento): pulam a identificação automática. */
+    cursos_forcados?: string[];
+    /** O atendente mandou seguir mesmo sem saber qual curso (ignora a pergunta "qual curso?"). */
+    ignorar_ambiguidade?: boolean;
   };
   try {
     body = await req.json();
@@ -267,6 +282,41 @@ Deno.serve(async (req: Request) => {
   const chamador = await resolverChamador(db, req);
 
   try {
+    // Qual(is) curso(s) a conversa trata — ver `_shared/cursos.ts`. O atendente
+    // pode sobrescrever pela interface (`cursos_forcados`); se a identificação é
+    // um empate real, NÃO adivinha: devolve as opções e deixa o atendente escolher.
+    const catalogoCursos = await carregarCatalogoCursos(db);
+    const forcados = validarCursosForcados(catalogoCursos, body.cursos_forcados);
+    const identificacao =
+      forcados.length > 0
+        ? { cursos: forcados, confianca: "manual" as const, candidatos: [] as string[] }
+        : identificarCursosNaConversa(
+            catalogoCursos,
+            mensagens.map((m) => ({ autor: m.autor, texto: m.texto })),
+          );
+    const infoCursos = {
+      cursos_identificados: identificacao.cursos,
+      curso_confianca: identificacao.confianca,
+      cursos_candidatos: identificacao.candidatos,
+      catalogo_cursos: catalogoCursos,
+    };
+    if (modo === "resposta" && identificacao.confianca === "ambigua" && !body.ignorar_ambiguidade) {
+      return jsonComCors({
+        etapa: "",
+        script_etapa: "",
+        sugestoes: [],
+        perguntas_para_lead: [],
+        alertas: [],
+        lacunas: [],
+        confianca: "baixa",
+        lacuna_registrada: false,
+        usage_log_id: null,
+        precisa_confirmar_curso: true,
+        ...infoCursos,
+      });
+    }
+    const cursosIdentificados = identificacao.cursos;
+
     const [
       limiarRelevancia,
       limiarDedup,
@@ -346,34 +396,9 @@ Deno.serve(async (req: Request) => {
       .map((m) => m.texto)
       .join(" \n ");
 
-    // Achado real (2026-10-08, print do Raphael): quando o lead responde só
-    // "Sim" confirmando uma pergunta que o PRÓPRIO atendente fez nomeando um
-    // curso específico (ex.: "Quer que eu te envie o investimento do MBA em
-    // Data Science, agora?"), o nome do curso nunca aparece em NENHUMA
-    // mensagem do lead — identificarCursoCitado só olhava mensagens do lead
-    // e sempre devolvia null nesse caso, então o preço nunca era encontrado
-    // mesmo com os trechos certos do curso disponíveis na base. Usa a ÚLTIMA
-    // mensagem do atendente imediatamente anterior à sequência não
-    // respondida como candidato de ÚLTIMA prioridade (só entra em jogo
-    // quando nenhuma mensagem do lead identifica um curso sozinha).
-    const indiceUltimoAtendente = mensagens.length - mensagensNaoRespondidas.length - 1;
-    const ultimaMsgAtendente =
-      indiceUltimoAtendente >= 0 && mensagens[indiceUltimoAtendente].autor === "atendente"
-        ? mensagens[indiceUltimoAtendente].texto
-        : null;
-
-    const cursoIdentificado = await identificarCursoCitado(db, [
-      textoNaoRespondido,
-      ...mensagens.filter((m) => m.autor === "lead").map((m) => m.texto).reverse(),
-      ...(ultimaMsgAtendente ? [ultimaMsgAtendente] : []),
-    ]);
-    const consultasIndividuais = [
-      ...new Set([
-        ...mensagensNaoRespondidas.map((m) => m.texto),
-        ...(cursoIdentificado ? [cursoIdentificado] : []),
-        ...(ultimaMsgAtendente ? [ultimaMsgAtendente] : []),
-      ]),
-    ];
+    // `cursosIdentificados` já vem da identificação feita no início (mensagens de
+    // lead E atendente, nome por extenso primeiro — achados dos prints 8-11).
+    const consultasIndividuais = [...new Set([...mensagensNaoRespondidas.map((m) => m.texto), ...cursosIdentificados])];
     const [resultadosIndividuais, chunksAmpla] = await Promise.all([
       Promise.all(consultasIndividuais.map((texto) => buscar(texto))),
       contextoRecente === textoNaoRespondido ? Promise.resolve([]) : buscar(contextoRecente),
@@ -389,7 +414,10 @@ Deno.serve(async (req: Request) => {
       }
     }
     const chunksBusca = [...melhorPorChunk.values()].sort((a, b) => b.similaridade - a.similaridade);
-    const chunksDoCurso = cursoIdentificado ? await buscarTrechosDoCurso(db, cursoIdentificado) : [];
+    const paginasDosCursos = await Promise.all(
+      cursosIdentificados.map(async (curso) => ({ curso, chunks: await buscarTrechosDoCurso(db, curso) })),
+    );
+    const chunksDoCurso = paginasDosCursos.flatMap((p) => p.chunks);
     const idsJaPresentes = new Set(chunksBusca.map((c) => c.chunk_id));
     // Conversa curta = provavelmente nova: garante os trechos institucionais
     // (página "Sobre") no contexto, pra IA poder apresentar a Faculdade Infnet
@@ -397,11 +425,17 @@ Deno.serve(async (req: Request) => {
     const chunksInstitucionais =
       modo === "resposta" && mensagens.length <= 12 ? await buscarTrechosDoCurso(db, PAGINA_SOBRE_INFNET) : [];
     const idsExtras = new Set([...idsJaPresentes, ...chunksDoCurso.map((c) => c.chunk_id)]);
-    const chunks = [
+    const chunksMontados = [
       ...chunksBusca,
       ...chunksDoCurso.filter((c) => !idsJaPresentes.has(c.chunk_id)),
       ...chunksInstitucionais.filter((c) => !idsExtras.has(c.chunk_id)),
     ];
+    // Teto de desconto do convênio ("até 30% nas pós") fica FORA do contexto, salvo
+    // se a conversa já trata de matrículas simultâneas (print 8; ver PADRAO_TETO_DESCONTO).
+    const permiteTetoDesconto = CONTEXTO_MATRICULAS_SIMULTANEAS.test(mensagens.map((m) => m.texto).join(" \n "));
+    const chunks = permiteTetoDesconto
+      ? chunksMontados
+      : chunksMontados.filter((c) => !(PADRAO_TETO_DESCONTO.test(c.conteudo) && /conv[eê]nio|colaboradores|dependentes/i.test(c.conteudo)));
 
     const idsRecuperados = new Set(chunks.map((c) => c.chunk_id));
     const melhorSimilaridade = chunks[0]?.similaridade ?? 0;
@@ -412,9 +446,9 @@ Deno.serve(async (req: Request) => {
     // `buscar_convenio_empresa` direto (chamada determinística — antes
     // vinha de busca vetorial em texto, dívida de arquitetura do RF07
     // fechada aqui de graça).
-    const cursosCandidatos = [
-      ...new Set([...(cursoIdentificado ? [cursoIdentificado] : []), ...extrairCursosCandidatos(chunks)]),
-    ].slice(0, 2);
+    // Com curso identificado (pela conversa ou escolhido pelo atendente) só ele(s)
+    // entra(m); o palpite pelos trechos recuperados fica como último recurso.
+    const cursosCandidatos = (cursosIdentificados.length > 0 ? cursosIdentificados : extrairCursosCandidatos(chunks)).slice(0, 2);
     const { bloco: blocoPrecoOficial, injetado: precoOficialInjetado } = await montarBlocoPrecoOficial(
       db,
       cursosCandidatos,
@@ -422,6 +456,15 @@ Deno.serve(async (req: Request) => {
       estadoLead,
       chunks,
     );
+    // Contexto extra do(s) curso(s) em jogo: grade completa por código + aviso de
+    // que há (ou não) preço oficial, pra não oferecer "quer os valores?" sem ter
+    // como entregá-los (print 10).
+    const blocoCursos =
+      blocoCursoIdentificado(cursosIdentificados, identificacao.confianca) +
+      blocoDisciplinasOficiais(paginasDosCursos.map((p) => ({ curso: p.curso, trechos: p.chunks.map((c) => c.conteudo) }))) +
+      (cursosCandidatos.length > 0
+        ? `\n\nPREÇO OFICIAL DISPONÍVEL PARA O(S) CURSO(S) EM JOGO: ${precoOficialInjetado ? "SIM (bloco DADOS OFICIAIS DE PREÇO abaixo)" : "NÃO — não ofereça nem prometa valores; registre em 'lacunas'"}.`
+        : "");
 
     let resultado: SuggestLLMOutput;
     let tokensPromptChat = 0;
@@ -449,7 +492,7 @@ Deno.serve(async (req: Request) => {
       const chat = await chatJSON<SuggestLLMOutput>({
         model: modelos.chat,
         system: buildSystemPrompt(playbook, empresaAssociada, modo, prompts),
-        user: buildUserPrompt(mensagens, chunks, empresaAssociada, modo, blocoCursoIdentificado(cursoIdentificado) + blocoPrecoOficial),
+        user: buildUserPrompt(mensagens, chunks, empresaAssociada, modo, blocoCursos + blocoPrecoOficial),
         schemaName: "suggest_response",
         schema: buildSchema(etapasValidas),
       });
@@ -480,6 +523,10 @@ Deno.serve(async (req: Request) => {
           // A sugestão vazou uma frase de incerteza dirigida ao lead — nunca
           // mostra isso como resposta pronta, mesmo tendo fonte válida.
           lacunasExtras.push(s.texto);
+        } else if (!permiteTetoDesconto && PADRAO_TETO_DESCONTO.test(s.texto)) {
+          // Citou teto de desconto ("até 30%"): descarta sem virar lacuna — não é
+          // falta de base, é conteúdo proibido (decisão do Raphael, 2026-10-19).
+          console.warn("suggest: sugestão descartada por citar teto de desconto");
         } else {
           sugestoesValidas.push({ texto: s.texto, fontes: fontesValidas });
         }
@@ -531,6 +578,8 @@ Deno.serve(async (req: Request) => {
       confianca: resultado.confianca,
       lacuna_registrada: lacunaRegistrada,
       usage_log_id: usageLogId,
+      precisa_confirmar_curso: false,
+      ...infoCursos,
     });
   } catch (err) {
     const mensagem = err instanceof Error ? err.message : String(err);

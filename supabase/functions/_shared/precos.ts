@@ -6,6 +6,7 @@
 // LLM), e montar um bloco pronto pra injetar no prompt. Ver
 // supabase/migrations/20260916030*.sql para as tabelas/função.
 import type { createServiceClient } from "./db.ts";
+import { extrairDisciplinasDePagina, identificarCursosNaConversa, type ConfiancaCursos } from "./cursos.ts";
 
 type Db = ReturnType<typeof createServiceClient>;
 
@@ -14,54 +15,30 @@ interface ChunkComMetadados {
   conteudo?: string;
 }
 
-const STOPWORDS_CURSO = new Set([
-  "sobre", "informacoes", "informacao", "curso", "cursos", "quero", "saber", "gostaria", "conhecer", "valor", "valores",
-  "preco", "quanto", "custa", "qual", "quais", "como", "funciona", "para", "pela", "pelo", "mais", "esse", "essa",
-  "esta", "este", "live", "faculdade", "graduacao", "pos", "posgraduacao", "tenho", "interesse", "ola", "obrigado",
-  "obrigada", "duvida", "duvidas", "nome", "aulas", "aula",
-]);
-
-function normalizarTexto(s: string): string {
-  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-}
-
-function tokensDeCurso(s: string, filtrarStopwords: boolean): string[] {
-  return normalizarTexto(s)
-    .split(/[^a-z0-9]+/)
-    .filter((t) => (t.length >= 4 || t === "mba") && !(filtrarStopwords && STOPWORDS_CURSO.has(t)));
+/** Nomes oficiais dos cursos (metadados.curso dos chunks de calendario_cursos), em ordem alfabética. */
+export async function carregarCatalogoCursos(db: Db): Promise<string[]> {
+  const { data } = await db.from("chunks").select("metadados").eq("metadados->>tipo", "calendario_cursos");
+  return [
+    ...new Set(
+      ((data ?? []) as { metadados: { curso?: unknown } }[])
+        .map((r) => r.metadados?.curso)
+        .filter((c): c is string => typeof c === "string"),
+    ),
+  ].sort((a, b) => a.localeCompare(b, "pt-BR"));
 }
 
 /**
- * Descobre, por palavras da própria mensagem do lead, de qual curso do catálogo
- * (calendário) ele está falando. Só devolve quando há UM vencedor claro — em
- * empate (ex.: "engenharia" bate com vários) devolve null e deixa a busca
- * normal decidir. Achado real (2026-09-21): "MBA em cibersegurança" virou o
- * MBA de Gestão de Riscos porque o trecho da página dele fala muito de
- * cibersegurança e o modelo se ancorou nele.
+ * Compatibilidade com o `ask` (pergunta isolada, sem histórico): devolve o curso
+ * só quando a identificação é decisiva. A lógica de verdade mora em
+ * `cursos.ts::identificarCursosNaConversa` (usada direto pelo `suggest`).
  */
 export async function identificarCursoCitado(db: Db, textos: string[]): Promise<string | null> {
-  const { data } = await db.from("chunks").select("metadados").eq("metadados->>tipo", "calendario_cursos");
-  const catalogo = [
-    ...new Set(((data ?? []) as { metadados: { curso?: unknown } }[]).map((r) => r.metadados?.curso).filter((c): c is string => typeof c === "string")),
-  ];
-  const tokensPorCurso = catalogo.map((c) => ({ curso: c, tokens: new Set(tokensDeCurso(c, false)) }));
-
-  for (const texto of textos) {
-    const leadTokens = new Set(tokensDeCurso(texto, true));
-    if (leadTokens.size === 0) continue;
-    const pontuados = tokensPorCurso
-      .map(({ curso, tokens }) => {
-        const comuns = [...leadTokens].filter((t) => tokens.has(t));
-        const semMba = comuns.filter((t) => t !== "mba");
-        return { curso, score: comuns.length, semMba: semMba.length };
-      })
-      .filter((p) => p.semMba >= 1)
-      .sort((a, b) => b.score - a.score);
-    if (pontuados.length === 0) continue;
-    if (pontuados.length > 1 && pontuados[1].score === pontuados[0].score) continue;
-    return pontuados[0].curso;
-  }
-  return null;
+  const catalogo = await carregarCatalogoCursos(db);
+  const r = identificarCursosNaConversa(
+    catalogo,
+    textos.map((texto) => ({ autor: "lead" as const, texto })).reverse(),
+  );
+  return r.cursos[0] ?? null;
 }
 
 /**
@@ -87,7 +64,7 @@ export async function buscarTrechosDoCurso(
     .select("id, document_id, conteudo, metadados")
     .in("document_id", docIds)
     .order("ordem", { ascending: true })
-    .limit(12);
+    .limit(20); // a página da graduação passa de 12 trechos (a matriz curricular ocupa os primeiros)
   return ((chunks ?? []) as { id: number; document_id: string; conteudo: string; metadados: Record<string, unknown> }[]).map((c) => ({
     chunk_id: c.id,
     document_id: c.document_id,
@@ -98,9 +75,42 @@ export async function buscarTrechosDoCurso(
   }));
 }
 
-export function blocoCursoIdentificado(curso: string | null): string {
-  if (!curso) return "";
-  return `\n\nCURSO IDENTIFICADO PELA MENSAGEM DO LEAD: "${curso}". Fale SOMENTE deste curso — use apenas trechos do contexto que sejam claramente deste curso e NUNCA misture nem substitua por cursos parecidos da mesma área (outro MBA ou graduação com tema semelhante). Se os trechos recuperados forem de outro curso, ignore-os.`;
+/**
+ * Bloco "CURSO(S) EM JOGO" do prompt. Com 2 cursos (ex.: MBA + graduação, print 9)
+ * o modelo atende um por vez, na ordem dada, e só avança depois de o lead
+ * confirmar que entendeu tudo (pedido do Raphael, 2026-10-19).
+ */
+export function blocoCursoIdentificado(
+  cursosEntrada: string | string[] | null,
+  confianca: ConfiancaCursos | null = null,
+): string {
+  const cursos = Array.isArray(cursosEntrada) ? cursosEntrada : cursosEntrada ? [cursosEntrada] : [];
+  if (cursos.length === 0) return "";
+  const origem =
+    confianca === "manual"
+      ? " (escolhido manualmente pelo atendente — é o curso certo, não discuta)"
+      : " (identificado pela conversa)";
+  if (cursos.length === 1) {
+    return `\n\nCURSO EM JOGO${origem}: "${cursos[0]}". Fale SOMENTE deste curso — use apenas trechos do contexto que sejam claramente deste curso e NUNCA misture nem substitua por cursos parecidos da mesma área (outro MBA ou graduação com tema semelhante). Se os trechos recuperados forem de outro curso, ignore-os.`;
+  }
+  return `\n\nCURSOS EM JOGO${origem}, na ORDEM em que devem ser atendidos: 1º "${cursos[0]}"; 2º "${cursos[1]}". Atenda UM curso por vez: apresente o 1º (grade e, depois, valores — seguindo os passos) e SÓ passe ao 2º depois de o lead confirmar que entendeu tudo e está satisfeito com o 1º — ao terminar um curso, a mensagem deve perguntar se ficou alguma dúvida e se ele quer seguir para o próximo curso, e o próximo só é apresentado na mensagem seguinte. Releia o histórico para saber o que já foi apresentado de cada curso e retome do ponto certo. NUNCA misture dados de um curso no outro, nem de cursos parecidos que não estejam nesta lista; se os trechos recuperados forem de outro curso, ignore-os.`;
+}
+
+/**
+ * Lista COMPLETA de disciplinas, extraída por código dos trechos da página do
+ * curso (ver `extrairDisciplinasDePagina`) — a grade vive espalhada em vários
+ * trechos sobrepostos e o modelo, vendo só parte, listava 2 de 8 (print 11).
+ */
+export function blocoDisciplinasOficiais(
+  paginas: Array<{ curso: string; trechos: string[] }>,
+): string {
+  let bloco = "";
+  for (const { curso, trechos } of paginas) {
+    const titulos = extrairDisciplinasDePagina(trechos);
+    if (titulos.length === 0) continue;
+    bloco += `\n\nLISTA OFICIAL DE DISCIPLINAS de "${curso}" — ${titulos.length} disciplinas, lista COMPLETA, na ordem do curso (ao apresentar a grade use TODAS elas, só o título, e nenhuma além destas; nunca diga que a lista está incompleta): ${titulos.map((t, i) => `${i + 1}) ${t}`).join("; ")}.`;
+  }
+  return bloco;
 }
 
 const DIAS_UTEIS_ANTES_DO_INICIO = 3;
