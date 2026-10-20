@@ -425,8 +425,16 @@ Deno.serve(async (req: Request) => {
     // Conversa curta = provavelmente nova: garante os trechos institucionais
     // (página "Sobre") no contexto, pra IA poder apresentar a Faculdade Infnet
     // e a metodologia antes de falar de grade/valores (pedido do Raphael, 2026-09-25).
+    // Também em conversa longa quando metodologia/diferenciais acabaram de ser
+    // oferecidos ou pedidos (print 13: conversa de 35 mensagens, o lead disse "sim"
+    // a "quer conhecer os diferenciais e a metodologia?" e esses trechos não vinham).
+    const falouDeMetodologia = /diferencia|metodologia|como funciona(m)? (as aulas|o curso|a p[oó]s|o mba)|sobre a infnet/i.test(
+      mensagens.slice(-3).map((m) => m.texto).join(" \n "),
+    );
     const chunksInstitucionais =
-      modo === "resposta" && mensagens.length <= 12 ? await buscarTrechosDoCurso(db, PAGINA_SOBRE_INFNET) : [];
+      modo === "resposta" && (mensagens.length <= 12 || falouDeMetodologia)
+        ? await buscarTrechosDoCurso(db, PAGINA_SOBRE_INFNET)
+        : [];
     const idsExtras = new Set([...idsJaPresentes, ...chunksDoCurso.map((c) => c.chunk_id)]);
     const chunksMontados = [
       ...chunksBusca,

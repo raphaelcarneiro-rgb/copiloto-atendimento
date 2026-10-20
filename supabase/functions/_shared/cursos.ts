@@ -66,6 +66,28 @@ export function normalizar(s: string): string {
     .trim();
 }
 
+/**
+ * Normaliza para casar com nomes do catálogo: "MBA Live em X" / "pós EAD em X"
+ * viram "mba em X" (achado real, print 13 de 2026-10-20: "MBA Live em Engenharia
+ * de Cibersegurança" virava a GRADUAÇÃO de Cibersegurança, porque o "live" no
+ * meio escapava da regra "graduação logo depois de 'MBA em' é o MBA").
+ */
+function normalizarParaBusca(s: string): string {
+  return normalizar(s).replace(/\b(mba|mfa|pos|posgraduacao|especializacao) (live|ead|online|ao vivo) /g, "$1 ");
+}
+
+/**
+ * Lead dispensando o curso de antes ("não quero mais esse", "desisti", "prefiro
+ * outro"). Cursos citados só ANTES dessa mensagem saem de jogo (print 13: o lead
+ * trocou Cibersegurança por Engenharia de Contexto e os dois continuavam "em jogo").
+ */
+const REJEICAO_CURSO =
+  /\b(nao quero mais|nao tenho mais interesse|nao me interessa mais|desisti|mudei de ideia|esse nao|nao e esse|nao e mais esse|prefiro (o |a )?outr|quero (ver )?outro curso)/;
+
+function ehRejeicaoDoLead(m: MensagemCurso): boolean {
+  return m.autor === "lead" && REJEICAO_CURSO.test(normalizar(m.texto));
+}
+
 function tokens(s: string): string[] {
   return normalizar(s)
     .split(" ")
@@ -218,9 +240,14 @@ export function identificarCursosNaConversa(catalogo: string[], todasMensagens: 
   // Passo 1 — nome por extenso, da mensagem mais recente para a mais antiga.
   const achados = new Map<string, { idx: number; inicio: number; tipo: "completa" | "derivada" }>();
   for (let i = mensagens.length - 1; i >= 0 && achados.size < MAX_CURSOS; i--) {
-    const spans = acharNomesNoTexto(normalizar(mensagens[i].texto), variantes);
+    const spans = acharNomesNoTexto(normalizarParaBusca(mensagens[i].texto), variantes);
+    // o lead dispensou o curso anterior: nada antes desta mensagem conta
+    const fronteira = ehRejeicaoDoLead(mensagens[i]);
     // mensagem que enumera 3+ cursos é um cardápio, não uma escolha
-    if (spans.length === 0 || spans.length > MAX_CURSOS) continue;
+    if (spans.length === 0 || spans.length > MAX_CURSOS) {
+      if (fronteira) break;
+      continue;
+    }
     for (const s of spans) {
       if (achados.size >= MAX_CURSOS && !achados.has(s.curso)) continue;
       const anterior = achados.get(s.curso);
@@ -229,6 +256,7 @@ export function identificarCursosNaConversa(catalogo: string[], todasMensagens: 
         achados.set(s.curso, { idx: i, inicio: s.inicio, tipo: s.tipo });
       }
     }
+    if (fronteira) break;
   }
   if (achados.size > 0) {
     let cursos = [...achados.entries()]
@@ -248,12 +276,14 @@ export function identificarCursosNaConversa(catalogo: string[], todasMensagens: 
   let ambiguo: string[] | null = null;
   for (let i = mensagens.length - 1; i >= 0; i--) {
     const m = mensagens[i];
-    const texto = m.autor === "atendente" ? normalizar(m.texto).slice(0, CHARS_ATENDENTE_FALLBACK) : normalizar(m.texto);
+    const texto =
+      m.autor === "atendente" ? normalizarParaBusca(m.texto).slice(0, CHARS_ATENDENTE_FALLBACK) : normalizarParaBusca(m.texto);
     const { vencedor, empatados } = decidir(texto, pontuarPorPalavras(texto, tk));
     if (vencedor) return { cursos: [vencedor], confianca: "inferida", candidatos: [] };
     if (empatados.length > 0 && empatados.length <= MAX_CANDIDATOS && !ambiguo && i >= mensagens.length - JANELA_AMBIGUIDADE) {
       ambiguo = empatados;
     }
+    if (ehRejeicaoDoLead(m)) break;
   }
   if (ambiguo) return { cursos: [], confianca: "ambigua", candidatos: ambiguo };
   return nenhuma;

@@ -34,6 +34,7 @@ const CATALOGO = [
   "MBA em Engenharia de Banco de Dados e Data Warehouse com IA",
   "MBA em Engenharia de Cibersegurança",
   "MBA em Engenharia de Cloud Computing",
+  "MBA em Engenharia de Contexto e Agentes de IA: RAG, MCP e Multiagentes",
   "MBA em Engenharia de Dados: Big Data e IA",
   "MBA em Engenharia de IA, Machine Learning e Deep Learning",
   "MBA em Engenharia de Produtos Digitais com IA: Gestão e Estratégia",
@@ -156,6 +157,28 @@ test("mensagem que enumera 3+ cursos (cardápio) não decide nada", () => {
     lead("Quero saber mais"),
   ]);
   assert.deepEqual(r.cursos, []);
+});
+
+test("print 13: 'MBA Live em Engenharia de Cibersegurança' é o MBA, não a graduação", () => {
+  const r = identificarCursosNaConversa(CATALOGO, [
+    atend("O que despertou seu interesse no MBA Live em Engenharia de Cibersegurança?"),
+    lead("Quero saber mais"),
+  ]);
+  assert.deepEqual(r.cursos, ["MBA em Engenharia de Cibersegurança"]);
+});
+
+test("print 13: lead dispensa o curso anterior ('não quero mais esse') e só o novo fica em jogo", () => {
+  const r = identificarCursosNaConversa(CATALOGO, [
+    lead("3 amigos ficaria quanto?"),
+    lead("oi"),
+    atend("O que despertou seu interesse no MBA Live em Engenharia de Cibersegurança?"),
+    lead("não quero mais esse. Quero informações do novo mba de engenharia de contexto"),
+    atend("Raphael, entendido. O *MBA em Engenharia de Contexto e Agentes de IA* prepara profissionais para construir sistemas de IA em produção. *O que você gostaria de conhecer primeiro: a estrutura do curso ou o investimento?*"),
+    lead("estrutura do curso"),
+    atend("Raphael, estas são as disciplinas do *MBA em Engenharia de Contexto e Agentes de IA*:\n• Context Engineering para Aplicações com IA\n*Quer conhecer os diferenciais e a metodologia da Infnet antes de falarmos sobre os valores?*"),
+    lead("sim"),
+  ]);
+  assert.deepEqual(r.cursos, ["MBA em Engenharia de Contexto e Agentes de IA: RAG, MCP e Multiagentes"]);
 });
 
 test("cursos escolhidos pelo atendente: só nomes que existem no catálogo, no máximo 2", () => {
