@@ -24,8 +24,10 @@ import { registrarLacuna } from "../_shared/lacunas.ts";
 import { resolverChamador } from "../_shared/auth_context.ts";
 import { INSTRUCAO_FORMATACAO_WHATSAPP } from "../_shared/formatacao.ts";
 import {
+  blocoCalendarioOficial,
   blocoCursoIdentificado,
   blocoDisciplinasOficiais,
+  buscarCalendarioDoCurso,
   buscarTrechosDoCurso,
   carregarCatalogoCursos,
   extrairCursosCandidatos,
@@ -414,10 +416,11 @@ Deno.serve(async (req: Request) => {
       }
     }
     const chunksBusca = [...melhorPorChunk.values()].sort((a, b) => b.similaridade - a.similaridade);
-    const paginasDosCursos = await Promise.all(
-      cursosIdentificados.map(async (curso) => ({ curso, chunks: await buscarTrechosDoCurso(db, curso) })),
-    );
-    const chunksDoCurso = paginasDosCursos.flatMap((p) => p.chunks);
+    const [paginasDosCursos, calendariosDosCursos] = await Promise.all([
+      Promise.all(cursosIdentificados.map(async (curso) => ({ curso, chunks: await buscarTrechosDoCurso(db, curso) }))),
+      Promise.all(cursosIdentificados.map(async (curso) => ({ curso, chunks: await buscarCalendarioDoCurso(db, curso) }))),
+    ]);
+    const chunksDoCurso = [...paginasDosCursos, ...calendariosDosCursos].flatMap((p) => p.chunks);
     const idsJaPresentes = new Set(chunksBusca.map((c) => c.chunk_id));
     // Conversa curta = provavelmente nova: garante os trechos institucionais
     // (página "Sobre") no contexto, pra IA poder apresentar a Faculdade Infnet
@@ -462,6 +465,7 @@ Deno.serve(async (req: Request) => {
     const blocoCursos =
       blocoCursoIdentificado(cursosIdentificados, identificacao.confianca) +
       blocoDisciplinasOficiais(paginasDosCursos.map((p) => ({ curso: p.curso, trechos: p.chunks.map((c) => c.conteudo) }))) +
+      (await blocoCalendarioOficial(db, calendariosDosCursos)) +
       (cursosCandidatos.length > 0
         ? `\n\nPREÇO OFICIAL DISPONÍVEL PARA O(S) CURSO(S) EM JOGO: ${precoOficialInjetado ? "SIM (bloco DADOS OFICIAIS DE PREÇO abaixo)" : "NÃO — não ofereça nem prometa valores; registre em 'lacunas'"}.`
         : "");

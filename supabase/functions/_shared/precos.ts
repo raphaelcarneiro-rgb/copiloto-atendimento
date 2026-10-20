@@ -113,6 +113,60 @@ export function blocoDisciplinasOficiais(
   return bloco;
 }
 
+/**
+ * Trecho de calendario_cursos do curso identificado (início, frequência,
+ * horário), buscado direto pelo metadado — sem depender da busca por
+ * similaridade nem do estado do lead. Antes a data só entrava se a busca
+ * trouxesse esse trecho por acaso, e "Quando o curso começa?" virava grade
+ * (print 12, 2026-10-20).
+ */
+export async function buscarCalendarioDoCurso(
+  db: Db,
+  curso: string,
+): Promise<
+  { chunk_id: number; document_id: string; conteudo: string; metadados: Record<string, unknown>; similaridade: number; rrf_score: number }[]
+> {
+  const { data } = await db
+    .from("chunks")
+    .select("id, document_id, conteudo, metadados")
+    .eq("metadados->>tipo", "calendario_cursos")
+    .eq("metadados->>curso", curso)
+    .limit(2);
+  return ((data ?? []) as { id: number; document_id: string; conteudo: string; metadados: Record<string, unknown> }[]).map((c) => ({
+    chunk_id: c.id,
+    document_id: c.document_id,
+    conteudo: c.conteudo,
+    metadados: c.metadados ?? {},
+    similaridade: 0,
+    rrf_score: 0,
+  }));
+}
+
+/**
+ * Data de início + prazo de matrícula de cada curso em jogo, calculados aqui
+ * (nunca pelo LLM), pra responder "quando começa?" com o par início/prazo
+ * mesmo antes do preço (que exige o estado do lead).
+ */
+export async function blocoCalendarioOficial(
+  db: Db,
+  calendarios: Array<{ curso: string; chunks: { chunk_id: number; conteudo: string; metadados: Record<string, unknown> }[] }>,
+): Promise<string> {
+  const hoje = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
+  let bloco = "";
+  for (const { curso, chunks } of calendarios) {
+    const inicio = extrairInicioTurma(chunks, curso);
+    if (!inicio || chunks.length === 0) continue;
+    const limite = await calcularPrazoMatricula(db, inicio);
+    const [a, m, d] = inicio.split("-");
+    bloco += `\n\nCALENDÁRIO OFICIAL de "${curso}" (cite chunk_id=${chunks[0].chunk_id}): ${chunks[0].conteudo}`;
+    bloco +=
+      limite < hoje
+        ? ` As matrículas dessa turma (início ${d}/${m}/${a}) provavelmente já encerraram — NÃO ofereça essa turma; diga que vai confirmar a próxima turma com a coordenação e registre em 'lacunas'.`
+        : ` Se o lead perguntar quando começa, responda com essa data (${d}/${m}/${a}) e, na mesma frase, que as matrículas, em geral, encerram até ${dataBr(limite)} (${DIAS_UTEIS_ANTES_DO_INICIO} dias úteis antes do início) — nunca deixe entender que dá para se matricular no dia do início.`;
+  }
+  return bloco;
+}
+
 const DIAS_UTEIS_ANTES_DO_INICIO = 3;
 
 function isoUtc(d: Date): string {

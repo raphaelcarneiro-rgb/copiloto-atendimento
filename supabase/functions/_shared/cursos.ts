@@ -59,7 +59,7 @@ const PALAVRAS_NIVEL_GRAD = /\b(graduacao|faculdade|bacharelado|tecnologo|superi
 export function normalizar(s: string): string {
   return s
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, " ")
     .replace(/\s+/g, " ")
@@ -284,7 +284,7 @@ export function extrairDisciplinasDePagina(trechosEmOrdem: string[]): string[] {
     .slice(inicio)
     .split(/\n+/)
     .map((l) => l.trim())
-    .filter((l) => l.length > 0 && l !== "‍");
+    .filter((l) => l.length > 0 && l !== "\u200d");
   const ehBullet = (l: string) => /^[•\-–*]\s/.test(l);
 
   const titulos: string[] = [];
