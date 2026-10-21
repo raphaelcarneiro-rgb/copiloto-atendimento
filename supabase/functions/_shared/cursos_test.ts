@@ -205,3 +205,16 @@ test("grade: extrai as 8 disciplinas do MBA de Engenharia de Dados mesmo com tre
 test("grade: página sem o formato esperado devolve vazio (cai no texto dos trechos)", () => {
   assert.deepEqual(extrairDisciplinasDePagina(["Matriz curricular\n\nFundamentos do Processamento de Dados\n\nIntrodução à Visualização de Dados e SQL:"]), []);
 });
+
+test("print 13: empresa atual citada pelo lead ('agora sou funcionário da empresa Certsys')", async () => {
+  const { extrairEmpresaCitadaPeloLead } = await import("./cursos.ts");
+  assert.equal(
+    extrairEmpresaCitadaPeloLead([atend("Você é funcionário da empresa Qintess?"), lead("não agora sou funcionario da empresa Certsys")]),
+    "Certsys",
+  );
+  assert.equal(extrairEmpresaCitadaPeloLead([lead("Trabalho na Theos que é conveniada. Qual desconto?")]), "Theos");
+  assert.equal(extrairEmpresaCitadaPeloLead([lead("trabalho em uma empresa pequena")]), null);
+  assert.equal(extrairEmpresaCitadaPeloLead([lead("quero saber os valores")]), null);
+  // a pergunta do atendente ("empresa Qintess") não conta — só o que o lead diz
+  assert.equal(extrairEmpresaCitadaPeloLead([atend("Você é funcionário da empresa Qintess?"), lead("sim")]), null);
+});

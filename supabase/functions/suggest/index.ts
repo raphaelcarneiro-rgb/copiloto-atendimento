@@ -33,7 +33,12 @@ import {
   extrairCursosCandidatos,
   montarBlocoPrecoOficial,
 } from "../_shared/precos.ts";
-import { identificarCursosNaConversa, validarCursosForcados } from "../_shared/cursos.ts";
+import {
+  extrairEmpresaCitadaPeloLead,
+  identificarCursosNaConversa,
+  normalizar,
+  validarCursosForcados,
+} from "../_shared/cursos.ts";
 
 interface MensagemEntrada {
   autor: "lead" | "atendente";
@@ -460,10 +465,36 @@ Deno.serve(async (req: Request) => {
     // Com curso identificado (pela conversa ou escolhido pelo atendente) só ele(s)
     // entra(m); o palpite pelos trechos recuperados fica como último recurso.
     const cursosCandidatos = (cursosIdentificados.length > 0 ? cursosIdentificados : extrairCursosCandidatos(chunks)).slice(0, 2);
+
+    // Empresa ATUAL dita pelo lead pode não ser a do CRM (print 13, 2026-10-21: CRM
+    // com a Qintess, conveniada; lead "agora sou funcionário da empresa Certsys", sem
+    // convênio -> o copiloto ofereceu o convênio da Qintess). A empresa citada pelo
+    // lead vale mais que o CRM e o convênio dela é consultado na lista oficial.
+    let empresaConvenio = empresaAssociada;
+    let blocoEmpresa = "";
+    const empresaCitada = extrairEmpresaCitadaPeloLead(mensagens.map((m) => ({ autor: m.autor, texto: m.texto })));
+    const mesmaDoCrm =
+      !!empresaCitada &&
+      !!empresaAssociada &&
+      (normalizar(empresaAssociada).includes(normalizar(empresaCitada)) ||
+        normalizar(empresaCitada).includes(normalizar(empresaAssociada)));
+    if (empresaCitada && !mesmaDoCrm) {
+      const { data: convenioCitada } = await db.rpc("buscar_convenio_empresa", { p_empresa: empresaCitada });
+      const conv = (convenioCitada as Array<{ empresa: string; desconto_pct: number | null }> | null)?.[0];
+      const antiga = empresaAssociada ? ` A empresa que está no CRM ("${empresaAssociada}") está desatualizada — NÃO ofereça nem cite o convênio dela.` : "";
+      if (conv?.desconto_pct != null) {
+        empresaConvenio = conv.empresa;
+        blocoEmpresa = `\n\nEMPRESA ATUAL DO LEAD: ele disse que trabalha na "${empresaCitada}", que É conveniada ("${conv.empresa}", ${conv.desconto_pct}% de desconto).${antiga}`;
+      } else {
+        empresaConvenio = null;
+        blocoEmpresa = `\n\nEMPRESA ATUAL DO LEAD: ele disse que trabalha na "${empresaCitada}", que NÃO tem convênio com a Infnet (consultado na lista oficial de empresas conveniadas).${antiga} Siga a regra EMPRESA NÃO CONVENIADA.`;
+      }
+    }
+
     const { bloco: blocoPrecoOficial, injetado: precoOficialInjetado } = await montarBlocoPrecoOficial(
       db,
       cursosCandidatos,
-      empresaAssociada,
+      empresaConvenio,
       estadoLead,
       chunks,
     );
@@ -488,7 +519,7 @@ Deno.serve(async (req: Request) => {
     // alguma dúvida?" não cita nada). Por isso só o modo "resposta" pula o
     // LLM quando não há contexto relevante (constitution §1 — sem
     // fundamento pra responder uma pergunta, não inventa).
-    if (modo === "resposta" && !precoOficialInjetado && (chunks.length === 0 || melhorSimilaridade < limiarRelevancia)) {
+    if (modo === "resposta" && !precoOficialInjetado && !blocoEmpresa && (chunks.length === 0 || melhorSimilaridade < limiarRelevancia)) {
       // Sem trechos minimamente relevantes: nem vale chamar o modelo de
       // chat — não tem como fundamentar nada (constitution §1). Mesmo
       // assim precisamos de uma etapa_atual válida; "descoberta" (ordem 1)
@@ -503,8 +534,8 @@ Deno.serve(async (req: Request) => {
     } else {
       const chat = await chatJSON<SuggestLLMOutput>({
         model: modelos.chat,
-        system: buildSystemPrompt(playbook, empresaAssociada, modo, prompts),
-        user: buildUserPrompt(mensagens, chunks, empresaAssociada, modo, blocoCursos + blocoPrecoOficial),
+        system: buildSystemPrompt(playbook, empresaConvenio, modo, prompts),
+        user: buildUserPrompt(mensagens, chunks, empresaConvenio, modo, blocoEmpresa + blocoCursos + blocoPrecoOficial),
         schemaName: "suggest_response",
         schema: buildSchema(etapasValidas),
       });
@@ -529,7 +560,7 @@ Deno.serve(async (req: Request) => {
         if (fontesValidas.length === 0 && s.fontes.length > 0) {
           // Citou algo, mas nada bateu com o que foi recuperado — isso sim é suspeito.
           lacunasExtras.push(s.texto);
-        } else if (fontesValidas.length === 0 && modo === "resposta" && !precoOficialInjetado) {
+        } else if (fontesValidas.length === 0 && modo === "resposta" && !precoOficialInjetado && !blocoEmpresa) {
           lacunasExtras.push(s.texto);
         } else if (PADRAO_INCERTEZA.test(s.texto)) {
           // A sugestão vazou uma frase de incerteza dirigida ao lead — nunca

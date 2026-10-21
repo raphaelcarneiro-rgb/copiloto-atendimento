@@ -333,3 +333,42 @@ export function extrairDisciplinasDePagina(trechosEmOrdem: string[]): string[] {
   }
   return titulos.length >= 3 ? titulos : [];
 }
+
+// --- Empresa atual citada pelo lead ------------------------------------------
+
+/** Palavras que aparecem depois de "empresa"/"trabalho na" mas não são nome de empresa. */
+const NAO_E_EMPRESA = new Set([
+  "que", "onde", "minha", "nossa", "sua", "atual", "nova", "pequena", "grande", "media", "privada", "publica",
+  "familiar", "propria", "mesma", "outra", "dele", "dela", "aqui", "hoje", "agora", "tambem", "ainda",
+  "uma", "um", "essa", "esse", "nenhuma", "duas", "varias", "multinacional", "startup", "consultoria",
+]);
+
+/**
+ * Empresa onde o lead diz trabalhar AGORA, numa das últimas mensagens dele
+ * ("agora sou funcionário da empresa Certsys", "trabalho na Theos"). Print 13
+ * (2026-10-21): o CRM ainda tinha a empresa antiga (Qintess, conveniada) e o
+ * copiloto ofereceu o convênio dela a quem já trabalha na Certsys (sem convênio).
+ * Devolve null quando não há menção clara — quem chama mantém a empresa do CRM.
+ */
+export function extrairEmpresaCitadaPeloLead(todasMensagens: MensagemCurso[], janela = 6): string | null {
+  const recentes = todasMensagens.slice(-janela).filter((m) => m.autor === "lead");
+  const padrao =
+    /(?:empresa|trabalho\s+(?:na|no|em|pela|pelo)|funcion[aá]ri[oa]\s+(?:da|do|de|na|no)(?:\s+empresa)?|atuo\s+(?:na|no|em)|colaborador[a]?\s+(?:da|do|na|no))\s+([A-Za-zÀ-ÿ0-9&][A-Za-zÀ-ÿ0-9&.\-]*(?:\s+[A-ZÀ-Ý0-9][A-Za-zÀ-ÿ0-9&.\-]*){0,2})/gi;
+  for (const m of [...recentes].reverse()) {
+    let ultimo: string | null = null;
+    for (const achado of m.texto.matchAll(padrao)) {
+      // 1ª palavra sempre; as seguintes só se começam com maiúscula ("Theos que é" -> "Theos", "Grupo Konecta" fica)
+      const [primeiroToken, ...resto] = achado[1].split(/\s+/);
+      const extras: string[] = [];
+      for (const p of resto) {
+        if (!/^[A-ZÀ-Ý0-9]/.test(p)) break;
+        extras.push(p);
+      }
+      const nome = [primeiroToken, ...extras].join(" ").replace(/[.,;!?]+$/, "").trim();
+      const primeira = normalizar(nome.split(/\s+/)[0] ?? "");
+      if (nome.length >= 3 && !NAO_E_EMPRESA.has(primeira) && primeira !== "empresa") ultimo = nome;
+    }
+    if (ultimo) return ultimo;
+  }
+  return null;
+}
