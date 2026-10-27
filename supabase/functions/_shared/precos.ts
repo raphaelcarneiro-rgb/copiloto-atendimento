@@ -6,7 +6,7 @@
 // LLM), e montar um bloco pronto pra injetar no prompt. Ver
 // supabase/migrations/20260916030*.sql para as tabelas/função.
 import type { createServiceClient } from "./db.ts";
-import { extrairDisciplinasDePagina, identificarCursosNaConversa, type ConfiancaCursos } from "./cursos.ts";
+import { extrairDisciplinasDePagina, extrairGradeGraduacao, identificarCursosNaConversa, type ConfiancaCursos } from "./cursos.ts";
 
 type Db = ReturnType<typeof createServiceClient>;
 
@@ -107,8 +107,17 @@ export function blocoDisciplinasOficiais(
   let bloco = "";
   for (const { curso, trechos } of paginas) {
     const titulos = extrairDisciplinasDePagina(trechos);
-    if (titulos.length === 0) continue;
-    bloco += `\n\nLISTA OFICIAL DE DISCIPLINAS de "${curso}" — ${titulos.length} disciplinas, lista COMPLETA, na ordem do curso (ao apresentar a grade use TODAS elas, só o título, e nenhuma além destas; nunca diga que a lista está incompleta): ${titulos.map((t, i) => `${i + 1}) ${t}`).join("; ")}.`;
+    if (titulos.length > 0) {
+      bloco += `\n\nLISTA OFICIAL DE DISCIPLINAS de "${curso}" — ${titulos.length} disciplinas, lista COMPLETA, na ordem do curso (ao apresentar a grade use TODAS elas, só o título, e nenhuma além destas; nunca diga que a lista está incompleta): ${titulos.map((t, i) => `${i + 1}) ${t}`).join("; ")}.`;
+      continue;
+    }
+    // Graduação: grade em blocos, sem bullets (print 9 / eval de 2026-10-27).
+    const blocos = extrairGradeGraduacao(trechos);
+    if (blocos.length === 0) continue;
+    const total = blocos.reduce((s, b) => s + b.disciplinas.length, 0);
+    bloco += `\n\nLISTA OFICIAL DE DISCIPLINAS de "${curso}" — graduação organizada em ${blocos.length} blocos (${total} itens no total), lista COMPLETA, na ordem do curso. Ao apresentar a grade, use TODOS os blocos e TODAS as disciplinas, agrupadas por bloco (nome do bloco em negrito, disciplinas em bullets), só os títulos, e nenhuma além destas; o nome do bloco NÃO é uma disciplina; nunca diga que a lista está incompleta: ${blocos
+      .map((b, i) => `Bloco ${i + 1} "${b.bloco}": ${b.disciplinas.join("; ")}`)
+      .join(" | ")}.`;
   }
   return bloco;
 }

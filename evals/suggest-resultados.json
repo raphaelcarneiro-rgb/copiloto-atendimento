@@ -1,95 +1,24 @@
 [
   {
     "caso": "p8-antonio-sim-investimento",
-    "modelo": "gpt-5.6-luna",
-    "rep": 1,
-    "latenciaMs": 7555,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "*MBA em Data Science com IA*\n\n*Valores sem o convênio:*\nPix à vista: R$ 7.601,53\nCartão de crédito: 18x de R$ 479,69\nCartão de crédito: 12x de R$ 654,12\nBoleto bancário: 13x de R$ 635,58\n\n*Com o convênio da Nexdom, com 10% de desconto adicional:*\nPix à vista: R$ 6.841,37\nCartão de crédito: 18x de R$ 431,72\nCartão de crédito: 12x de R$ 588,71\nBoleto bancário: 13x de R$ 572,02\n\nEsse valor vale até sexta-feira, 30/10. A próxima turma começa em 02/02/2027, e as matrículas, em geral, encerram até 28/01. *Quer que eu te explique os próximos passos da matrícula?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 16138,
-      "tokens_cache": 0,
-      "tokens_saida": 531
-    },
-    "custoUsd": 0.0038648000000000003,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Data Science (Ciência de Dados) com IA"
-    ]
-  },
-  {
-    "caso": "p8-antonio-sim-investimento",
-    "modelo": "gpt-5.6-luna",
-    "rep": 2,
-    "latenciaMs": 9996,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "*MBA em Data Science com IA — condições sem o convênio:*\n\nPix à vista: R$ 7.601,53\nCartão de crédito: 18x de R$ 479,69\nCartão de crédito: 12x de R$ 654,12\nBoleto bancário: 13x de R$ 635,58\n\n*Com o convênio da Nexdom (10% de desconto adicional):*\n\nPix à vista: R$ 6.841,37\nCartão de crédito: 18x de R$ 431,72\nCartão de crédito: 12x de R$ 588,71\nBoleto bancário: 13x de R$ 572,02\n\nEsse valor vale até sexta-feira (30/10). A próxima turma começa em *02/02/2027*, e as matrículas, em geral, encerram até *28/01/2027*.\n\n*Quer que eu te explique os próximos passos da matrícula?*"
-    ],
-    "lacunas": [
-      "Os preços das demais Pós-Graduações não aparecem no bloco oficial de preços disponível; por isso, nesta resposta foi apresentado apenas o MBA em Data Science com IA, que foi o curso oferecido na mensagem anterior."
-    ],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 16138,
-      "tokens_cache": 16135,
-      "tokens_saida": 835
-    },
-    "custoUsd": 0.0013253,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Data Science (Ciência de Dados) com IA"
-    ]
-  },
-  {
-    "caso": "p8-antonio-sim-investimento",
-    "modelo": "gpt-5.6-luna",
-    "rep": 3,
-    "latenciaMs": 9772,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "*MBA em Data Science com IA*\n\n*Valores sem o convênio:*\nPix à vista: R$ 7.601,53\nCartão de crédito: 18x de R$ 479,69\nCartão de crédito: 12x de R$ 654,12\nBoleto bancário: 13x de R$ 635,58\n\n*Com o convênio da Nexdom — 10% de desconto adicional:*\nPix à vista: R$ 6.841,37\nCartão de crédito: 18x de R$ 431,72\nCartão de crédito: 12x de R$ 588,71\nBoleto bancário: 13x de R$ 572,02\n\nEsse valor é válido até sexta-feira (30/10). A próxima turma começa em 02/02/2027, e as matrículas, em geral, encerram até 28/01.\n\n*Quer que eu te explique os próximos passos da matrícula?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 16138,
-      "tokens_cache": 16135,
-      "tokens_saida": 706
-    },
-    "custoUsd": 0.0011705,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Data Science (Ciência de Dados) com IA"
-    ]
-  },
-  {
-    "caso": "p8-antonio-sim-investimento",
     "modelo": "gpt-6-luna",
     "rep": 1,
-    "latenciaMs": 13479,
+    "latenciaMs": 17972,
     "ok": true,
     "falhas": [],
     "textos": [
-      "*MBA em Data Science com IA — valores:*\n\n*Sem o convênio da Nexdom:*\n• Pix: R$ 7.601,53\n• Cartão de crédito: 18x de R$ 479,69\n• Cartão de crédito: 12x de R$ 654,12\n• Boleto bancário: 13x de R$ 635,58\n\n*Com o convênio da Nexdom (10% de desconto adicional):*\n• Pix: R$ 6.841,37\n• Cartão de crédito: 18x de R$ 431,72\n• Cartão de crédito: 12x de R$ 588,71\n• Boleto bancário: 13x de R$ 572,02\n\nO valor é válido até sexta-feira, 30/10. A próxima turma começa em 02/02/2027, e as matrículas geralmente encerram até 28/01.\n\n*Quer conhecer a metodologia e os diferenciais da Infnet antes de avançarmos?*"
+      "*MBA em Data Science com IA*\n\n*Valores sem o convênio da Nexdom:*\nPix: R$ 7.601,53\nCartão de crédito: 18x de R$ 479,69\nCartão de crédito: 12x de R$ 654,12\nBoleto bancário: 13x de R$ 635,58\n\n*Com o convênio da Nexdom (10% de desconto adicional):*\nPix: R$ 6.841,37\nCartão de crédito: 18x de R$ 431,72\nCartão de crédito: 12x de R$ 588,71\nBoleto bancário: 13x de R$ 572,02\n\nO valor é válido até sexta-feira (30/10). A próxima turma começa em 02/02/2027, e as matrículas geralmente se encerram até 28/01.\n\n*Quer que eu explique os próximos passos da matrícula?*"
     ],
     "lacunas": [
-      "A lista completa de todas as pós-graduações e os respectivos preços com o desconto da Nexdom não consta no contexto disponível."
+      "A lista completa de todas as pós-graduações e os respectivos preços com o desconto da Nexdom não está disponível no contexto."
     ],
     "uso": {
       "modelo": "gpt-6-luna",
       "tokens_entrada": 16138,
       "tokens_cache": 0,
-      "tokens_saida": 1169
+      "tokens_saida": 1038
     },
-    "custoUsd": 0.0021983000000000003,
+    "custoUsd": 0.0021328000000000002,
     "etapa": "apresentacao_curso_preco",
     "cursos": [
       "MBA em Data Science (Ciência de Dados) com IA"
@@ -99,22 +28,22 @@
     "caso": "p8-antonio-sim-investimento",
     "modelo": "gpt-6-luna",
     "rep": 2,
-    "latenciaMs": 13486,
+    "latenciaMs": 20892,
     "ok": true,
     "falhas": [],
     "textos": [
-      "*MBA em Data Science com IA*\n\n*Valores sem o convênio:*\n• Pix à vista: R$ 7.601,53\n• Cartão de crédito: 18x de R$ 479,69\n• Cartão de crédito: 12x de R$ 654,12\n• Boleto bancário: 13x de R$ 635,58\n\n*Com o convênio da Nexdom (10% de desconto adicional):*\n• Pix à vista: R$ 6.841,37\n• Cartão de crédito: 18x de R$ 431,72\n• Cartão de crédito: 12x de R$ 588,71\n• Boleto bancário: 13x de R$ 572,02\n\nEsses valores são válidos até sexta-feira, 30/10. A próxima turma começa em 02/02/2027 e as matrículas, em geral, encerram até 28/01.\n\n*Quer que eu te explique os próximos passos da matrícula?*"
+      "*MBA em Data Science com IA — valores:*\n\n*Sem o convênio:*\n• Pix: R$ 7.601,53\n• Cartão de crédito: 18x de R$ 479,69\n• Cartão de crédito: 12x de R$ 654,12\n• Boleto bancário: 13x de R$ 635,58\n\n*Com o convênio da Nexdom (10% de desconto adicional):*\n• Pix: R$ 6.841,37\n• Cartão de crédito: 18x de R$ 431,72\n• Cartão de crédito: 12x de R$ 588,71\n• Boleto bancário: 13x de R$ 572,02\n\nO valor vale até sexta-feira, 30/10. A próxima turma começa em 02/02/2027, e as matrículas geralmente encerram até 28/01.\n\n*Quer conhecer os diferenciais e a metodologia da Infnet antes de avançarmos?*"
     ],
     "lacunas": [
-      "A lista de todas as pós-graduações e os preços com o convênio da Nexdom não está disponível no contexto; os valores fornecidos são apenas do MBA em Data Science com IA."
+      "A solicitação anterior de uma lista de todas as pós-graduações com os respectivos preços aplicados à Nexdom não pode ser atendida integralmente com os dados disponíveis; há valores oficiais apenas para o MBA em Data Science com IA."
     ],
     "uso": {
       "modelo": "gpt-6-luna",
       "tokens_entrada": 16138,
       "tokens_cache": 16135,
-      "tokens_saida": 984
+      "tokens_saida": 1271
     },
-    "custoUsd": 0.00065365,
+    "custoUsd": 0.0007971499999999999,
     "etapa": "apresentacao_curso_preco",
     "cursos": [
       "MBA em Data Science (Ciência de Dados) com IA"
@@ -124,22 +53,22 @@
     "caso": "p8-antonio-sim-investimento",
     "modelo": "gpt-6-luna",
     "rep": 3,
-    "latenciaMs": 12133,
+    "latenciaMs": 20452,
     "ok": true,
     "falhas": [],
     "textos": [
-      "*MBA em Data Science com IA*\n\n*Valores sem o convênio:*\n• Pix à vista: R$ 7.601,53\n• Cartão em 18x de R$ 479,69\n• Cartão em 12x de R$ 654,12\n• Boleto em 13x de R$ 635,58\n\n*Com o convênio da Nexdom (10% de desconto adicional):*\n• Pix à vista: R$ 6.841,37\n• Cartão em 18x de R$ 431,72\n• Cartão em 12x de R$ 588,71\n• Boleto em 13x de R$ 572,02\n\nEsse valor é válido até sexta-feira (30/10). *Quer que eu explique os próximos passos da matrícula?*"
+      "*MBA em Data Science com IA — valores:*\n\n*Sem o convênio Nexdom:*\n• Pix: R$ 7.601,53\n• Cartão de crédito: 18x de R$ 479,69\n• Cartão de crédito: 12x de R$ 654,12\n• Boleto bancário: 13x de R$ 635,58\n\n*Com o convênio Nexdom (10% de desconto adicional):*\n• Pix: R$ 6.841,37\n• Cartão de crédito: 18x de R$ 431,72\n• Cartão de crédito: 12x de R$ 588,71\n• Boleto bancário: 13x de R$ 572,02\n\nOs valores são válidos até sexta-feira (30/10). A próxima turma começa em 02/02/2027, e as matrículas geralmente encerram até 28/01.\n\n*Quer que eu explique os próximos passos para a matrícula?*"
     ],
     "lacunas": [
-      "Não há preços disponíveis no contexto para montar uma lista com os valores de todas as pós-graduações."
+      "A lista completa de todas as pós-graduações e seus preços com o desconto Nexdom não está disponível no contexto; há valores oficiais apenas para o MBA em Data Science com IA."
     ],
     "uso": {
       "modelo": "gpt-6-luna",
       "tokens_entrada": 16138,
       "tokens_cache": 16135,
-      "tokens_saida": 902
+      "tokens_saida": 1215
     },
-    "custoUsd": 0.00061265,
+    "custoUsd": 0.00076915,
     "etapa": "apresentacao_curso_preco",
     "cursos": [
       "MBA em Data Science (Ciência de Dados) com IA"
@@ -147,91 +76,22 @@
   },
   {
     "caso": "p8-diogo-sim-convenio",
-    "modelo": "gpt-5.6-luna",
-    "rep": 1,
-    "latenciaMs": 6133,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "Diogo, seguem as condições do *MBA em Engenharia de IA, Machine Learning e Deep Learning*:\n\n*Valores sem o convênio:*\n• Pix à vista: R$ 10.225,53\n• Cartão de crédito: 18x de R$ 645,27\n• Cartão de crédito: 12x de R$ 879,91\n• Boleto bancário: 13x de R$ 854,98\n\n*Com o convênio da Nexdom (10% de desconto adicional):*\n• Pix à vista: R$ 9.202,98\n• Cartão de crédito: 18x de R$ 580,74\n• Cartão de crédito: 12x de R$ 791,92\n• Boleto bancário: 13x de R$ 769,48\n\nEsse valor vale até sexta-feira (30/10). A próxima turma começa em *01/02/2027*, e as matrículas, em geral, encerram até *27/01*.\n\n*Quer que eu te explique os próximos passos da matrícula?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 18102,
-      "tokens_cache": 4120,
-      "tokens_saida": 480
-    },
-    "custoUsd": 0.0034548,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Engenharia de IA, Machine Learning e Deep Learning"
-    ]
-  },
-  {
-    "caso": "p8-diogo-sim-convenio",
-    "modelo": "gpt-5.6-luna",
-    "rep": 2,
-    "latenciaMs": 6621,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "Diogo, seguem as condições do *MBA em Engenharia de IA, Machine Learning e Deep Learning*:\n\n*Valores sem o convênio:*\nPix à vista: R$ 10.225,53\nCartão de crédito: 18x de R$ 645,27\nCartão de crédito: 12x de R$ 879,91\nBoleto bancário: 13x de R$ 854,98\n\n*Com o convênio da Nexdom (10% de desconto):*\nPix à vista: R$ 9.202,98\nCartão de crédito: 18x de R$ 580,74\nCartão de crédito: 12x de R$ 791,92\nBoleto bancário: 13x de R$ 769,48\n\nO valor informado é válido até sexta-feira (30/10). *Quer que eu te explique os próximos passos da matrícula?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 18102,
-      "tokens_cache": 18099,
-      "tokens_saida": 508
-    },
-    "custoUsd": 0.0009721800000000001,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Engenharia de IA, Machine Learning e Deep Learning"
-    ]
-  },
-  {
-    "caso": "p8-diogo-sim-convenio",
-    "modelo": "gpt-5.6-luna",
-    "rep": 3,
-    "latenciaMs": 7698,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "Diogo, seguem as condições de investimento do *MBA em Engenharia de IA, Machine Learning e Deep Learning*:\n\n*Valores sem o convênio:*\n• Pix à vista: R$ 10.225,53\n• Cartão de crédito: 18x de R$ 645,27\n• Cartão de crédito: 12x de R$ 879,91\n• Boleto bancário: 13x de R$ 854,98\n\n*Com o convênio da Nexdom:*\n• Pix à vista: R$ 9.202,98\n• Cartão de crédito: 18x de R$ 580,74\n• Cartão de crédito: 12x de R$ 791,92\n• Boleto bancário: 13x de R$ 769,48\n\nEsse valor vale até sexta-feira (30/10).\n\n*Quer que eu te explique os próximos passos da matrícula?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 18102,
-      "tokens_cache": 18099,
-      "tokens_saida": 545
-    },
-    "custoUsd": 0.00101658,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Engenharia de IA, Machine Learning e Deep Learning"
-    ]
-  },
-  {
-    "caso": "p8-diogo-sim-convenio",
     "modelo": "gpt-6-luna",
     "rep": 1,
-    "latenciaMs": 9521,
+    "latenciaMs": 16319,
     "ok": true,
     "falhas": [],
     "textos": [
-      "Diogo, seguem as condições do *MBA em Engenharia de IA, Machine Learning e Deep Learning*:\n\n*Valores sem o convênio:*\nPix à vista: R$ 10.225,53\nCartão de crédito: 18x de R$ 645,27\nCartão de crédito: 12x de R$ 879,91\nBoleto bancário: 13x de R$ 854,98\n\n*Com o convênio da Nexdom (10% de desconto adicional):*\nPix à vista: R$ 9.202,98\nCartão de crédito: 18x de R$ 580,74\nCartão de crédito: 12x de R$ 791,92\nBoleto bancário: 13x de R$ 769,48\n\nOs valores valem até sexta-feira (30/10); a próxima turma começa em 01/02/2027, e as matrículas geralmente se encerram até 27/01, três dias úteis antes do início.\n\n*Quer que eu te explique os próximos passos da matrícula?*"
+      "Diogo, seguem as condições do *MBA em Engenharia de IA, Machine Learning e Deep Learning*:\n\n*Valores sem o convênio:*\n• Pix à vista: R$ 10.225,53\n• Cartão de crédito: 18x de R$ 645,27\n• Cartão de crédito: 12x de R$ 879,91\n• Boleto bancário: 13x de R$ 854,98\n\n*Com o convênio da Nexdom (10% de desconto adicional):*\n• Pix à vista: R$ 9.202,98\n• Cartão de crédito: 18x de R$ 580,74\n• Cartão de crédito: 12x de R$ 791,92\n• Boleto bancário: 13x de R$ 769,48\n\nO valor vale até sexta-feira, 30/10; a turma começa em 01/02/2027 e as matrículas, em geral, encerram até 27/01.\n\n*Quer que eu te explique os próximos passos da matrícula?*"
     ],
     "lacunas": [],
     "uso": {
       "modelo": "gpt-6-luna",
       "tokens_entrada": 18102,
       "tokens_cache": 4120,
-      "tokens_saida": 770
+      "tokens_saida": 742
     },
-    "custoUsd": 0.0018244000000000001,
+    "custoUsd": 0.0018104,
     "etapa": "apresentacao_curso_preco",
     "cursos": [
       "MBA em Engenharia de IA, Machine Learning e Deep Learning"
@@ -241,20 +101,20 @@
     "caso": "p8-diogo-sim-convenio",
     "modelo": "gpt-6-luna",
     "rep": 2,
-    "latenciaMs": 7517,
+    "latenciaMs": 9141,
     "ok": true,
     "falhas": [],
     "textos": [
-      "Diogo, seguem as condições do *MBA em Engenharia de IA, Machine Learning e Deep Learning*.\n\n*Sem o convênio:*\n• Pix: R$ 10.225,53\n• Cartão: 18x de R$ 645,27\n• Cartão: 12x de R$ 879,91\n• Boleto: 13x de R$ 854,98\n\n*Com o convênio da Nexdom (10% de desconto):*\n• Pix: R$ 9.202,98\n• Cartão: 18x de R$ 580,74\n• Cartão: 12x de R$ 791,92\n• Boleto: 13x de R$ 769,48\n\nO valor é válido até sexta-feira (30/10). A turma começa em 01/02/2027, e as matrículas geralmente encerram até 27/01.\n\n*Quer que eu explique os próximos passos para a matrícula?*"
+      "Diogo, para o *MBA em Engenharia de IA, Machine Learning e Deep Learning*:\n\n*Valores sem o convênio:*\nPix à vista: R$ 10.225,53\nCartão de crédito: 18x de R$ 645,27 ou 12x de R$ 879,91\nBoleto bancário: 13x de R$ 854,98\n\n*Com o convênio da Nexdom (10% de desconto adicional):*\nPix à vista: R$ 9.202,98\nCartão de crédito: 18x de R$ 580,74 ou 12x de R$ 791,92\nBoleto bancário: 13x de R$ 769,48\n\nOs valores são válidos até sexta-feira (30/10); a próxima turma começa em 01/02/2027, e as matrículas geralmente encerram até 27/01.\n\n*Quer que eu te explique os próximos passos da matrícula?*"
     ],
     "lacunas": [],
     "uso": {
       "modelo": "gpt-6-luna",
       "tokens_entrada": 18102,
       "tokens_cache": 18099,
-      "tokens_saida": 539
+      "tokens_saida": 663
     },
-    "custoUsd": 0.00045079,
+    "custoUsd": 0.00051279,
     "etapa": "apresentacao_curso_preco",
     "cursos": [
       "MBA em Engenharia de IA, Machine Learning e Deep Learning"
@@ -264,11 +124,11 @@
     "caso": "p8-diogo-sim-convenio",
     "modelo": "gpt-6-luna",
     "rep": 3,
-    "latenciaMs": 11510,
+    "latenciaMs": 11968,
     "ok": true,
     "falhas": [],
     "textos": [
-      "Diogo, para o *MBA em Engenharia de IA, Machine Learning e Deep Learning*, estas são as condições:\n\n*Valores sem o convênio:*\n• Pix à vista: R$ 10.225,53\n• Cartão de crédito: 18x de R$ 645,27\n• Cartão de crédito: 12x de R$ 879,91\n• Boleto bancário: 13x de R$ 854,98\n\n*Com o convênio da Nexdom:*\n• Pix à vista: R$ 9.202,98\n• Cartão de crédito: 18x de R$ 580,74\n• Cartão de crédito: 12x de R$ 791,92\n• Boleto bancário: 13x de R$ 769,48\n\nO valor é válido até sexta-feira, 30/10. A turma começa em 01/02/2027 e, em geral, as matrículas encerram até 27/01.\n\n*Quer que eu te explique os próximos passos da matrícula?*"
+      "Diogo, para o *MBA em Engenharia de IA, Machine Learning e Deep Learning*:\n\n*Valores sem o convênio:*\n• Pix à vista: R$ 10.225,53\n• Cartão de crédito: 18x de R$ 645,27\n• Cartão de crédito: 12x de R$ 879,91\n• Boleto bancário: 13x de R$ 854,98\n\n*Com o convênio da Nexdom:*\n• Pix à vista: R$ 9.202,98\n• Cartão de crédito: 18x de R$ 580,74\n• Cartão de crédito: 12x de R$ 791,92\n• Boleto bancário: 13x de R$ 769,48\n\nEsses valores são válidos até sexta-feira, 30/10; a próxima turma começa em 01/02/2027 e as matrículas geralmente encerram até 27/01.\n\n*Quer que eu te explique os próximos passos para a matrícula?*"
     ],
     "lacunas": [],
     "uso": {
@@ -285,277 +145,123 @@
   },
   {
     "caso": "gabriel-estado-desconhecido",
-    "modelo": "gpt-5.6-luna",
-    "rep": 1,
-    "latenciaMs": 4885,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "Gabriel, o valor do MBA varia conforme a sua localização, e o convênio da Nexdom será aplicado automaticamente. De qual cidade você está falando?"
-    ],
-    "lacunas": [
-      "O valor exato e as formas de pagamento dependem da localização informada."
-    ],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 17404,
-      "tokens_cache": 4120,
-      "tokens_saida": 333
-    },
-    "custoUsd": 0.0031388,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Engenharia de IA, Machine Learning e Deep Learning"
-    ]
-  },
-  {
-    "caso": "gabriel-estado-desconhecido",
-    "modelo": "gpt-5.6-luna",
-    "rep": 2,
-    "latenciaMs": 5460,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "Gabriel, o investimento do MBA varia conforme a sua localização, e o convênio da Nexdom já será aplicado automaticamente. De qual cidade você está falando?"
-    ],
-    "lacunas": [
-      "O valor exato e as formas de pagamento dependem da localização do lead, que ainda não foi informada."
-    ],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 17404,
-      "tokens_cache": 17401,
-      "tokens_saida": 367
-    },
-    "custoUsd": 0.00078902,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Engenharia de IA, Machine Learning e Deep Learning"
-    ]
-  },
-  {
-    "caso": "gabriel-estado-desconhecido",
-    "modelo": "gpt-5.6-luna",
-    "rep": 3,
-    "latenciaMs": 4834,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "Gabriel, o investimento varia conforme a localização e o convênio da Nexdom é aplicado automaticamente. De qual cidade você está falando?"
-    ],
-    "lacunas": [
-      "O valor exato e as formas de pagamento dependem da localização informada.",
-      "O percentual específico do convênio da Nexdom não aparece no contexto recuperado."
-    ],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 17404,
-      "tokens_cache": 17401,
-      "tokens_saida": 319
-    },
-    "custoUsd": 0.0007314200000000001,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Engenharia de IA, Machine Learning e Deep Learning"
-    ]
-  },
-  {
-    "caso": "gabriel-estado-desconhecido",
     "modelo": "gpt-6-luna",
     "rep": 1,
-    "latenciaMs": 6683,
+    "latenciaMs": 7836,
     "ok": true,
     "falhas": [],
     "textos": [
-      "O valor do MBA em Engenharia de IA, Machine Learning e Deep Learning varia conforme a localização. De qual cidade você está falando?"
+      "O valor do MBA varia conforme a sua localização. De qual cidade você está falando?"
     ],
     "lacunas": [
-      "Os valores e as formas de pagamento não estão especificados no bloco de preço disponível; a localização do lead também é necessária para determinar o valor.",
-      "O percentual de convênio da Nexdom não aparece no contexto."
+      "Os valores e as formas de pagamento não foram informados no bloco de preço disponível; o valor exato depende da localização.",
+      "O percentual ou valor do convênio da Nexdom não aparece nos trechos recuperados."
     ],
     "uso": {
       "modelo": "gpt-6-luna",
       "tokens_entrada": 17404,
       "tokens_cache": 4120,
-      "tokens_saida": 405
-    },
-    "custoUsd": 0.0015721,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Engenharia de IA, Machine Learning e Deep Learning"
-    ]
-  },
-  {
-    "caso": "gabriel-estado-desconhecido",
-    "modelo": "gpt-6-luna",
-    "rep": 2,
-    "latenciaMs": 9835,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "Gabriel, o valor varia conforme a localização. De qual cidade você está falando? Com essa informação, aplico a condição da Nexdom."
-    ],
-    "lacunas": [
-      "O valor exato do MBA depende da localização do lead, que ainda não foi informada."
-    ],
-    "uso": {
-      "modelo": "gpt-6-luna",
-      "tokens_entrada": 17404,
-      "tokens_cache": 17401,
-      "tokens_saida": 403
-    },
-    "custoUsd": 0.00037581,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Engenharia de IA, Machine Learning e Deep Learning"
-    ]
-  },
-  {
-    "caso": "gabriel-estado-desconhecido",
-    "modelo": "gpt-6-luna",
-    "rep": 3,
-    "latenciaMs": 6917,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "Gabriel, o valor varia conforme a sua localização. De qual cidade você está falando?"
-    ],
-    "lacunas": [
-      "O valor exato e as formas de pagamento dependem da localização do lead."
-    ],
-    "uso": {
-      "modelo": "gpt-6-luna",
-      "tokens_entrada": 17404,
-      "tokens_cache": 17401,
-      "tokens_saida": 399
-    },
-    "custoUsd": 0.00037381000000000003,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Engenharia de IA, Machine Learning e Deep Learning"
-    ]
-  },
-  {
-    "caso": "p9-graduacao-antes",
-    "modelo": "gpt-5.6-luna",
-    "rep": 1,
-    "latenciaMs": 12680,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "Moacir, vamos começar pela graduação em Engenharia de Inteligência Artificial.\n\nAs aulas são ao vivo, de segunda a sexta, com opção de horário das 19h às 20h30 ou das 20h30 às 22h. A próxima turma começa em 25/01/2027, e as matrículas, em geral, encerram até 19/01.\n\n*Quer que eu te explique primeiro como funciona a graduação e os diferenciais do formato Live?*"
-    ],
-    "lacunas": [
-      "A lista completa e oficial de disciplinas da graduação em Engenharia de Inteligência Artificial não está disponível no contexto recuperado."
-    ],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 27151,
-      "tokens_cache": 4006,
-      "tokens_saida": 1236
-    },
-    "custoUsd": 0.006192319999999999,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "Faculdade EAD Live em Engenharia de Inteligência Artificial",
-      "MBA em Engenharia de IA, Machine Learning e Deep Learning"
-    ]
-  },
-  {
-    "caso": "p9-graduacao-antes",
-    "modelo": "gpt-5.6-luna",
-    "rep": 2,
-    "latenciaMs": 17365,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "Moacir, vamos começar pela graduação em Engenharia de Inteligência Artificial. É uma formação Live, com aulas ao vivo todos os dias e aprendizado prático. Quer que eu te apresente a grade curricular da graduação?"
-    ],
-    "lacunas": [
-      "A base recuperada não traz uma lista oficial completa das disciplinas da graduação para apresentar a grade com segurança."
-    ],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 27151,
-      "tokens_cache": 27148,
-      "tokens_saida": 1692
-    },
-    "custoUsd": 0.00257396,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "Faculdade EAD Live em Engenharia de Inteligência Artificial",
-      "MBA em Engenharia de IA, Machine Learning e Deep Learning"
-    ]
-  },
-  {
-    "caso": "p9-graduacao-antes",
-    "modelo": "gpt-5.6-luna",
-    "rep": 3,
-    "latenciaMs": 11182,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "Moacir, segue a matriz curricular completa da graduação em Engenharia de Inteligência Artificial:\n\n*Disciplinas:*\n• Fundamentos do Processamento de Dados\n• Introdução à Visualização de Dados e SQL\n• Introdução à Programação com Python\n• SQL e Modelagem Relacional\n• Python para Processamento de Dados\n• Projeto de Bloco: Fundamentos do Processamento de Dados\n• Arquitetura e Operação de Sistemas Computacionais\n• Fundamentos do Desenvolvimento Front-End\n• Infraestrutura e Segurança de Redes\n• Interatividade no Desenvolvimento Front-End\n• Projeto de Bloco: Conectividade e Desenvolvimento Front-End\n• Fundamentos de Desenvolvimento com Java\n• Fundamentos de Desenvolvimento com C#\n• Desenvolvimento de Serviços Web com Spring Boot e MongoDB\n• Desenvolvimento Web .NET e Bases de Dados Relacionais\n• Projeto de Bloco: Desenvolvimento Back-End\n• Velocidade e Qualidade com Estruturas de Dados e Algoritmos\n• Sistemas Operacionais com Linux e Python\n• Estruturas de Dados e Algoritmos Avançados\n• Programação Distribuída com Redes usando Linux e Python\n• Projeto de Bloco: Ciência da Computação\n• Desenvolvimento de Serviços com Spring Boot\n• Design Patterns e Domain-Driven Design (DDD) com Java\n• Microsserviços e DevOps com Spring Boot e Spring Cloud\n• Domain-Driven Design (DDD) e Arquitetura de Softwares Escaláveis com Java\n• Projeto de Bloco: Engenharia Segura de Softwares Escaláveis\n• Estatística Aplicada e Análise Exploratória de Dados\n• Desenvolvimento Seguro de Aplicações Web\n• Análise de Vulnerabilidades e Pentest Web\n• Modelagem Preditiva e Construção de Agentes de IA\n• Projeto de Bloco: Análise e Segurança de Agentes de IA\n• Inteligência Artificial: Model Lifecycle\n• Dados para Machine Learning: Feature Engineering\n• Inteligência Artificial: Classificação\n• Inteligência Artificial: Clusterização\n• Projeto de Bloco: Inteligência Artificial e Machine Learning\n• Arquitetura e Orquestração de Multi-Agentes\n• MLOps: CI/CD para Sistemas de IA\n• Testes e Avaliação de Qualidade para IA\n• Observabilidade e Otimização de Agentes de IA\n• Projeto de Bloco: Desenvolvimento Disciplinado e Gestão de Multi-Agentes de IA\n\n*Quer conhecer os diferenciais e a metodologia da Infnet antes de falarmos sobre os valores?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 27151,
-      "tokens_cache": 27148,
-      "tokens_saida": 1120
-    },
-    "custoUsd": 0.00188756,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "Faculdade EAD Live em Engenharia de Inteligência Artificial",
-      "MBA em Engenharia de IA, Machine Learning e Deep Learning"
-    ]
-  },
-  {
-    "caso": "p9-graduacao-antes",
-    "modelo": "gpt-6-luna",
-    "rep": 1,
-    "latenciaMs": 22111,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "Moacir, vamos pela *graduação em Engenharia de Inteligência Artificial* primeiro.\n\n*Disciplinas:*\n• Fundamentos do Processamento de Dados\n• Introdução à Visualização de Dados e SQL\n• Introdução à Programação com Python\n• SQL e Modelagem Relacional\n• Python para Processamento de Dados\n• Projeto de Bloco: Fundamentos do Processamento de Dados\n• Conectividade e Desenvolvimento Front-End\n• Arquitetura e Operação de Sistemas Computacionais\n• Fundamentos do Desenvolvimento Front-End\n• Infraestrutura e Segurança de Redes\n• Interatividade no Desenvolvimento Front-End\n• Projeto de Bloco: Conectividade e Desenvolvimento Front-End\n• Desenvolvimento Back-End\n• Fundamentos de Desenvolvimento com Java\n• Fundamentos de Desenvolvimento com C#\n• Desenvolvimento de Serviços Web com Spring Boot e MongoDB\n• Desenvolvimento Web .NET e Bases de Dados Relacionais\n• Projeto de Bloco: Desenvolvimento Back-End\n• Ciência da Computação\n• Velocidade e Qualidade com Estruturas de Dados e Algoritmos\n• Sistemas Operacionais com Linux e Python\n• Estruturas de Dados e Algoritmos Avançados\n• Programação Distribuída com Redes usando Linux e Python\n• Projeto de Bloco: Ciência da Computação\n• Engenharia Segura de Softwares Escaláveis\n• Desenvolvimento de Serviços com Spring Boot\n• Design Patterns e Domain-Driven Design (DDD) com Java\n• Microsserviços e DevOps com Spring Boot e Spring Cloud\n• Domain-Driven Design (DDD) e Arquitetura de Softwares Escaláveis com Java\n• Projeto de Bloco: Engenharia Segura de Softwares Escaláveis\n• Análise e Segurança de Agentes de IA\n• Estatística Aplicada e Análise Exploratória de Dados\n• Desenvolvimento Seguro de Aplicações Web\n• Modelagem Preditiva e Construção de Agentes de IA\n• Análise de Vulnerabilidades e Pentest Web\n• Projeto de Bloco: Análise e Segurança de Agentes de IA\n• Machine Learning\n• Inteligência Artificial: Model Lifecycle\n• Dados para Machine Learning: Feature Engineering\n• Inteligência Artificial: Classificação\n• Inteligência Artificial: Clusterização\n• Projeto de Bloco: Inteligência Artificial e Machine Learning\n• Desenvolvimento Disciplinado e Gestão de Multi-Agentes IA\n• Arquitetura e Orquestração de Multi-Agentes\n• MLOps: CI/CD para Sistemas de IA\n• Testes e Avaliação de Qualidade para IA\n• Observabilidade e Otimização de Agentes de IA\n• Projeto de Bloco: Desenvolvimento Disciplinado e Gestão de Multi-Agentes de IA\n\n*Quer conhecer os diferenciais e a metodologia da Infnet antes de falarmos dos valores?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-6-luna",
-      "tokens_entrada": 27151,
-      "tokens_cache": 4006,
-      "tokens_saida": 2737
-    },
-    "custoUsd": 0.00372306,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "Faculdade EAD Live em Engenharia de Inteligência Artificial",
-      "MBA em Engenharia de IA, Machine Learning e Deep Learning"
-    ]
-  },
-  {
-    "caso": "p9-graduacao-antes",
-    "modelo": "gpt-6-luna",
-    "rep": 2,
-    "latenciaMs": 7776,
-    "ok": false,
-    "falhas": [
-      "sem sugestão (esperava ≥ 1)",
-      "faltou: fala da graduação"
-    ],
-    "textos": [],
-    "lacunas": [
-      "A lista completa e oficial das disciplinas da graduação em Engenharia de Inteligência Artificial não está disponível no contexto; não é possível apresentá-la sem risco de enviar uma grade incompleta."
-    ],
-    "uso": {
-      "modelo": "gpt-6-luna",
-      "tokens_entrada": 27151,
-      "tokens_cache": 27148,
       "tokens_saida": 469
     },
-    "custoUsd": 0.00050628,
+    "custoUsd": 0.0016041000000000002,
+    "etapa": "apresentacao_curso_preco",
+    "cursos": [
+      "MBA em Engenharia de IA, Machine Learning e Deep Learning"
+    ]
+  },
+  {
+    "caso": "gabriel-estado-desconhecido",
+    "modelo": "gpt-6-luna",
+    "rep": 2,
+    "latenciaMs": 12298,
+    "ok": true,
+    "falhas": [],
+    "textos": [
+      "Gabriel, o valor do MBA em Engenharia de IA, Machine Learning e Deep Learning varia conforme a localização. De qual cidade você está falando?"
+    ],
+    "lacunas": [
+      "Os valores e as formas de pagamento não aparecem no bloco de preço fornecido. Também não consta o percentual específico de convênio da Nexdom."
+    ],
+    "uso": {
+      "modelo": "gpt-6-luna",
+      "tokens_entrada": 17404,
+      "tokens_cache": 17401,
+      "tokens_saida": 544
+    },
+    "custoUsd": 0.00044631,
+    "etapa": "apresentacao_curso_preco",
+    "cursos": [
+      "MBA em Engenharia de IA, Machine Learning e Deep Learning"
+    ]
+  },
+  {
+    "caso": "gabriel-estado-desconhecido",
+    "modelo": "gpt-6-luna",
+    "rep": 3,
+    "latenciaMs": 10778,
+    "ok": true,
+    "falhas": [],
+    "textos": [
+      "O valor varia conforme a localização. De qual cidade você está falando?"
+    ],
+    "lacunas": [
+      "Os valores e as formas de pagamento do MBA não constam detalhados no contexto; é necessário saber a localização antes de informar um valor específico.",
+      "O percentual de convênio aplicável à Nexdom não está informado nos trechos recuperados."
+    ],
+    "uso": {
+      "modelo": "gpt-6-luna",
+      "tokens_entrada": 17404,
+      "tokens_cache": 17401,
+      "tokens_saida": 601
+    },
+    "custoUsd": 0.00047481,
+    "etapa": "apresentacao_curso_preco",
+    "cursos": [
+      "MBA em Engenharia de IA, Machine Learning e Deep Learning"
+    ]
+  },
+  {
+    "caso": "p9-graduacao-antes",
+    "modelo": "gpt-6-luna",
+    "rep": 1,
+    "latenciaMs": 11188,
+    "ok": true,
+    "falhas": [],
+    "textos": [
+      "Moacir, segue a grade da graduação em Engenharia de Inteligência Artificial:\n\n*Bloco 1 — Fundamentos do Processamento de Dados*\n• Introdução à Visualização de Dados e SQL\n• Introdução à Programação com Python\n• SQL e Modelagem Relacional\n• Python para Processamento de Dados\n• Projeto de Bloco: Fundamentos do Processamento de Dados\n\n*Bloco 2 — Conectividade e Desenvolvimento Front-End*\n• Arquitetura e Operação de Sistemas Computacionais\n• Fundamentos do Desenvolvimento Front-End\n• Infraestrutura e Segurança de Redes\n• Interatividade no Desenvolvimento Front-End\n• Projeto de Bloco: Conectividade e Desenvolvimento Front-End\n\n*Bloco 3 — Desenvolvimento Back-End*\n• Fundamentos de Desenvolvimento com Java\n• Fundamentos de Desenvolvimento com C#\n• Desenvolvimento de Serviços Web com Spring Boot e MongoDB\n• Desenvolvimento Web .NET e Bases de Dados Relacionais\n• Projeto de Bloco: Desenvolvimento Back-End\n\n*Bloco 4 — Ciência da Computação*\n• Velocidade e Qualidade com Estruturas de Dados e Algoritmos\n• Sistemas Operacionais com Linux e Python\n• Estruturas de Dados e Algoritmos Avançados\n• Programação Distribuída com Redes usando Linux e Python\n• Projeto de Bloco: Ciência da Computação\n\n*Bloco 5 — Engenharia Segura de Softwares Escaláveis*\n• Desenvolvimento de Serviços com Spring Boot\n• Design Patterns e Domain-Driven Design (DDD) com Java\n• Microsserviços e DevOps com Spring Boot e Spring Cloud\n• Domain-Driven Design (DDD) e Arquitetura de Softwares Escaláveis com Java\n• Projeto de Bloco: Engenharia Segura de Softwares Escaláveis\n\n*Bloco 6 — Análise e Segurança de Agentes de IA*\n• Estatística Aplicada e Análise Exploratória de Dados\n• Desenvolvimento Seguro de Aplicações Web\n• Modelagem Preditiva e Construção de Agentes de IA\n• Análise de Vulnerabilidades e Pentest Web\n• Projeto de Bloco: Análise e Segurança de Agentes de IA\n\n*Bloco 7 — Inteligência Artificial e Machine Learning*\n• Inteligência Artificial: Model Lifecycle\n• Dados para Machine Learning: Feature Engineering\n• Inteligência Artificial: Classificação\n• Inteligência Artificial: Clusterização\n• Projeto de Bloco: Inteligência Artificial e Machine Learning\n\n*Bloco 8 — Desenvolvimento Disciplinado e Gestão de Multi-Agentes de IA*\n• Arquitetura e Orquestração de Multi-Agentes\n• MLOps: CI/CD para Sistemas de IA\n• Testes e Avaliação de Qualidade para IA\n• Observabilidade e Otimização de Agentes de IA\n• Projeto de Bloco: Desenvolvimento Disciplinado e Gestão de Multi-Agentes de IA\n\n*Quer conhecer os diferenciais e a metodologia da Infnet antes de falarmos dos valores?*"
+    ],
+    "lacunas": [],
+    "uso": {
+      "modelo": "gpt-6-luna",
+      "tokens_entrada": 27803,
+      "tokens_cache": 0,
+      "tokens_saida": 1093
+    },
+    "custoUsd": 0.0033268,
+    "etapa": "apresentacao_curso_preco",
+    "cursos": [
+      "Faculdade EAD Live em Engenharia de Inteligência Artificial",
+      "MBA em Engenharia de IA, Machine Learning e Deep Learning"
+    ]
+  },
+  {
+    "caso": "p9-graduacao-antes",
+    "modelo": "gpt-6-luna",
+    "rep": 2,
+    "latenciaMs": 10906,
+    "ok": true,
+    "falhas": [],
+    "textos": [
+      "*Disciplinas da graduação em Engenharia de Inteligência Artificial:*\n\n*Bloco 1 — Fundamentos do Processamento de Dados*\n• Introdução à Visualização de Dados e SQL\n• Introdução à Programação com Python\n• SQL e Modelagem Relacional\n• Python para Processamento de Dados\n• Projeto de Bloco: Fundamentos do Processamento de Dados\n\n*Bloco 2 — Conectividade e Desenvolvimento Front-End*\n• Arquitetura e Operação de Sistemas Computacionais\n• Fundamentos do Desenvolvimento Front-End\n• Infraestrutura e Segurança de Redes\n• Interatividade no Desenvolvimento Front-End\n• Projeto de Bloco: Conectividade e Desenvolvimento Front-End\n\n*Bloco 3 — Desenvolvimento Back-End*\n• Fundamentos de Desenvolvimento com Java\n• Fundamentos de Desenvolvimento com C#\n• Desenvolvimento de Serviços Web com Spring Boot e MongoDB\n• Desenvolvimento Web .NET e Bases de Dados Relacionais\n• Projeto de Bloco: Desenvolvimento Back-End\n\n*Bloco 4 — Ciência da Computação*\n• Velocidade e Qualidade com Estruturas de Dados e Algoritmos\n• Sistemas Operacionais com Linux e Python\n• Estruturas de Dados e Algoritmos Avançados\n• Programação Distribuída com Redes usando Linux e Python\n• Projeto de Bloco: Ciência da Computação\n\n*Bloco 5 — Engenharia Segura de Softwares Escaláveis*\n• Desenvolvimento de Serviços com Spring Boot\n• Design Patterns e Domain-Driven Design (DDD) com Java\n• Microsserviços e DevOps com Spring Boot e Spring Cloud\n• Domain-Driven Design (DDD) e Arquitetura de Softwares Escaláveis com Java\n• Projeto de Bloco: Engenharia Segura de Softwares Escaláveis\n\n*Bloco 6 — Análise e Segurança de Agentes de IA*\n• Estatística Aplicada e Análise Exploratória de Dados\n• Desenvolvimento Seguro de Aplicações Web\n• Modelagem Preditiva e Construção de Agentes de IA\n• Análise de Vulnerabilidades e Pentest Web\n• Projeto de Bloco: Análise e Segurança de Agentes de IA\n\n*Bloco 7 — Inteligência Artificial e Machine Learning*\n• Inteligência Artificial: Model Lifecycle\n• Dados para Machine Learning: Feature Engineering\n• Inteligência Artificial: Classificação\n• Inteligência Artificial: Clusterização\n• Projeto de Bloco: Inteligência Artificial e Machine Learning\n\n*Bloco 8 — Desenvolvimento Disciplinado e Gestão de Multi-Agentes de IA*\n• Arquitetura e Orquestração de Multi-Agentes\n• MLOps: CI/CD para Sistemas de IA\n• Testes e Avaliação de Qualidade para IA\n• Observabilidade e Otimização de Agentes de IA\n• Projeto de Bloco: Desenvolvimento Disciplinado e Gestão de Multi-Agentes de IA\n\n*Quer conhecer os diferenciais e a metodologia da Infnet antes de falarmos sobre valores?*"
+    ],
+    "lacunas": [],
+    "uso": {
+      "modelo": "gpt-6-luna",
+      "tokens_entrada": 27803,
+      "tokens_cache": 27800,
+      "tokens_saida": 1076
+    },
+    "custoUsd": 0.0008163,
     "etapa": "apresentacao_curso_preco",
     "cursos": [
       "Faculdade EAD Live em Engenharia de Inteligência Artificial",
@@ -566,23 +272,20 @@
     "caso": "p9-graduacao-antes",
     "modelo": "gpt-6-luna",
     "rep": 3,
-    "latenciaMs": 7149,
-    "ok": false,
-    "falhas": [
-      "sem sugestão (esperava ≥ 1)",
-      "faltou: fala da graduação"
+    "latenciaMs": 11180,
+    "ok": true,
+    "falhas": [],
+    "textos": [
+      "Moacir, segue a grade da graduação em Engenharia de Inteligência Artificial:\n\n*Fundamentos do Processamento de Dados*\n• Introdução à Visualização de Dados e SQL\n• Introdução à Programação com Python\n• SQL e Modelagem Relacional\n• Python para Processamento de Dados\n• Projeto de Bloco: Fundamentos do Processamento de Dados\n\n*Conectividade e Desenvolvimento Front-End*\n• Arquitetura e Operação de Sistemas Computacionais\n• Fundamentos do Desenvolvimento Front-End\n• Infraestrutura e Segurança de Redes\n• Interatividade no Desenvolvimento Front-End\n• Projeto de Bloco: Conectividade e Desenvolvimento Front-End\n\n*Desenvolvimento Back-End*\n• Fundamentos de Desenvolvimento com Java\n• Fundamentos de Desenvolvimento com C#\n• Desenvolvimento de Serviços Web com Spring Boot e MongoDB\n• Desenvolvimento Web .NET e Bases de Dados Relacionais\n• Projeto de Bloco: Desenvolvimento Back-End\n\n*Ciência da Computação*\n• Velocidade e Qualidade com Estruturas de Dados e Algoritmos\n• Sistemas Operacionais com Linux e Python\n• Estruturas de Dados e Algoritmos Avançados\n• Programação Distribuída com Redes usando Linux e Python\n• Projeto de Bloco: Ciência da Computação\n\n*Engenharia Segura de Softwares Escaláveis*\n• Desenvolvimento de Serviços com Spring Boot\n• Design Patterns e Domain-Driven Design (DDD) com Java\n• Microsserviços e DevOps com Spring Boot e Spring Cloud\n• Domain-Driven Design (DDD) e Arquitetura de Softwares Escaláveis com Java\n• Projeto de Bloco: Engenharia Segura de Softwares Escaláveis\n\n*Análise e Segurança de Agentes de IA*\n• Estatística Aplicada e Análise Exploratória de Dados\n• Desenvolvimento Seguro de Aplicações Web\n• Modelagem Preditiva e Construção de Agentes de IA\n• Análise de Vulnerabilidades e Pentest Web\n• Projeto de Bloco: Análise e Segurança de Agentes de IA\n\n*Inteligência Artificial e Machine Learning*\n• Inteligência Artificial: Model Lifecycle\n• Dados para Machine Learning: Feature Engineering\n• Inteligência Artificial: Classificação\n• Inteligência Artificial: Clusterização\n• Projeto de Bloco: Inteligência Artificial e Machine Learning\n\n*Desenvolvimento Disciplinado e Gestão de Multi-Agentes de IA*\n• Arquitetura e Orquestração de Multi-Agentes\n• MLOps: CI/CD para Sistemas de IA\n• Testes e Avaliação de Qualidade para IA\n• Observabilidade e Otimização de Agentes de IA\n• Projeto de Bloco: Desenvolvimento Disciplinado e Gestão de Multi-Agentes de IA\n\n*Quer conhecer os diferenciais e a metodologia da Infnet antes de falarmos sobre valores?*"
     ],
-    "textos": [],
-    "lacunas": [
-      "A lista completa de disciplinas da graduação em Engenharia de Inteligência Artificial não está disponível no contexto recuperado, então não é possível apresentar a grade completa antes do MBA com segurança."
-    ],
+    "lacunas": [],
     "uso": {
       "modelo": "gpt-6-luna",
-      "tokens_entrada": 27151,
-      "tokens_cache": 27148,
-      "tokens_saida": 467
+      "tokens_entrada": 27803,
+      "tokens_cache": 27800,
+      "tokens_saida": 990
     },
-    "custoUsd": 0.00050528,
+    "custoUsd": 0.0007733,
     "etapa": "apresentacao_curso_preco",
     "cursos": [
       "Faculdade EAD Live em Engenharia de Inteligência Artificial",
@@ -591,1190 +294,558 @@
   },
   {
     "caso": "p10-redes-sim-valores",
-    "modelo": "gpt-5.6-luna",
-    "rep": 1,
-    "latenciaMs": 6294,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "Ossian, para o MBA em Engenharia de Redes de Computadores, você pode escolher entre estas formas de pagamento:\n\n*À vista no Pix:* R$ 10.225,53\n*Cartão de crédito:* 18x de R$ 645,27\n*Cartão de crédito:* 12x de R$ 879,91\n*Boleto bancário:* 13x de R$ 854,98\n\nEsse valor vale até sexta-feira, 30/10. A próxima turma começa em 01/02/2027, e as matrículas, em geral, encerram até 27/01.\n\n*Quer que eu te explique os próximos passos da matrícula?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 15338,
-      "tokens_cache": 4006,
-      "tokens_saida": 566
-    },
-    "custoUsd": 0.00302572,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Engenharia de Redes de Computadores"
-    ]
-  },
-  {
-    "caso": "p10-redes-sim-valores",
-    "modelo": "gpt-5.6-luna",
-    "rep": 2,
-    "latenciaMs": 7121,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "Ossian, o investimento do *MBA em Engenharia de Redes de Computadores* é:\n\n*Pix à vista:* R$ 10.225,53\n*Cartão de crédito:* 18x de R$ 645,27\n*Cartão de crédito:* 12x de R$ 879,91\n*Boleto bancário:* 13x de R$ 854,98\n\nEsse valor é válido até sexta-feira (30/10).\n\n*Quer que eu te explique os próximos passos da matrícula?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 15338,
-      "tokens_cache": 15335,
-      "tokens_saida": 588
-    },
-    "custoUsd": 0.0010129000000000002,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Engenharia de Redes de Computadores"
-    ]
-  },
-  {
-    "caso": "p10-redes-sim-valores",
-    "modelo": "gpt-5.6-luna",
-    "rep": 3,
-    "latenciaMs": 6080,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "Ossian, estas são as formas de pagamento do *MBA em Engenharia de Redes de Computadores*:\n\n*Valores:*\n• Pix à vista: *R$ 10.225,53*\n• Cartão de crédito: *18x de R$ 645,27*\n• Cartão de crédito: *12x de R$ 879,91*\n• Boleto bancário: *13x de R$ 854,98*\n\nEsse valor é válido até sexta-feira (30/10). A próxima turma começa em 01/02/2027, e as matrículas, em geral, encerram até 27/01.\n\n*Quer que eu te explique os próximos passos da matrícula?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 15338,
-      "tokens_cache": 15335,
-      "tokens_saida": 465
-    },
-    "custoUsd": 0.0008652999999999999,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Engenharia de Redes de Computadores"
-    ]
-  },
-  {
-    "caso": "p10-redes-sim-valores",
     "modelo": "gpt-6-luna",
     "rep": 1,
-    "latenciaMs": 10646,
+    "latenciaMs": 10664,
     "ok": true,
     "falhas": [],
     "textos": [
-      "*MBA em Engenharia de Redes de Computadores*\n\n*Formas de pagamento:*\n• Pix à vista: R$ 10.225,53\n• Cartão de crédito: 18x de R$ 645,27\n• Cartão de crédito: 12x de R$ 879,91\n• Boleto bancário: 13x de R$ 854,98\n\nOs valores são válidos até sexta-feira, 30/10. A próxima turma começa em 01/02/2027, e as matrículas geralmente encerram até 27/01.\n\n*Quer que eu te explique os próximos passos da matrícula?*"
+      "*MBA em Engenharia de Redes de Computadores — valores:*\n• Pix à vista: R$ 10.225,53\n• Cartão de crédito: 18x de R$ 645,27\n• Cartão de crédito: 12x de R$ 879,91\n• Boleto bancário: 13x de R$ 854,98\n\nEsse valor é válido até sexta-feira (30/10).\n\n*Quer conhecer a metodologia e os diferenciais da Infnet antes de falarmos dos próximos passos?*"
     ],
     "lacunas": [],
     "uso": {
       "modelo": "gpt-6-luna",
       "tokens_entrada": 15338,
-      "tokens_cache": 4006,
-      "tokens_saida": 883
-    },
-    "custoUsd": 0.00161476,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Engenharia de Redes de Computadores"
-    ]
-  },
-  {
-    "caso": "p10-redes-sim-valores",
-    "modelo": "gpt-6-luna",
-    "rep": 2,
-    "latenciaMs": 6771,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "*MBA em Engenharia de Redes de Computadores*\n\n*Formas de pagamento:*\n• Pix à vista: R$ 10.225,53\n• Cartão de crédito: 18x de R$ 645,27\n• Cartão de crédito: 12x de R$ 879,91\n• Boleto bancário: 13x de R$ 854,98\n\nValores válidos até sexta-feira, 30/10; a turma começa em 01/02/2027 e as matrículas, em geral, encerram até 27/01.\n\n*Quer que eu explique os próximos passos da matrícula?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-6-luna",
-      "tokens_entrada": 15338,
-      "tokens_cache": 15335,
-      "tokens_saida": 596
-    },
-    "custoUsd": 0.00045165,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Engenharia de Redes de Computadores"
-    ]
-  },
-  {
-    "caso": "p10-redes-sim-valores",
-    "modelo": "gpt-6-luna",
-    "rep": 3,
-    "latenciaMs": 17327,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "*MBA em Engenharia de Redes de Computadores*\n\n*Formas de pagamento:*\n• Pix à vista: R$ 10.225,53\n• Cartão de crédito: 18x de R$ 645,27\n• Cartão de crédito: 12x de R$ 879,91\n• Boleto bancário: 13x de R$ 854,98\n\nValor válido até sexta-feira, 30/10; as matrículas geralmente encerram até 27/01 para a turma com início em 01/02/2027.\n\n*Quer conhecer os diferenciais e a metodologia da Infnet antes de avançarmos?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-6-luna",
-      "tokens_entrada": 15338,
-      "tokens_cache": 15335,
-      "tokens_saida": 894
-    },
-    "custoUsd": 0.00060065,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Engenharia de Redes de Computadores"
-    ]
-  },
-  {
-    "caso": "p11-grade-completa",
-    "modelo": "gpt-5.6-luna",
-    "rep": 1,
-    "latenciaMs": 5759,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "*Disciplinas:*\n\n• SQL Avançado para Engenharia de Dados\n• Transformação e Qualidade de Dados com dbt\n• Processamento de Big Data com Spark SQL\n• Implementação de Data Lakehouse com Delta Lake\n• Pipelines ETL com AWS Glue Studio\n• Orquestração de Pipelines de Dados com AWS Step Functions\n• Data Streaming e Processamento em Tempo Real com Kafka\n• Engenharia de Dados para IA Generativa e Sistemas Agênticos\n\n*Quer conhecer os diferenciais e a metodologia da Infnet antes de falarmos sobre valores?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 19373,
-      "tokens_cache": 19370,
-      "tokens_saida": 438
-    },
-    "custoUsd": 0.0009136000000000001,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Engenharia de Dados: Big Data e IA"
-    ]
-  },
-  {
-    "caso": "p11-grade-completa",
-    "modelo": "gpt-5.6-luna",
-    "rep": 2,
-    "latenciaMs": 74057,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "*Disciplinas:*\n• SQL Avançado para Engenharia de Dados\n• Transformação e Qualidade de Dados com dbt\n• Processamento de Big Data com Spark SQL\n• Implementação de Data Lakehouse com Delta Lake\n• Pipelines ETL com AWS Glue Studio\n• Orquestração de Pipelines de Dados com AWS Step Functions\n• Data Streaming e Processamento em Tempo Real com Kafka\n• Engenharia de Dados para IA Generativa e Sistemas Agênticos\n\n*Quer conhecer os diferenciais e a metodologia da Infnet antes de falarmos sobre valores?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 19373,
-      "tokens_cache": 19370,
-      "tokens_saida": 373
-    },
-    "custoUsd": 0.0008356,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Engenharia de Dados: Big Data e IA"
-    ]
-  },
-  {
-    "caso": "p11-grade-completa",
-    "modelo": "gpt-5.6-luna",
-    "rep": 3,
-    "latenciaMs": 5544,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "*Disciplinas:*\n• SQL Avançado para Engenharia de Dados\n• Transformação e Qualidade de Dados com dbt\n• Processamento de Big Data com Spark SQL\n• Implementação de Data Lakehouse com Delta Lake\n• Pipelines ETL com AWS Glue Studio\n• Orquestração de Pipelines de Dados com AWS Step Functions\n• Data Streaming e Processamento em Tempo Real com Kafka\n• Engenharia de Dados para IA Generativa e Sistemas Agênticos\n\n*Quer conhecer os diferenciais e a metodologia da Infnet antes de falarmos sobre os valores?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 19373,
-      "tokens_cache": 19370,
-      "tokens_saida": 419
-    },
-    "custoUsd": 0.0008908,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Engenharia de Dados: Big Data e IA"
-    ]
-  },
-  {
-    "caso": "p11-grade-completa",
-    "modelo": "gpt-6-luna",
-    "rep": 1,
-    "latenciaMs": 5965,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "*Disciplinas:*\n• SQL Avançado para Engenharia de Dados\n• Transformação e Qualidade de Dados com dbt\n• Processamento de Big Data com Spark SQL\n• Implementação de Data Lakehouse com Delta Lake\n• Pipelines ETL com AWS Glue Studio\n• Orquestração de Pipelines de Dados com AWS Step Functions\n• Data Streaming e Processamento em Tempo Real com Kafka\n• Engenharia de Dados para IA Generativa e Sistemas Agênticos\n\n*Quer conhecer os diferenciais e a metodologia da Infnet antes de falarmos sobre valores?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-6-luna",
-      "tokens_entrada": 19373,
-      "tokens_cache": 19370,
-      "tokens_saida": 434
-    },
-    "custoUsd": 0.000411,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Engenharia de Dados: Big Data e IA"
-    ]
-  },
-  {
-    "caso": "p11-grade-completa",
-    "modelo": "gpt-6-luna",
-    "rep": 2,
-    "latenciaMs": 7377,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "*Disciplinas:*\n• SQL Avançado para Engenharia de Dados\n• Transformação e Qualidade de Dados com dbt\n• Processamento de Big Data com Spark SQL\n• Implementação de Data Lakehouse com Delta Lake\n• Pipelines ETL com AWS Glue Studio\n• Orquestração de Pipelines de Dados com AWS Step Functions\n• Data Streaming e Processamento em Tempo Real com Kafka\n• Engenharia de Dados para IA Generativa e Sistemas Agênticos\n\n*Quer conhecer os diferenciais e a metodologia da Infnet antes de falarmos sobre valores?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-6-luna",
-      "tokens_entrada": 19373,
-      "tokens_cache": 19370,
-      "tokens_saida": 495
-    },
-    "custoUsd": 0.0004415,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Engenharia de Dados: Big Data e IA"
-    ]
-  },
-  {
-    "caso": "p11-grade-completa",
-    "modelo": "gpt-6-luna",
-    "rep": 3,
-    "latenciaMs": 12886,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "*Disciplinas:*\n• SQL Avançado para Engenharia de Dados\n• Transformação e Qualidade de Dados com dbt\n• Processamento de Big Data com Spark SQL\n• Implementação de Data Lakehouse com Delta Lake\n• Pipelines ETL com AWS Glue Studio\n• Orquestração de Pipelines de Dados com AWS Step Functions\n• Data Streaming e Processamento em Tempo Real com Kafka\n• Engenharia de Dados para IA Generativa e Sistemas Agênticos\n\n*Quer conhecer os valores e as formas de pagamento?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-6-luna",
-      "tokens_entrada": 19373,
-      "tokens_cache": 19370,
-      "tokens_saida": 409
-    },
-    "custoUsd": 0.0003985,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Engenharia de Dados: Big Data e IA"
-    ]
-  },
-  {
-    "caso": "p12-quando-comeca",
-    "modelo": "gpt-5.6-luna",
-    "rep": 1,
-    "latenciaMs": 6127,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "O MBA em Inteligência Artificial e Automação de Processos começa em *01/02/2027*, com aulas às segundas e quartas, das 20h às 22h. As matrículas, em geral, encerram até *27/01*, três dias úteis antes do início.\n\n*Quer que eu te envie a grade completa do curso?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 16614,
-      "tokens_cache": 16611,
-      "tokens_saida": 450
-    },
-    "custoUsd": 0.0008728200000000001,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Inteligência Artificial e Automação de Processos"
-    ]
-  },
-  {
-    "caso": "p12-quando-comeca",
-    "modelo": "gpt-5.6-luna",
-    "rep": 2,
-    "latenciaMs": 6066,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "A próxima turma começa em *01/02/2027*, com aulas às segundas e quartas, das 20h às 22h. As matrículas, em geral, encerram até *27/01*, três dias úteis antes do início.\n\nQuer que eu te envie a grade curricular?"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 16614,
-      "tokens_cache": 16611,
-      "tokens_saida": 438
-    },
-    "custoUsd": 0.00085842,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Inteligência Artificial e Automação de Processos"
-    ]
-  },
-  {
-    "caso": "p12-quando-comeca",
-    "modelo": "gpt-5.6-luna",
-    "rep": 3,
-    "latenciaMs": 4466,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "O MBA começa em *01/02/2027*. As matrículas, em geral, encerram até *27/01*, três dias úteis antes do início, para preparar os acessos. Quer que eu te envie a grade do curso?"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 16614,
-      "tokens_cache": 16611,
-      "tokens_saida": 344
-    },
-    "custoUsd": 0.0007456200000000001,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Inteligência Artificial e Automação de Processos"
-    ]
-  },
-  {
-    "caso": "p12-quando-comeca",
-    "modelo": "gpt-6-luna",
-    "rep": 1,
-    "latenciaMs": 13561,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "O MBA começa em *01/02/2027*. As matrículas, em geral, encerram até *27/01*, três dias úteis antes do início. Quer que eu te passe os próximos passos para a matrícula?"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-6-luna",
-      "tokens_entrada": 16614,
-      "tokens_cache": 16611,
-      "tokens_saida": 490
-    },
-    "custoUsd": 0.00041141,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Inteligência Artificial e Automação de Processos"
-    ]
-  },
-  {
-    "caso": "p12-quando-comeca",
-    "modelo": "gpt-6-luna",
-    "rep": 2,
-    "latenciaMs": 6533,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "O MBA começa em *01/02/2027*. Em geral, as matrículas encerram até *27/01*, três dias úteis antes do início. Quer que eu te passe os próximos passos para a matrícula?"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-6-luna",
-      "tokens_entrada": 16614,
-      "tokens_cache": 16611,
-      "tokens_saida": 353
-    },
-    "custoUsd": 0.00034291000000000004,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Inteligência Artificial e Automação de Processos"
-    ]
-  },
-  {
-    "caso": "p12-quando-comeca",
-    "modelo": "gpt-6-luna",
-    "rep": 3,
-    "latenciaMs": 7463,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "A próxima turma do MBA em Inteligência Artificial e Automação de Processos começa em *01/02/2027*. Em geral, as matrículas encerram até *27/01*, três dias úteis antes do início. Quer que eu te envie a grade do curso?"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-6-luna",
-      "tokens_entrada": 16614,
-      "tokens_cache": 16611,
-      "tokens_saida": 540
-    },
-    "custoUsd": 0.00043641000000000003,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Inteligência Artificial e Automação de Processos"
-    ]
-  },
-  {
-    "caso": "data-antes-da-metodologia",
-    "modelo": "gpt-5.6-luna",
-    "rep": 1,
-    "latenciaMs": 5118,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "O MBA começa em *01/02/2027*. As matrículas, em geral, encerram até *27/01*, três dias úteis antes do início.\n\n*Antes de falarmos de valores, você gostaria de conhecer a metodologia e os diferenciais da Infnet?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 12724,
-      "tokens_cache": 4006,
-      "tokens_saida": 398
-    },
-    "custoUsd": 0.0023013200000000004,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Inteligência Artificial e Automação de Processos"
-    ]
-  },
-  {
-    "caso": "data-antes-da-metodologia",
-    "modelo": "gpt-5.6-luna",
-    "rep": 2,
-    "latenciaMs": 5232,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "A próxima turma do MBA em Inteligência Artificial e Automação de Processos começa em *01/02/2027*, com aulas às segundas e quartas, das 20h às 22h. As matrículas, em geral, encerram até *27/01*, três dias úteis antes do início.\n\n*Antes de falarmos sobre valores, quer conhecer os diferenciais e a metodologia da Infnet?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 12724,
-      "tokens_cache": 12721,
-      "tokens_saida": 332
-    },
-    "custoUsd": 0.0006534199999999999,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Inteligência Artificial e Automação de Processos"
-    ]
-  },
-  {
-    "caso": "data-antes-da-metodologia",
-    "modelo": "gpt-5.6-luna",
-    "rep": 3,
-    "latenciaMs": 4819,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "O MBA em Inteligência Artificial e Automação de Processos começa em *01/02/2027*, com aulas às segundas e quartas, das 20h às 22h. As matrículas, em geral, encerram até *27/01*, três dias úteis antes do início.\n\n*Quer conhecer os diferenciais e a metodologia da Infnet antes de falarmos sobre os valores?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 12724,
-      "tokens_cache": 12721,
-      "tokens_saida": 316
-    },
-    "custoUsd": 0.00063422,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Inteligência Artificial e Automação de Processos"
-    ]
-  },
-  {
-    "caso": "data-antes-da-metodologia",
-    "modelo": "gpt-6-luna",
-    "rep": 1,
-    "latenciaMs": 6861,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "A próxima turma do MBA em Inteligência Artificial e Automação de Processos começa em 01/02/2027. As matrículas, em geral, encerram até 27/01, três dias úteis antes do início. Quer conhecer os diferenciais e a metodologia da Infnet?"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-6-luna",
-      "tokens_entrada": 12724,
-      "tokens_cache": 4006,
-      "tokens_saida": 495
-    },
-    "custoUsd": 0.0011593600000000001,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Inteligência Artificial e Automação de Processos"
-    ]
-  },
-  {
-    "caso": "data-antes-da-metodologia",
-    "modelo": "gpt-6-luna",
-    "rep": 2,
-    "latenciaMs": 8005,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "A próxima turma começa em 01/02/2027, e as matrículas geralmente se encerram até 27/01. As aulas acontecem às segundas e quartas, das 20h às 22h. Quer conhecer os diferenciais e a metodologia da Infnet antes de falarmos sobre os próximos passos?"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-6-luna",
-      "tokens_entrada": 12724,
-      "tokens_cache": 12721,
-      "tokens_saida": 508
-    },
-    "custoUsd": 0.00038151,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Inteligência Artificial e Automação de Processos"
-    ]
-  },
-  {
-    "caso": "data-antes-da-metodologia",
-    "modelo": "gpt-6-luna",
-    "rep": 3,
-    "latenciaMs": 5499,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "O MBA começa em *01/02/2027*. As matrículas, em geral, encerram até *27/01*, três dias úteis antes do início. Quer conhecer os diferenciais e a metodologia da Infnet?"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-6-luna",
-      "tokens_entrada": 12724,
-      "tokens_cache": 12721,
-      "tokens_saida": 334
-    },
-    "custoUsd": 0.00029451,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Inteligência Artificial e Automação de Processos"
-    ]
-  },
-  {
-    "caso": "p13-sim-metodologia",
-    "modelo": "gpt-5.6-luna",
-    "rep": 1,
-    "latenciaMs": 10274,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "Raphael, no Infnet, o MBA em Engenharia de Contexto e Agentes de IA combina:\n\n• *Aulas 100% ao vivo*, com professores atuantes no mercado\n• Práticas em labs virtuais com tecnologias relevantes\n• Conteúdos premium de editoras internacionais\n• Avaliação prática com 8 projetos, formando um portfólio profissional\n• Comunidade online para interação e networking\n\nO curso também utiliza o Infnet Online para centralizar aulas, conteúdos, ferramentas e comunidade de alunos e professores.\n\n*Quer conhecer os valores e as formas de pagamento?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 15077,
-      "tokens_cache": 4006,
-      "tokens_saida": 383
-    },
-    "custoUsd": 0.00275392,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Engenharia de Contexto e Agentes de IA: RAG, MCP e Multiagentes"
-    ]
-  },
-  {
-    "caso": "p13-sim-metodologia",
-    "modelo": "gpt-5.6-luna",
-    "rep": 2,
-    "latenciaMs": 5603,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "Raphael, a Faculdade Infnet é especializada em engenharias tech, com mais de 30 anos de história, mais de 30 mil alunos formados e nota máxima do MEC no ensino a distância.\n\n• Todas as aulas ao vivo, sem aulas pré-gravadas\n• Práticas em laboratórios virtuais\n• Conteúdos premium de tecnologia\n• Currículo atualizado conforme as demandas do mercado\n• Comunidade online para interação e networking\n• Avaliação prática com projetos que formam seu portfólio\n\n*Quer conhecer os valores e as formas de pagamento?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 15077,
-      "tokens_cache": 15074,
-      "tokens_saida": 401
-    },
-    "custoUsd": 0.00078328,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Engenharia de Contexto e Agentes de IA: RAG, MCP e Multiagentes"
-    ]
-  },
-  {
-    "caso": "p13-sim-metodologia",
-    "modelo": "gpt-5.6-luna",
-    "rep": 3,
-    "latenciaMs": 6112,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "Raphael, no MBA em Engenharia de Contexto e Agentes de IA, você conta com:\n\n• Todas as aulas ao vivo, com professores atuantes no mercado\n• Práticas em laboratórios virtuais com tecnologias relevantes\n• Conteúdos premium de editoras internacionais\n• Currículo atualizado com base nas demandas do mercado\n• Avaliação prática por meio de projetos que formam seu portfólio\n\n*Quer que eu te apresente agora os valores e as formas de pagamento?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 15077,
-      "tokens_cache": 15074,
-      "tokens_saida": 484
-    },
-    "custoUsd": 0.00088288,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Engenharia de Contexto e Agentes de IA: RAG, MCP e Multiagentes"
-    ]
-  },
-  {
-    "caso": "p13-sim-metodologia",
-    "modelo": "gpt-6-luna",
-    "rep": 1,
-    "latenciaMs": 10416,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "Raphael, a metodologia da Infnet combina:\n• Aulas 100% ao vivo, com interação entre alunos e professores;\n• Práticas em laboratórios virtuais;\n• Conteúdos premium de tecnologia;\n• Grades curriculares desenvolvidas com base no que o mercado busca.\n\nNeste MBA, a avaliação é prática: são 8 projetos, um por disciplina, que formam seu portfólio.\n\n*Quer conhecer os valores e as formas de pagamento?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-6-luna",
-      "tokens_entrada": 15077,
       "tokens_cache": 4006,
       "tokens_saida": 932
     },
-    "custoUsd": 0.00161316,
+    "custoUsd": 0.00163926,
     "etapa": "apresentacao_curso_preco",
     "cursos": [
-      "MBA em Engenharia de Contexto e Agentes de IA: RAG, MCP e Multiagentes"
+      "MBA em Engenharia de Redes de Computadores"
     ]
   },
   {
-    "caso": "p13-sim-metodologia",
+    "caso": "p10-redes-sim-valores",
     "modelo": "gpt-6-luna",
     "rep": 2,
-    "latenciaMs": 8080,
+    "latenciaMs": 10755,
     "ok": true,
     "falhas": [],
     "textos": [
-      "No MBA, você conta com:\n• Aulas 100% ao vivo, com interação entre alunos e professores\n• Práticas em laboratórios virtuais\n• Conteúdos premium de tecnologia\n• Grade curricular desenvolvida com base nas demandas do mercado\n\n*Quer conhecer os valores e as formas de pagamento?*"
+      "Ossian, os valores do *MBA em Engenharia de Redes de Computadores* são:\n\n*Pix à vista:* R$ 10.225,53\n*Cartão de crédito:* 18x de R$ 645,27\n*Cartão de crédito:* 12x de R$ 879,91\n*Boleto bancário:* 13x de R$ 854,98\n\nOs valores são válidos até sexta-feira (30/10); a próxima turma começa em 01/02/2027, e as matrículas geralmente encerram até 27/01.\n\n*Quer que eu te explique os próximos passos da matrícula?*"
     ],
     "lacunas": [],
     "uso": {
       "modelo": "gpt-6-luna",
-      "tokens_entrada": 15077,
-      "tokens_cache": 15074,
-      "tokens_saida": 457
+      "tokens_entrada": 15338,
+      "tokens_cache": 15335,
+      "tokens_saida": 595
     },
-    "custoUsd": 0.00037954000000000004,
+    "custoUsd": 0.00045115,
     "etapa": "apresentacao_curso_preco",
     "cursos": [
-      "MBA em Engenharia de Contexto e Agentes de IA: RAG, MCP e Multiagentes"
+      "MBA em Engenharia de Redes de Computadores"
     ]
   },
   {
-    "caso": "p13-sim-metodologia",
+    "caso": "p10-redes-sim-valores",
     "modelo": "gpt-6-luna",
     "rep": 3,
-    "latenciaMs": 8075,
+    "latenciaMs": 13434,
     "ok": true,
     "falhas": [],
     "textos": [
-      "A metodologia do Infnet combina aulas ao vivo com professores e alunos, aprendizado prático e conteúdos atualizados:\n• Aulas ao vivo, sem conteúdo pré-gravado\n• Práticas em laboratórios virtuais\n• Acesso a conteúdos premium\n• Grades desenvolvidas com base no que o mercado busca\n\n*Quer conhecer os valores e as formas de pagamento do MBA?*"
+      "*MBA em Engenharia de Redes de Computadores*\n\n*Formas de pagamento:*\n• Pix à vista: R$ 10.225,53\n• Cartão de crédito: 18x de R$ 645,27\n• Cartão de crédito: 12x de R$ 879,91\n• Boleto bancário: 13x de R$ 854,98\n\nO valor vale até sexta-feira, 30/10. A turma começa em 01/02/2027, e as matrículas geralmente encerram até 27/01.\n\n*Quer conhecer também a metodologia e os diferenciais da Infnet?*"
     ],
     "lacunas": [],
     "uso": {
       "modelo": "gpt-6-luna",
-      "tokens_entrada": 15077,
-      "tokens_cache": 15074,
-      "tokens_saida": 504
+      "tokens_entrada": 15338,
+      "tokens_cache": 15335,
+      "tokens_saida": 983
     },
-    "custoUsd": 0.00040304,
+    "custoUsd": 0.0006451499999999999,
     "etapa": "apresentacao_curso_preco",
     "cursos": [
-      "MBA em Engenharia de Contexto e Agentes de IA: RAG, MCP e Multiagentes"
+      "MBA em Engenharia de Redes de Computadores"
     ]
   },
   {
-    "caso": "p13-empresa-nao-conveniada",
-    "modelo": "gpt-5.6-luna",
-    "rep": 1,
-    "latenciaMs": 6164,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "Entendi. A Certsys ainda não possui convênio com a Infnet. Você gostaria de indicar essa parceria para a empresa? O convênio corporativo é gratuito: acesse https://www.infnet.edu.br/empresas/convenio/ e me informe o nome e o e-mail do responsável pelo RH por esse tipo de parceria para entrarmos em contato."
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 18683,
-      "tokens_cache": 4006,
-      "tokens_saida": 455
-    },
-    "custoUsd": 0.00356152,
-    "etapa": "qualificacao_empresa",
-    "cursos": [
-      "MBA em Engenharia de Software com Java"
-    ]
-  },
-  {
-    "caso": "p13-empresa-nao-conveniada",
-    "modelo": "gpt-5.6-luna",
-    "rep": 2,
-    "latenciaMs": 8726,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "Entendi. A Certsys ainda não possui convênio com a Infnet.\n\nO convênio corporativo é gratuito para a empresa e pode ser indicado para avaliação da parceria. Saiba mais: https://www.infnet.edu.br/empresas/convenio/\n\nSe fizer sentido, me envie o nome e o e-mail do responsável pelo RH por esse tipo de parceria para fazermos o contato."
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 18683,
-      "tokens_cache": 18680,
-      "tokens_saida": 672
-    },
-    "custoUsd": 0.0011806,
-    "etapa": "qualificacao_empresa",
-    "cursos": [
-      "MBA em Engenharia de Software com Java"
-    ]
-  },
-  {
-    "caso": "p13-empresa-nao-conveniada",
-    "modelo": "gpt-5.6-luna",
-    "rep": 3,
-    "latenciaMs": 8618,
-    "ok": false,
-    "falhas": [
-      "proibido: oferece o convênio da empresa antiga"
-    ],
-    "textos": [
-      "Entendi. Como você agora trabalha na Certsys, o convênio da Qintess não se aplica. Podemos indicar um convênio corporativo gratuito para a Certsys: https://www.infnet.edu.br/empresas/convenio/\n\nVocê gostaria de fazer essa indicação? Se sim, me envie o nome e o e-mail do responsável do RH por parcerias educacionais para a Infnet fazer o contato."
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 18683,
-      "tokens_cache": 18680,
-      "tokens_saida": 674
-    },
-    "custoUsd": 0.001183,
-    "etapa": "qualificacao_empresa",
-    "cursos": [
-      "MBA em Engenharia de Software com Java"
-    ]
-  },
-  {
-    "caso": "p13-empresa-nao-conveniada",
+    "caso": "p11-grade-completa",
     "modelo": "gpt-6-luna",
     "rep": 1,
-    "latenciaMs": 9703,
+    "latenciaMs": 6870,
     "ok": true,
     "falhas": [],
     "textos": [
-      "A Certsys ainda não tem convênio com a Infnet. A parceria é gratuita para a empresa e pode fazer sentido para empresas com um time de tecnologia. Se quiser indicar essa possibilidade, acesse https://www.infnet.edu.br/empresas/convenio/ e me envie o nome e o e-mail da pessoa responsável por esse tipo de parceria no RH."
+      "*Disciplinas:*\n• SQL Avançado para Engenharia de Dados\n• Transformação e Qualidade de Dados com dbt\n• Processamento de Big Data com Spark SQL\n• Implementação de Data Lakehouse com Delta Lake\n• Pipelines ETL com AWS Glue Studio\n• Orquestração de Pipelines de Dados com AWS Step Functions\n• Data Streaming e Processamento em Tempo Real com Kafka\n• Engenharia de Dados para IA Generativa e Sistemas Agênticos\n\n*Quer conhecer os diferenciais e a metodologia da Infnet antes de falarmos sobre valores?*"
     ],
     "lacunas": [],
     "uso": {
       "modelo": "gpt-6-luna",
-      "tokens_entrada": 18683,
+      "tokens_entrada": 19373,
       "tokens_cache": 4006,
-      "tokens_saida": 597
+      "tokens_saida": 414
     },
-    "custoUsd": 0.00180626,
-    "etapa": "qualificacao_empresa",
-    "cursos": [
-      "MBA em Engenharia de Software com Java"
-    ]
-  },
-  {
-    "caso": "p13-empresa-nao-conveniada",
-    "modelo": "gpt-6-luna",
-    "rep": 2,
-    "latenciaMs": 11015,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "A Certsys ainda não tem convênio com a Infnet. O convênio corporativo é gratuito para a empresa e pode fazer sentido para times de tecnologia.\n\nVocê gostaria de indicar essa parceria para a Certsys? Saiba mais em https://www.infnet.edu.br/empresas/convenio/ e, se tiver interesse, me envie o nome e o e-mail da pessoa responsável por esse tipo de parceria no RH."
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-6-luna",
-      "tokens_entrada": 18683,
-      "tokens_cache": 18680,
-      "tokens_saida": 703
-    },
-    "custoUsd": 0.0005386,
-    "etapa": "qualificacao_empresa",
-    "cursos": [
-      "MBA em Engenharia de Software com Java"
-    ]
-  },
-  {
-    "caso": "p13-empresa-nao-conveniada",
-    "modelo": "gpt-6-luna",
-    "rep": 3,
-    "latenciaMs": 9103,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "Obrigado por avisar. A Certsys ainda não tem convênio com a Infnet. O convênio corporativo é gratuito para a empresa e faz mais sentido para empresas com equipe de tecnologia. Se quiser indicar essa parceria, acesse https://www.infnet.edu.br/empresas/convenio/ e me passe o nome e o e-mail da pessoa responsável no RH por esse tipo de parceria para entrarmos em contato."
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-6-luna",
-      "tokens_entrada": 18683,
-      "tokens_cache": 18680,
-      "tokens_saida": 511
-    },
-    "custoUsd": 0.0004426,
-    "etapa": "qualificacao_empresa",
-    "cursos": [
-      "MBA em Engenharia de Software com Java"
-    ]
-  },
-  {
-    "caso": "bolsa-nao-e-vestibular",
-    "modelo": "gpt-5.6-luna",
-    "rep": 1,
-    "latenciaMs": 4937,
-    "ok": true,
-    "falhas": [],
-    "textos": [],
-    "lacunas": [
-      "Não há informação suficiente no contexto sobre existência, critérios ou processo de solicitação de bolsa de estudo para a graduação em Engenharia de Software."
-    ],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 24327,
-      "tokens_cache": 4006,
-      "tokens_saida": 311
-    },
-    "custoUsd": 0.0045175200000000006,
+    "custoUsd": 0.00178376,
     "etapa": "apresentacao_curso_preco",
     "cursos": [
-      "Faculdade EAD Live em Engenharia de Software"
+      "MBA em Engenharia de Dados: Big Data e IA"
     ]
   },
   {
-    "caso": "bolsa-nao-e-vestibular",
-    "modelo": "gpt-5.6-luna",
-    "rep": 2,
-    "latenciaMs": 5419,
-    "ok": true,
-    "falhas": [],
-    "textos": [],
-    "lacunas": [
-      "Não há informação suficiente sobre bolsas de estudo para a graduação em Engenharia de Software, incluindo critérios, percentual ou processo de solicitação. O contexto apenas menciona a existência de uma seção chamada “Bolsas de Estudos”, sem detalhamento."
-    ],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 24327,
-      "tokens_cache": 24324,
-      "tokens_saida": 389
-    },
-    "custoUsd": 0.00095388,
-    "etapa": "descoberta",
-    "cursos": [
-      "Faculdade EAD Live em Engenharia de Software"
-    ]
-  },
-  {
-    "caso": "bolsa-nao-e-vestibular",
-    "modelo": "gpt-5.6-luna",
-    "rep": 3,
-    "latenciaMs": 5636,
-    "ok": true,
-    "falhas": [],
-    "textos": [],
-    "lacunas": [
-      "Não há informação segura sobre a existência, os critérios ou o processo de solicitação de bolsa de estudo para a graduação em Engenharia de Software."
-    ],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 24327,
-      "tokens_cache": 24324,
-      "tokens_saida": 328
-    },
-    "custoUsd": 0.0008806800000000001,
-    "etapa": "descoberta",
-    "cursos": [
-      "Faculdade EAD Live em Engenharia de Software"
-    ]
-  },
-  {
-    "caso": "bolsa-nao-e-vestibular",
+    "caso": "p11-grade-completa",
     "modelo": "gpt-6-luna",
-    "rep": 1,
-    "latenciaMs": 8825,
+    "rep": 2,
+    "latenciaMs": 6191,
     "ok": true,
     "falhas": [],
     "textos": [
-      "Para a graduação em Engenharia de Software, vou confirmar com a coordenação quais opções de bolsa de estudo estão disponíveis."
+      "*Disciplinas do MBA em Engenharia de Dados: Big Data e IA:*\n• SQL Avançado para Engenharia de Dados\n• Transformação e Qualidade de Dados com dbt\n• Processamento de Big Data com Spark SQL\n• Implementação de Data Lakehouse com Delta Lake\n• Pipelines ETL com AWS Glue Studio\n• Orquestração de Pipelines de Dados com AWS Step Functions\n• Data Streaming e Processamento em Tempo Real com Kafka\n• Engenharia de Dados para IA Generativa e Sistemas Agênticos\n\n*Quer conhecer os diferenciais e a metodologia da Infnet antes de falarmos sobre valores?*"
     ],
-    "lacunas": [
-      "A base não informa se há bolsas de estudo disponíveis para Engenharia de Software nem os critérios ou o processo de solicitação."
-    ],
+    "lacunas": [],
     "uso": {
       "modelo": "gpt-6-luna",
-      "tokens_entrada": 24327,
-      "tokens_cache": 4006,
-      "tokens_saida": 613
+      "tokens_entrada": 19373,
+      "tokens_cache": 19370,
+      "tokens_saida": 438
     },
-    "custoUsd": 0.0023786600000000003,
+    "custoUsd": 0.000413,
     "etapa": "apresentacao_curso_preco",
     "cursos": [
-      "Faculdade EAD Live em Engenharia de Software"
+      "MBA em Engenharia de Dados: Big Data e IA"
     ]
   },
   {
-    "caso": "bolsa-nao-e-vestibular",
-    "modelo": "gpt-6-luna",
-    "rep": 2,
-    "latenciaMs": 10545,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "Vou confirmar com a coordenação se há opções de bolsa para a graduação em Engenharia de Software. Você busca algum tipo específico de bolsa?"
-    ],
-    "lacunas": [
-      "Não há informações disponíveis sobre opções de bolsa para essa graduação, critérios de elegibilidade, percentuais ou como solicitar."
-    ],
-    "uso": {
-      "modelo": "gpt-6-luna",
-      "tokens_entrada": 24327,
-      "tokens_cache": 24324,
-      "tokens_saida": 948
-    },
-    "custoUsd": 0.0007175399999999999,
-    "etapa": "descoberta",
-    "cursos": [
-      "Faculdade EAD Live em Engenharia de Software"
-    ]
-  },
-  {
-    "caso": "bolsa-nao-e-vestibular",
+    "caso": "p11-grade-completa",
     "modelo": "gpt-6-luna",
     "rep": 3,
-    "latenciaMs": 8496,
+    "latenciaMs": 8233,
     "ok": true,
     "falhas": [],
     "textos": [
-      "Vou confirmar com a coordenação quais opções de bolsa de estudo estão disponíveis para a graduação em Engenharia de Software. Você busca algum tipo específico de bolsa?"
+      "*Disciplinas:*\n• SQL Avançado para Engenharia de Dados\n• Transformação e Qualidade de Dados com dbt\n• Processamento de Big Data com Spark SQL\n• Implementação de Data Lakehouse com Delta Lake\n• Pipelines ETL com AWS Glue Studio\n• Orquestração de Pipelines de Dados com AWS Step Functions\n• Data Streaming e Processamento em Tempo Real com Kafka\n• Engenharia de Dados para IA Generativa e Sistemas Agênticos\n\n*Quer conhecer os diferenciais e a metodologia da Infnet antes de falarmos sobre valores?*"
     ],
-    "lacunas": [
-      "Não há informações sobre bolsas de estudo, critérios ou como solicitá-las para a graduação em Engenharia de Software."
-    ],
+    "lacunas": [],
     "uso": {
       "modelo": "gpt-6-luna",
-      "tokens_entrada": 24327,
-      "tokens_cache": 24324,
-      "tokens_saida": 619
+      "tokens_entrada": 19373,
+      "tokens_cache": 19370,
+      "tokens_saida": 538
     },
-    "custoUsd": 0.00055304,
-    "etapa": "descoberta",
+    "custoUsd": 0.000463,
+    "etapa": "apresentacao_curso_preco",
     "cursos": [
-      "Faculdade EAD Live em Engenharia de Software"
+      "MBA em Engenharia de Dados: Big Data e IA"
     ]
   },
   {
-    "caso": "objecao-adiamento",
-    "modelo": "gpt-5.6-luna",
-    "rep": 1,
-    "latenciaMs": 7510,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "Entendo, sem problema. Para retomarmos no momento certo, você prefere me indicar um período mais adequado para conversarmos sobre o MBA em Engenharia de Cloud Computing?"
-    ],
-    "lacunas": [
-      "O lead não informou o motivo específico do adiamento nem um período para novo contato."
-    ],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 16170,
-      "tokens_cache": 4006,
-      "tokens_saida": 621
-    },
-    "custoUsd": 0.0032581199999999998,
-    "etapa": "tratamento_objecao",
-    "cursos": [
-      "MBA em Engenharia de Cloud Computing"
-    ]
-  },
-  {
-    "caso": "objecao-adiamento",
-    "modelo": "gpt-5.6-luna",
-    "rep": 2,
-    "latenciaMs": 12303,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "Entendo, obrigado por me avisar. Quando fizer sentido para você, estaremos à disposição para ajudar com o MBA em Engenharia de Cloud Computing. Se quiser, podemos retomar essa conversa mais adiante.",
-      "Entendo. O que está impedindo você de seguir agora? Assim consigo te orientar de forma mais adequada quando fizer sentido."
-    ],
-    "lacunas": [
-      "O motivo específico de o lead não poder realizar o MBA agora não foi informado.",
-      "Não foi definida uma data ou período para retomar o contato."
-    ],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 16170,
-      "tokens_cache": 16167,
-      "tokens_saida": 1033
-    },
-    "custoUsd": 0.00156354,
-    "etapa": "tratamento_objecao",
-    "cursos": [
-      "MBA em Engenharia de Cloud Computing"
-    ]
-  },
-  {
-    "caso": "objecao-adiamento",
-    "modelo": "gpt-5.6-luna",
-    "rep": 3,
-    "latenciaMs": 7319,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "Sem problema! Entendo que este pode não ser o melhor momento. Quando fizer sentido, podemos retomar sua conversa sobre o MBA em Engenharia de Cloud Computing. Você prefere que eu retome o contato em alguma data específica?"
-    ],
-    "lacunas": [
-      "Motivo pelo qual o lead não poderá realizar o MBA agora.",
-      "Data preferida para retomar o contato."
-    ],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 16170,
-      "tokens_cache": 16167,
-      "tokens_saida": 584
-    },
-    "custoUsd": 0.0010247400000000001,
-    "etapa": "tratamento_objecao",
-    "cursos": [
-      "MBA em Engenharia de Cloud Computing"
-    ]
-  },
-  {
-    "caso": "objecao-adiamento",
+    "caso": "p12-quando-comeca",
     "modelo": "gpt-6-luna",
     "rep": 1,
-    "latenciaMs": 8977,
+    "latenciaMs": 8299,
     "ok": true,
     "falhas": [],
     "textos": [
-      "Entendo, sem problema. O que impede você de seguir agora? Se preferir, podemos retomar quando for um momento melhor para você."
+      "O MBA em Inteligência Artificial e Automação de Processos começa em *01/02/2027*. Em geral, as matrículas encerram até *27/01*, três dias úteis antes do início, para que haja tempo de preparar os acessos. Quer que eu te envie a grade curricular?"
     ],
     "lacunas": [],
     "uso": {
       "modelo": "gpt-6-luna",
-      "tokens_entrada": 16170,
+      "tokens_entrada": 16614,
       "tokens_cache": 4006,
-      "tokens_saida": 664
+      "tokens_saida": 456
     },
-    "custoUsd": 0.00158846,
-    "etapa": "tratamento_objecao",
+    "custoUsd": 0.0015288600000000002,
+    "etapa": "apresentacao_curso_preco",
     "cursos": [
-      "MBA em Engenharia de Cloud Computing"
+      "MBA em Inteligência Artificial e Automação de Processos"
     ]
   },
   {
-    "caso": "objecao-adiamento",
+    "caso": "p12-quando-comeca",
     "modelo": "gpt-6-luna",
     "rep": 2,
-    "latenciaMs": 8175,
+    "latenciaMs": 6651,
     "ok": true,
     "falhas": [],
     "textos": [
-      "Sem problema, obrigado por avisar. A próxima turma está prevista para 01/02/2027, e as matrículas geralmente encerram até 27/01. Quer que eu retome o contato mais perto do início?"
+      "O MBA começa em *01/02/2027*; as matrículas, em geral, encerram até *27/01*, três dias úteis antes do início. Quer que eu também te passe os dias e horários das aulas?"
     ],
     "lacunas": [],
     "uso": {
       "modelo": "gpt-6-luna",
-      "tokens_entrada": 16170,
-      "tokens_cache": 16167,
-      "tokens_saida": 618
+      "tokens_entrada": 16614,
+      "tokens_cache": 16611,
+      "tokens_saida": 373
     },
-    "custoUsd": 0.00047097,
-    "etapa": "tratamento_objecao",
+    "custoUsd": 0.00035291,
+    "etapa": "apresentacao_curso_preco",
     "cursos": [
-      "MBA em Engenharia de Cloud Computing"
+      "MBA em Inteligência Artificial e Automação de Processos"
     ]
   },
   {
-    "caso": "objecao-adiamento",
+    "caso": "p12-quando-comeca",
     "modelo": "gpt-6-luna",
     "rep": 3,
-    "latenciaMs": 7609,
+    "latenciaMs": 7306,
     "ok": true,
     "falhas": [],
     "textos": [
-      "Entendo, obrigado por avisar. Quando for um momento melhor para você, posso retomar a conversa sobre o MBA. Há algum período em que prefere que eu volte a falar com você?"
+      "A próxima turma do *MBA em Inteligência Artificial e Automação de Processos* começa em *01/02/2027*. As matrículas, em geral, encerram até 27/01, três dias úteis antes do início.\n\nQuer que eu te passe também os dias e horários das aulas?"
     ],
     "lacunas": [],
     "uso": {
       "modelo": "gpt-6-luna",
-      "tokens_entrada": 16170,
-      "tokens_cache": 16167,
-      "tokens_saida": 471
+      "tokens_entrada": 16614,
+      "tokens_cache": 16611,
+      "tokens_saida": 477
     },
-    "custoUsd": 0.00039747000000000003,
-    "etapa": "tratamento_objecao",
+    "custoUsd": 0.00040491,
+    "etapa": "apresentacao_curso_preco",
     "cursos": [
-      "MBA em Engenharia de Cloud Computing"
+      "MBA em Inteligência Artificial e Automação de Processos"
     ]
   },
   {
-    "caso": "conversa-nova-apresentacao",
-    "modelo": "gpt-5.6-luna",
+    "caso": "data-antes-da-metodologia",
+    "modelo": "gpt-6-luna",
     "rep": 1,
-    "latenciaMs": 4808,
+    "latenciaMs": 6611,
     "ok": true,
     "falhas": [],
     "textos": [
-      "A Faculdade Infnet é especializada em engenharias tech, com mais de 30 anos de história e mais de 30 mil alunos formados. Nosso ensino Live tem nota máxima (5) do MEC.\n\n• Todas as aulas ao vivo, sem aulas pré-gravadas\n• Práticas em laboratórios virtuais\n• Conteúdos premium de tecnologia\n• Grades curriculares desenvolvidas a partir das demandas do mercado\n\n*Você já conhecia a Faculdade Infnet antes?*"
+      "O MBA em Inteligência Artificial e Automação de Processos começa em *01/02/2027*. As matrículas, em geral, encerram até *27/01*, três dias úteis antes do início. Quer conhecer também os diferenciais e a metodologia da Infnet?"
     ],
     "lacunas": [],
     "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 13062,
+      "modelo": "gpt-6-luna",
+      "tokens_entrada": 12724,
       "tokens_cache": 4006,
-      "tokens_saida": 297
-    },
-    "custoUsd": 0.0022477200000000004,
-    "etapa": "descoberta",
-    "cursos": [
-      "MBA em Engenharia de Cloud Computing"
-    ]
-  },
-  {
-    "caso": "conversa-nova-apresentacao",
-    "modelo": "gpt-5.6-luna",
-    "rep": 2,
-    "latenciaMs": 5228,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "A Faculdade Infnet é especializada em engenharias tech, com mais de 30 anos de história, mais de 30 mil alunos formados e nota máxima (5) do MEC no ensino a distância.\n\n• Todas as aulas ao vivo, sem conteúdos pré-gravados\n• Práticas em laboratórios virtuais\n• Conteúdos premium de tecnologia\n• Grades curriculares desenvolvidas a partir das demandas do mercado\n\n*Você já conhecia a Faculdade Infnet antes?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 13062,
-      "tokens_cache": 13059,
-      "tokens_saida": 308
-    },
-    "custoUsd": 0.00063138,
-    "etapa": "descoberta",
-    "cursos": [
-      "MBA em Engenharia de Cloud Computing"
-    ]
-  },
-  {
-    "caso": "conversa-nova-apresentacao",
-    "modelo": "gpt-5.6-luna",
-    "rep": 3,
-    "latenciaMs": 5291,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "A Faculdade Infnet é especializada em engenharias tech, com mais de 30 anos de história e mais de 30 mil alunos formados. O EAD tem nota máxima (5) no MEC.\n\n• Todas as aulas ao vivo, sem aulas pré-gravadas\n• Práticas em laboratórios virtuais\n• Conteúdos premium de tecnologia\n• Grades curriculares desenvolvidas a partir das demandas do mercado\n\n*Você já conhecia a Faculdade Infnet antes?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 13062,
-      "tokens_cache": 13059,
       "tokens_saida": 362
     },
-    "custoUsd": 0.00069618,
-    "etapa": "descoberta",
+    "custoUsd": 0.0010928600000000002,
+    "etapa": "apresentacao_curso_preco",
+    "cursos": [
+      "MBA em Inteligência Artificial e Automação de Processos"
+    ]
+  },
+  {
+    "caso": "data-antes-da-metodologia",
+    "modelo": "gpt-6-luna",
+    "rep": 2,
+    "latenciaMs": 7350,
+    "ok": true,
+    "falhas": [],
+    "textos": [
+      "O MBA em Inteligência Artificial e Automação de Processos começa em *01/02/2027*. Em geral, as matrículas encerram até *27/01*, três dias úteis antes do início.\n\nAntes de falarmos de valores, quer conhecer a metodologia e os diferenciais da Infnet?"
+    ],
+    "lacunas": [],
+    "uso": {
+      "modelo": "gpt-6-luna",
+      "tokens_entrada": 12724,
+      "tokens_cache": 12721,
+      "tokens_saida": 473
+    },
+    "custoUsd": 0.00036401,
+    "etapa": "apresentacao_curso_preco",
+    "cursos": [
+      "MBA em Inteligência Artificial e Automação de Processos"
+    ]
+  },
+  {
+    "caso": "data-antes-da-metodologia",
+    "modelo": "gpt-6-luna",
+    "rep": 3,
+    "latenciaMs": 6244,
+    "ok": true,
+    "falhas": [],
+    "textos": [
+      "O MBA em Inteligência Artificial e Automação de Processos começa em *01/02/2027*. As matrículas, em geral, encerram até *27/01*, três dias úteis antes do início das aulas.\n\n*Quer conhecer a metodologia e os diferenciais da Infnet antes de falarmos sobre valores?*"
+    ],
+    "lacunas": [],
+    "uso": {
+      "modelo": "gpt-6-luna",
+      "tokens_entrada": 12724,
+      "tokens_cache": 12721,
+      "tokens_saida": 422
+    },
+    "custoUsd": 0.00033851,
+    "etapa": "apresentacao_curso_preco",
+    "cursos": [
+      "MBA em Inteligência Artificial e Automação de Processos"
+    ]
+  },
+  {
+    "caso": "p13-sim-metodologia",
+    "modelo": "gpt-6-luna",
+    "rep": 1,
+    "latenciaMs": 8529,
+    "ok": true,
+    "falhas": [],
+    "textos": [
+      "No MBA em Engenharia de Contexto e Agentes de IA, a metodologia combina:\n• Aulas ao vivo com interação e professores atuantes no mercado\n• Projetos práticos em cada disciplina, aplicados a desafios reais\n• Comunidade online para trocar experiências com alunos e professores\n• Conteúdo alinhado às demandas atuais do mercado\n\n*Quer conhecer os valores e as formas de pagamento?*"
+    ],
+    "lacunas": [],
+    "uso": {
+      "modelo": "gpt-6-luna",
+      "tokens_entrada": 15077,
+      "tokens_cache": 4006,
+      "tokens_saida": 601
+    },
+    "custoUsd": 0.0014476600000000001,
+    "etapa": "apresentacao_curso_preco",
+    "cursos": [
+      "MBA em Engenharia de Contexto e Agentes de IA: RAG, MCP e Multiagentes"
+    ]
+  },
+  {
+    "caso": "p13-sim-metodologia",
+    "modelo": "gpt-6-luna",
+    "rep": 2,
+    "latenciaMs": 6257,
+    "ok": true,
+    "falhas": [],
+    "textos": [
+      "A metodologia do Infnet combina aulas ao vivo e aprendizado prático, com conteúdos alinhados ao mercado:\n\n• Aulas ao vivo, com interação entre alunos e professores\n• Práticas em laboratórios virtuais\n• Acesso a conteúdos premium de tecnologia\n• Grades curriculares desenvolvidas com base no que as empresas buscam\n\n*Quer conhecer os valores e as formas de pagamento?*"
+    ],
+    "lacunas": [],
+    "uso": {
+      "modelo": "gpt-6-luna",
+      "tokens_entrada": 15077,
+      "tokens_cache": 15074,
+      "tokens_saida": 406
+    },
+    "custoUsd": 0.00035404,
+    "etapa": "apresentacao_curso_preco",
+    "cursos": [
+      "MBA em Engenharia de Contexto e Agentes de IA: RAG, MCP e Multiagentes"
+    ]
+  },
+  {
+    "caso": "p13-sim-metodologia",
+    "modelo": "gpt-6-luna",
+    "rep": 3,
+    "latenciaMs": 7315,
+    "ok": true,
+    "falhas": [],
+    "textos": [
+      "No *MBA em Engenharia de Contexto e Agentes de IA*, a metodologia combina aulas e projetos práticos:\n• Aulas 100% ao vivo, com interação entre alunos e professores\n• Práticas em laboratórios virtuais\n• Conteúdos premium de tecnologia\n• 8 projetos práticos que formam seu portfólio\n\n*Quer conhecer os valores e as formas de pagamento?*"
+    ],
+    "lacunas": [],
+    "uso": {
+      "modelo": "gpt-6-luna",
+      "tokens_entrada": 15077,
+      "tokens_cache": 15074,
+      "tokens_saida": 508
+    },
+    "custoUsd": 0.00040504,
+    "etapa": "apresentacao_curso_preco",
+    "cursos": [
+      "MBA em Engenharia de Contexto e Agentes de IA: RAG, MCP e Multiagentes"
+    ]
+  },
+  {
+    "caso": "p13-empresa-nao-conveniada",
+    "modelo": "gpt-6-luna",
+    "rep": 1,
+    "latenciaMs": 11085,
+    "ok": true,
+    "falhas": [],
+    "textos": [
+      "Obrigado por avisar! A Certsys ainda não tem convênio com a Infnet. Se quiser indicar essa parceria para a empresa, ela é gratuita e pode fazer sentido para times de tecnologia. Saiba mais: https://www.infnet.edu.br/empresas/convenio/\n\nVocê sabe o nome e o e-mail da pessoa responsável por esse tipo de parceria no RH?"
+    ],
+    "lacunas": [],
+    "uso": {
+      "modelo": "gpt-6-luna",
+      "tokens_entrada": 18683,
+      "tokens_cache": 4006,
+      "tokens_saida": 802
+    },
+    "custoUsd": 0.00190876,
+    "etapa": "qualificacao_empresa",
+    "cursos": [
+      "MBA em Engenharia de Software com Java"
+    ]
+  },
+  {
+    "caso": "p13-empresa-nao-conveniada",
+    "modelo": "gpt-6-luna",
+    "rep": 2,
+    "latenciaMs": 11923,
+    "ok": true,
+    "falhas": [],
+    "textos": [
+      "A Certsys ainda não tem convênio com a Infnet. Você gostaria de indicar essa parceria para a empresa? O convênio é gratuito para a empresa e faz mais sentido para organizações com porte ou equipe de tecnologia. Saiba mais: https://www.infnet.edu.br/empresas/convenio/\n\nSe tiver interesse, pode me passar o nome e o e-mail da pessoa responsável por parcerias no RH?"
+    ],
+    "lacunas": [],
+    "uso": {
+      "modelo": "gpt-6-luna",
+      "tokens_entrada": 18683,
+      "tokens_cache": 18680,
+      "tokens_saida": 796
+    },
+    "custoUsd": 0.0005851000000000001,
+    "etapa": "qualificacao_empresa",
+    "cursos": [
+      "MBA em Engenharia de Software com Java"
+    ]
+  },
+  {
+    "caso": "p13-empresa-nao-conveniada",
+    "modelo": "gpt-6-luna",
+    "rep": 3,
+    "latenciaMs": 10762,
+    "ok": true,
+    "falhas": [],
+    "textos": [
+      "Obrigado por avisar. A Certsys ainda não tem convênio com a Infnet. Se quiser indicar a parceria para a empresa, o convênio corporativo é gratuito e faz mais sentido para empresas com times de tecnologia: https://www.infnet.edu.br/empresas/convenio/\n\nVocê pode me passar o nome e o e-mail da pessoa responsável por esse tipo de parceria no RH?"
+    ],
+    "lacunas": [],
+    "uso": {
+      "modelo": "gpt-6-luna",
+      "tokens_entrada": 18683,
+      "tokens_cache": 18680,
+      "tokens_saida": 851
+    },
+    "custoUsd": 0.0006126,
+    "etapa": "qualificacao_empresa",
+    "cursos": [
+      "MBA em Engenharia de Software com Java"
+    ]
+  },
+  {
+    "caso": "bolsa-nao-e-vestibular",
+    "modelo": "gpt-6-luna",
+    "rep": 1,
+    "latenciaMs": 13029,
+    "ok": true,
+    "falhas": [],
+    "textos": [
+      "Vou confirmar com a coordenação se há bolsa de estudo disponível para a graduação em Engenharia de Software e quais são as condições."
+    ],
+    "lacunas": [
+      "Disponibilidade, critérios de elegibilidade, percentual e processo para solicitar bolsa de estudo na graduação em Engenharia de Software."
+    ],
+    "uso": {
+      "modelo": "gpt-6-luna",
+      "tokens_entrada": 24980,
+      "tokens_cache": 4006,
+      "tokens_saida": 915
+    },
+    "custoUsd": 0.00259496,
+    "etapa": "apresentacao_curso_preco",
+    "cursos": [
+      "Faculdade EAD Live em Engenharia de Software"
+    ]
+  },
+  {
+    "caso": "bolsa-nao-e-vestibular",
+    "modelo": "gpt-6-luna",
+    "rep": 2,
+    "latenciaMs": 8514,
+    "ok": true,
+    "falhas": [],
+    "textos": [
+      "Vou confirmar com a coordenação se há bolsas de estudo disponíveis para a graduação em Engenharia de Software. Você busca algum tipo específico de bolsa?"
+    ],
+    "lacunas": [
+      "Não há informações sobre disponibilidade, critérios ou processo de solicitação de bolsas para Engenharia de Software."
+    ],
+    "uso": {
+      "modelo": "gpt-6-luna",
+      "tokens_entrada": 24980,
+      "tokens_cache": 24977,
+      "tokens_saida": 565
+    },
+    "custoUsd": 0.00053257,
+    "etapa": "apresentacao_curso_preco",
+    "cursos": [
+      "Faculdade EAD Live em Engenharia de Software"
+    ]
+  },
+  {
+    "caso": "bolsa-nao-e-vestibular",
+    "modelo": "gpt-6-luna",
+    "rep": 3,
+    "latenciaMs": 8241,
+    "ok": true,
+    "falhas": [],
+    "textos": [
+      "Vou confirmar com a coordenação quais opções de bolsa de estudo estão disponíveis para Engenharia de Software. Você procura algum tipo específico de bolsa?"
+    ],
+    "lacunas": [
+      "O contexto não informa se há bolsas disponíveis para essa graduação, nem critérios, percentuais ou como solicitá-las."
+    ],
+    "uso": {
+      "modelo": "gpt-6-luna",
+      "tokens_entrada": 24980,
+      "tokens_cache": 24977,
+      "tokens_saida": 593
+    },
+    "custoUsd": 0.00054657,
+    "etapa": "apresentacao_curso_preco",
+    "cursos": [
+      "Faculdade EAD Live em Engenharia de Software"
+    ]
+  },
+  {
+    "caso": "objecao-adiamento",
+    "modelo": "gpt-6-luna",
+    "rep": 1,
+    "latenciaMs": 7716,
+    "ok": true,
+    "falhas": [],
+    "textos": [
+      "Sem problema, obrigado por me avisar. Para eu retomar em um momento melhor para você, qual período seria mais conveniente?"
+    ],
+    "lacunas": [],
+    "uso": {
+      "modelo": "gpt-6-luna",
+      "tokens_entrada": 16170,
+      "tokens_cache": 4006,
+      "tokens_saida": 474
+    },
+    "custoUsd": 0.00149346,
+    "etapa": "tratamento_objecao",
+    "cursos": [
+      "MBA em Engenharia de Cloud Computing"
+    ]
+  },
+  {
+    "caso": "objecao-adiamento",
+    "modelo": "gpt-6-luna",
+    "rep": 2,
+    "latenciaMs": 7699,
+    "ok": true,
+    "falhas": [],
+    "textos": [
+      "Sem problema, respeito seu momento. Se quiser, podemos retomar quando for mais conveniente para você. O que está pesando mais para não conseguir seguir agora?"
+    ],
+    "lacunas": [],
+    "uso": {
+      "modelo": "gpt-6-luna",
+      "tokens_entrada": 16170,
+      "tokens_cache": 16167,
+      "tokens_saida": 554
+    },
+    "custoUsd": 0.00043897,
+    "etapa": "tratamento_objecao",
+    "cursos": [
+      "MBA em Engenharia de Cloud Computing"
+    ]
+  },
+  {
+    "caso": "objecao-adiamento",
+    "modelo": "gpt-6-luna",
+    "rep": 3,
+    "latenciaMs": 8328,
+    "ok": true,
+    "falhas": [],
+    "textos": [
+      "Entendo. O que está pesando mais para você não conseguir começar agora? Se preferir, podemos retomar a conversa em uma data melhor para você."
+    ],
+    "lacunas": [],
+    "uso": {
+      "modelo": "gpt-6-luna",
+      "tokens_entrada": 16170,
+      "tokens_cache": 16167,
+      "tokens_saida": 531
+    },
+    "custoUsd": 0.00042747000000000005,
+    "etapa": "tratamento_objecao",
     "cursos": [
       "MBA em Engenharia de Cloud Computing"
     ]
@@ -1783,20 +854,20 @@
     "caso": "conversa-nova-apresentacao",
     "modelo": "gpt-6-luna",
     "rep": 1,
-    "latenciaMs": 7472,
+    "latenciaMs": 5623,
     "ok": true,
     "falhas": [],
     "textos": [
-      "A Faculdade Infnet é especializada em engenharias tech, tem mais de 30 anos de história e já formou mais de 30 mil alunos. Nosso ensino EAD ao vivo tem nota máxima (5) no MEC.\n\n• Todas as aulas são ao vivo, sem aulas pré-gravadas\n• Práticas em laboratórios virtuais\n• Conteúdos premium e comunidade online\n• Grades curriculares desenvolvidas com base no que o mercado busca\n\n*Você já conhecia a Faculdade Infnet?*"
+      "A Faculdade Infnet é especializada em engenharias tech, tem mais de 30 anos de história e já formou mais de 30 mil alunos. Nosso EAD ao vivo tem nota máxima (5) no MEC.\n\n• Aulas ao vivo, sem conteúdo pré-gravado\n• Práticas em laboratórios virtuais\n• Conteúdos premium e comunidade online\n• Grades curriculares desenvolvidas com base no que o mercado busca\n\n*Você já conhecia a Faculdade Infnet?*"
     ],
     "lacunas": [],
     "uso": {
       "modelo": "gpt-6-luna",
       "tokens_entrada": 13062,
       "tokens_cache": 4006,
-      "tokens_saida": 401
+      "tokens_saida": 384
     },
-    "custoUsd": 0.00114616,
+    "custoUsd": 0.0011376600000000002,
     "etapa": "descoberta",
     "cursos": [
       "MBA em Engenharia de Cloud Computing"
@@ -1806,43 +877,43 @@
     "caso": "conversa-nova-apresentacao",
     "modelo": "gpt-6-luna",
     "rep": 2,
-    "latenciaMs": 7107,
+    "latenciaMs": 4343,
     "ok": true,
     "falhas": [],
     "textos": [
-      "A Faculdade Infnet é especializada em engenharias tech, tem mais de 30 anos de história e já formou mais de 30 mil alunos. O EAD tem nota máxima (5) do MEC.\n\n• Todas as aulas ao vivo, sem aulas pré-gravadas\n• Práticas em laboratórios virtuais\n• Conteúdos premium de tecnologia\n• Grades desenvolvidas com base no que o mercado busca\n\n*Você já conhecia a Faculdade Infnet?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-6-luna",
-      "tokens_entrada": 13062,
-      "tokens_cache": 4006,
-      "tokens_saida": 372
-    },
-    "custoUsd": 0.00113166,
-    "etapa": "descoberta",
-    "cursos": [
-      "MBA em Engenharia de Cloud Computing"
-    ]
-  },
-  {
-    "caso": "conversa-nova-apresentacao",
-    "modelo": "gpt-6-luna",
-    "rep": 3,
-    "latenciaMs": 6934,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "A Faculdade Infnet é especializada em engenharias tech, tem mais de 30 anos de história e já formou mais de 30 mil alunos. Nosso EAD ao vivo tem nota máxima (5) no MEC.\n\n• Todas as aulas ao vivo, sem aulas pré-gravadas\n• Práticas em laboratórios virtuais\n• Conteúdos premium de tecnologia\n• Grades curriculares desenvolvidas com base no que o mercado busca\n\n*Você já conhecia a Faculdade Infnet?*"
+      "A Faculdade Infnet é especializada em engenharias tech, tem mais de 30 anos de história e já formou mais de 30 mil alunos.\n\n• Aulas ao vivo, com interação entre alunos e professores\n• Práticas em laboratórios virtuais\n• Conteúdos premium de tecnologia\n• Grades desenvolvidas com base no que o mercado busca\n\n*Você já conhecia a Faculdade Infnet?*"
     ],
     "lacunas": [],
     "uso": {
       "modelo": "gpt-6-luna",
       "tokens_entrada": 13062,
       "tokens_cache": 13059,
-      "tokens_saida": 437
+      "tokens_saida": 235
     },
-    "custoUsd": 0.00034939,
+    "custoUsd": 0.00024839,
+    "etapa": "descoberta",
+    "cursos": [
+      "MBA em Engenharia de Cloud Computing"
+    ]
+  },
+  {
+    "caso": "conversa-nova-apresentacao",
+    "modelo": "gpt-6-luna",
+    "rep": 3,
+    "latenciaMs": 6564,
+    "ok": true,
+    "falhas": [],
+    "textos": [
+      "A Faculdade Infnet é especializada em engenharias tech, tem mais de 30 anos de história e já formou mais de 30 mil alunos. O EAD tem nota máxima (5) do MEC.\n\n• Aulas ao vivo, sem conteúdos pré-gravados\n• Práticas em laboratórios virtuais\n• Conteúdos premium e comunidade online\n• Grades curriculares desenvolvidas com base no que o mercado busca\n\n*Você já conhecia a Faculdade Infnet?*"
+    ],
+    "lacunas": [],
+    "uso": {
+      "modelo": "gpt-6-luna",
+      "tokens_entrada": 13062,
+      "tokens_cache": 13059,
+      "tokens_saida": 433
+    },
+    "custoUsd": 0.00034739,
     "etapa": "descoberta",
     "cursos": [
       "MBA em Engenharia de Cloud Computing"
@@ -1850,117 +921,46 @@
   },
   {
     "caso": "sem-pagamento-estendido",
-    "modelo": "gpt-5.6-luna",
-    "rep": 1,
-    "latenciaMs": 13853,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "Entendo. Para este MBA, as opções de pagamento disponíveis são:\n\n*Pix à vista:* R$ 7.601,53\n*Cartão de crédito:* 18x de R$ 479,69\n*Cartão de crédito:* 12x de R$ 654,12\n*Boleto bancário:* 13x de R$ 635,58\n\nEsse valor é válido até sexta-feira (30/10), e as matrículas, em geral, encerram até 28/01 para a turma com início em 02/02/2027.\n\n*Quer que eu te explique os próximos passos da matrícula?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 16200,
-      "tokens_cache": 4006,
-      "tokens_saida": 722
-    },
-    "custoUsd": 0.0033853200000000003,
-    "etapa": "tratamento_objecao",
-    "cursos": [
-      "MBA em Gestão de Projetos e Processos com IA: Scrum, PMBOK e Metodologias Ágeis"
-    ]
-  },
-  {
-    "caso": "sem-pagamento-estendido",
-    "modelo": "gpt-5.6-luna",
-    "rep": 2,
-    "latenciaMs": 18326,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "Entendo. As opções de pagamento disponíveis para o MBA são:\n\n*À vista no Pix:* R$ 7.601,53\n*Cartão de crédito:* 18x de R$ 479,69\n*Cartão de crédito:* 12x de R$ 654,12\n*Boleto bancário:* 13x de R$ 635,58\n\nEsse valor vale até sexta-feira (30/10), e as matrículas, em geral, encerram até 28/01, antes do início da turma em 02/02/2027.\n\n*Qual dessas opções faz mais sentido para você para eu te explicar os próximos passos da matrícula?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 16200,
-      "tokens_cache": 16197,
-      "tokens_saida": 732
-    },
-    "custoUsd": 0.00120294,
-    "etapa": "tratamento_objecao",
-    "cursos": [
-      "MBA em Gestão de Projetos e Processos com IA: Scrum, PMBOK e Metodologias Ágeis"
-    ]
-  },
-  {
-    "caso": "sem-pagamento-estendido",
-    "modelo": "gpt-5.6-luna",
-    "rep": 3,
-    "latenciaMs": 17953,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "As opções de pagamento disponíveis para o MBA são:\n\n• *Pix à vista:* R$ 7.601,53\n• *Cartão de crédito:* 18x de R$ 479,69\n• *Cartão de crédito:* 12x de R$ 654,12\n• *Boleto bancário:* 13x de R$ 635,58\n\nEsse valor é válido até sexta-feira (30/10). *A opção de 18x no cartão atende ao que você busca para seguirmos com a matrícula?*"
-    ],
-    "lacunas": [
-      "Não há informação disponível sobre parcelamento em mais de 18 vezes ou outra modalidade além das opções oficiais apresentadas."
-    ],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 16200,
-      "tokens_cache": 16197,
-      "tokens_saida": 700
-    },
-    "custoUsd": 0.00116454,
-    "etapa": "tratamento_objecao",
-    "cursos": [
-      "MBA em Gestão de Projetos e Processos com IA: Scrum, PMBOK e Metodologias Ágeis"
-    ]
-  },
-  {
-    "caso": "sem-pagamento-estendido",
     "modelo": "gpt-6-luna",
     "rep": 1,
-    "latenciaMs": 20067,
+    "latenciaMs": 12977,
     "ok": true,
     "falhas": [],
     "textos": [
-      "As opções de pagamento do *MBA em Gestão de Projetos e Processos com IA* são:\n• Pix à vista: R$ 7.601,53\n• Cartão de crédito: 18x de R$ 479,69 ou 12x de R$ 654,12\n• Boleto bancário: 13x de R$ 635,58\n\nO valor vale até sexta-feira (30/10); para a turma de 02/02/2027, as matrículas em geral encerram até 28/01.\n\n*Quer que eu explique os próximos passos da matrícula?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-6-luna",
-      "tokens_entrada": 16200,
-      "tokens_cache": 16197,
-      "tokens_saida": 704
-    },
-    "custoUsd": 0.0005142699999999999,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Gestão de Projetos e Processos com IA: Scrum, PMBOK e Metodologias Ágeis"
-    ]
-  },
-  {
-    "caso": "sem-pagamento-estendido",
-    "modelo": "gpt-6-luna",
-    "rep": 2,
-    "latenciaMs": 17311,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "Para parcelar o MBA em Gestão de Projetos e Processos com IA, estas são as opções disponíveis:\n\n• Cartão de crédito: 18x de R$ 479,69\n• Cartão de crédito: 12x de R$ 654,12\n• Boleto bancário: 13x de R$ 635,58\n• Pix à vista: R$ 7.601,53\n\nOs valores são válidos até sexta-feira (30/10).\n\n*Quer que eu explique os próximos passos para a matrícula?*"
+      "A opção com maior número de parcelas disponível é o cartão de crédito em 18x de R$ 479,69. Também estão disponíveis:\n\n*Valores do MBA em Gestão de Projetos e Processos com IA:*\n• Pix à vista: R$ 7.601,53\n• Cartão de crédito em 12x de R$ 654,12\n• Boleto bancário em 13x de R$ 635,58\n\nO valor é válido até sexta-feira, 30/10; as matrículas da turma de 02/02/2027, em geral, encerram até 28/01.\n\n*A opção em 18x atende ao que você precisa para seguir?*"
     ],
     "lacunas": [],
     "uso": {
       "modelo": "gpt-6-luna",
       "tokens_entrada": 16200,
       "tokens_cache": 4006,
-      "tokens_saida": 1182
+      "tokens_saida": 1018
     },
-    "custoUsd": 0.00185046,
-    "etapa": "apresentacao_curso_preco",
+    "custoUsd": 0.0017684600000000001,
+    "etapa": "tratamento_objecao",
+    "cursos": [
+      "MBA em Gestão de Projetos e Processos com IA: Scrum, PMBOK e Metodologias Ágeis"
+    ]
+  },
+  {
+    "caso": "sem-pagamento-estendido",
+    "modelo": "gpt-6-luna",
+    "rep": 2,
+    "latenciaMs": 16049,
+    "ok": true,
+    "falhas": [],
+    "textos": [
+      "Entendi que você busca parcelar em mais vezes. Para este MBA, a opção com mais parcelas é o cartão de crédito em 18x. As formas disponíveis são:\n• Pix: R$ 7.601,53\n• Cartão de crédito: 18x de R$ 479,69\n• Cartão de crédito: 12x de R$ 654,12\n• Boleto bancário: 13x de R$ 635,58\n\nValores válidos até sexta-feira (30/10); próxima turma em 02/02/2027, com matrículas geralmente até 28/01.\n\n*A opção de 18x no cartão atende ao que você precisa?*"
+    ],
+    "lacunas": [],
+    "uso": {
+      "modelo": "gpt-6-luna",
+      "tokens_entrada": 16200,
+      "tokens_cache": 16197,
+      "tokens_saida": 1346
+    },
+    "custoUsd": 0.0008352699999999999,
+    "etapa": "tratamento_objecao",
     "cursos": [
       "MBA em Gestão de Projetos e Processos com IA: Scrum, PMBOK e Metodologias Ágeis"
     ]
@@ -1969,20 +969,20 @@
     "caso": "sem-pagamento-estendido",
     "modelo": "gpt-6-luna",
     "rep": 3,
-    "latenciaMs": 24286,
+    "latenciaMs": 14069,
     "ok": true,
     "falhas": [],
     "textos": [
-      "O maior parcelamento disponível é no cartão, em 18x. Para o *MBA em Gestão de Projetos e Processos com IA*, estas são as opções:\n• Pix: R$ 7.601,53\n• Cartão de crédito: 18x de R$ 479,69\n• Cartão de crédito: 12x de R$ 654,12\n• Boleto bancário: 13x de R$ 635,58\n\nO valor vale até sexta-feira, 30/10; a turma começa em 02/02/2027 e as matrículas, em geral, encerram até 28/01.\n\n*O parcelamento em 18x no cartão atende ao que você procura?*"
+      "Para parcelar em mais vezes, há a opção de cartão de crédito em 18x de R$ 479,69. As formas disponíveis são:\n\n*Valores:*\n• Pix à vista: R$ 7.601,53\n• Cartão de crédito: 18x de R$ 479,69\n• Cartão de crédito: 12x de R$ 654,12\n• Boleto bancário: 13x de R$ 635,58\n\nValor válido até 30/10; para a turma de 02/02/2027, as matrículas em geral encerram até 28/01.\n\n*Quer que eu te explique os próximos passos da matrícula?*"
     ],
     "lacunas": [],
     "uso": {
       "modelo": "gpt-6-luna",
       "tokens_entrada": 16200,
       "tokens_cache": 16197,
-      "tokens_saida": 2082
+      "tokens_saida": 1146
     },
-    "custoUsd": 0.00120327,
+    "custoUsd": 0.00073527,
     "etapa": "tratamento_objecao",
     "cursos": [
       "MBA em Gestão de Projetos e Processos com IA: Scrum, PMBOK e Metodologias Ágeis"
@@ -1990,91 +990,22 @@
   },
   {
     "caso": "boleto-13x-pgl",
-    "modelo": "gpt-5.6-luna",
-    "rep": 1,
-    "latenciaMs": 9789,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "*MBA em Gestão de Projetos e Processos com IA*\n\n*Valores sem o convênio:*\n• Pix à vista: R$ 7.601,53\n• Cartão de crédito: 18x de R$ 479,69\n• Cartão de crédito: 12x de R$ 654,12\n• Boleto bancário: 13x de R$ 635,58\n\n*Com o convênio da Nexdom — 10% de desconto adicional:*\n• Pix à vista: R$ 6.841,37\n• Cartão de crédito: 18x de R$ 431,72\n• Cartão de crédito: 12x de R$ 588,71\n• Boleto bancário: 13x de R$ 572,02\n\nEsse valor é válido até sexta-feira (30/10). *Quer que eu te explique os próximos passos da matrícula?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 15155,
-      "tokens_cache": 4120,
-      "tokens_saida": 717
-    },
-    "custoUsd": 0.0031498000000000003,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Gestão de Projetos e Processos com IA: Scrum, PMBOK e Metodologias Ágeis"
-    ]
-  },
-  {
-    "caso": "boleto-13x-pgl",
-    "modelo": "gpt-5.6-luna",
-    "rep": 2,
-    "latenciaMs": 8159,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "*MBA em Gestão de Projetos e Processos com IA*\n\n*Valores sem o convênio:*\n• Pix à vista: R$ 7.601,53\n• Cartão de crédito: 18x de R$ 479,69\n• Cartão de crédito: 12x de R$ 654,12\n• Boleto bancário: 13x de R$ 635,58\n\n*Com o convênio da Nexdom — 10% de desconto adicional:*\n• Pix à vista: R$ 6.841,37\n• Cartão de crédito: 18x de R$ 431,72\n• Cartão de crédito: 12x de R$ 588,71\n• Boleto bancário: 13x de R$ 572,02\n\nEsse valor vale até sexta-feira (30/10). A próxima turma começa em 02/02/2027, e as matrículas, em geral, encerram até 28/01.\n\n*Quer que eu te explique os próximos passos da matrícula?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 15155,
-      "tokens_cache": 15152,
-      "tokens_saida": 635
-    },
-    "custoUsd": 0.00106564,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Gestão de Projetos e Processos com IA: Scrum, PMBOK e Metodologias Ágeis"
-    ]
-  },
-  {
-    "caso": "boleto-13x-pgl",
-    "modelo": "gpt-5.6-luna",
-    "rep": 3,
-    "latenciaMs": 6400,
-    "ok": true,
-    "falhas": [],
-    "textos": [
-      "*MBA em Gestão de Projetos e Processos com IA: Scrum, PMBOK e Metodologias Ágeis*\n\n*Valores sem o convênio:*\n• Pix à vista: R$ 7.601,53\n• Cartão de crédito: 18x de R$ 479,69\n• Cartão de crédito: 12x de R$ 654,12\n• Boleto bancário: 13x de R$ 635,58\n\n*Com o convênio da Nexdom — 10% de desconto adicional:*\n• Pix à vista: R$ 6.841,37\n• Cartão de crédito: 18x de R$ 431,72\n• Cartão de crédito: 12x de R$ 588,71\n• Boleto bancário: 13x de R$ 572,02\n\nEsse valor é válido até sexta-feira, 30/10. A próxima turma começa em 02/02/2027, e as matrículas, em geral, encerram até 28/01.\n\n*Quer que eu te explique os próximos passos da matrícula?*"
-    ],
-    "lacunas": [],
-    "uso": {
-      "modelo": "gpt-5.6-luna",
-      "tokens_entrada": 15155,
-      "tokens_cache": 15152,
-      "tokens_saida": 487
-    },
-    "custoUsd": 0.00088804,
-    "etapa": "apresentacao_curso_preco",
-    "cursos": [
-      "MBA em Gestão de Projetos e Processos com IA: Scrum, PMBOK e Metodologias Ágeis"
-    ]
-  },
-  {
-    "caso": "boleto-13x-pgl",
     "modelo": "gpt-6-luna",
     "rep": 1,
-    "latenciaMs": 12988,
+    "latenciaMs": 10260,
     "ok": true,
     "falhas": [],
     "textos": [
-      "*MBA em Gestão de Projetos e Processos com IA*\n\n*Valores sem o convênio:*\n• Pix: R$ 7.601,53\n• Cartão de crédito: 18x de R$ 479,69\n• Cartão de crédito: 12x de R$ 654,12\n• Boleto bancário: 13x de R$ 635,58\n\n*Com o convênio da Nexdom (10% de desconto adicional):*\n• Pix: R$ 6.841,37\n• Cartão de crédito: 18x de R$ 431,72\n• Cartão de crédito: 12x de R$ 588,71\n• Boleto bancário: 13x de R$ 572,02\n\nEsse valor vale até sexta-feira (30/10); a próxima turma começa em 02/02/2027, e as matrículas geralmente encerram até 28/01.\n\n*Quer que eu te explique os próximos passos da matrícula?*"
+      "*MBA em Gestão de Projetos e Processos com IA*\n\n*Valores sem o convênio:*\n• Pix: R$ 7.601,53\n• Cartão de crédito: 18x de R$ 479,69\n• Cartão de crédito: 12x de R$ 654,12\n• Boleto bancário: 13x de R$ 635,58\n\n*Com o convênio da Nexdom (10% de desconto adicional):*\n• Pix: R$ 6.841,37\n• Cartão de crédito: 18x de R$ 431,72\n• Cartão de crédito: 12x de R$ 588,71\n• Boleto bancário: 13x de R$ 572,02\n\nOs valores são válidos até sexta-feira, 30/10. A próxima turma começa em 02/02/2027, e as matrículas geralmente encerram até 28/01.\n\n*Quer que eu explique os próximos passos para a matrícula?*"
     ],
     "lacunas": [],
     "uso": {
       "modelo": "gpt-6-luna",
       "tokens_entrada": 15155,
-      "tokens_cache": 15152,
-      "tokens_saida": 882
+      "tokens_cache": 4120,
+      "tokens_saida": 771
     },
-    "custoUsd": 0.0005928200000000001,
+    "custoUsd": 0.0015302,
     "etapa": "apresentacao_curso_preco",
     "cursos": [
       "MBA em Gestão de Projetos e Processos com IA: Scrum, PMBOK e Metodologias Ágeis"
@@ -2084,20 +1015,20 @@
     "caso": "boleto-13x-pgl",
     "modelo": "gpt-6-luna",
     "rep": 2,
-    "latenciaMs": 12375,
+    "latenciaMs": 9191,
     "ok": true,
     "falhas": [],
     "textos": [
-      "*MBA em Gestão de Projetos e Processos com IA: Scrum, PMBOK e Metodologias Ágeis*\n\n*Valores sem o convênio:*\n• Pix: R$ 7.601,53\n• Cartão de crédito: 18x de R$ 479,69\n• Cartão de crédito: 12x de R$ 654,12\n• Boleto bancário: 13x de R$ 635,58\n\n*Com o convênio da Nexdom (10% de desconto adicional):*\n• Pix: R$ 6.841,37\n• Cartão de crédito: 18x de R$ 431,72\n• Cartão de crédito: 12x de R$ 588,71\n• Boleto bancário: 13x de R$ 572,02\n\nValor válido até sexta-feira (30/10); a turma começa em 02/02/2027, e as matrículas geralmente encerram até 28/01.\n\n*Quer que eu te explique os próximos passos da matrícula?*"
+      "*MBA em Gestão de Projetos e Processos com IA*\n\n*Valores sem o convênio:*\n• Pix: R$ 7.601,53\n• Cartão: 18x de R$ 479,69\n• Cartão: 12x de R$ 654,12\n• Boleto: 13x de R$ 635,58\n\n*Com o convênio da Nexdom (10% de desconto adicional):*\n• Pix: R$ 6.841,37\n• Cartão: 18x de R$ 431,72\n• Cartão: 12x de R$ 588,71\n• Boleto: 13x de R$ 572,02\n\nO valor vale até sexta-feira, 30/10. A próxima turma começa em 02/02/2027, e as matrículas em geral encerram até 28/01.\n\n*Quer que eu te explique os próximos passos para a matrícula?*"
     ],
     "lacunas": [],
     "uso": {
       "modelo": "gpt-6-luna",
       "tokens_entrada": 15155,
-      "tokens_cache": 4120,
-      "tokens_saida": 864
+      "tokens_cache": 15152,
+      "tokens_saida": 718
     },
-    "custoUsd": 0.0015767,
+    "custoUsd": 0.00051082,
     "etapa": "apresentacao_curso_preco",
     "cursos": [
       "MBA em Gestão de Projetos e Processos com IA: Scrum, PMBOK e Metodologias Ágeis"
@@ -2107,20 +1038,20 @@
     "caso": "boleto-13x-pgl",
     "modelo": "gpt-6-luna",
     "rep": 3,
-    "latenciaMs": 14975,
+    "latenciaMs": 9651,
     "ok": true,
     "falhas": [],
     "textos": [
-      "*MBA em Gestão de Projetos e Processos com IA*\n\n*Valores sem o convênio:*\n• Pix: R$ 7.601,53\n• Cartão: 18x de R$ 479,69\n• Cartão: 12x de R$ 654,12\n• Boleto: 13x de R$ 635,58\n\n*Com o convênio da Nexdom (10% de desconto adicional):*\n• Pix: R$ 6.841,37\n• Cartão: 18x de R$ 431,72\n• Cartão: 12x de R$ 588,71\n• Boleto: 13x de R$ 572,02\n\nOs valores são válidos até sexta-feira, 30/10; a próxima turma começa em 02/02/2027 e as matrículas geralmente encerram até 28/01.\n\n*Quer que eu te explique os próximos passos da matrícula?*"
+      "*MBA em Gestão de Projetos e Processos com IA: Scrum, PMBOK e Metodologias Ágeis*\n\n*Valores sem o convênio:*\n• Pix: R$ 7.601,53\n• Cartão de crédito: 18x de R$ 479,69\n• Cartão de crédito: 12x de R$ 654,12\n• Boleto bancário: 13x de R$ 635,58\n\n*Com o convênio da Nexdom (10% de desconto adicional):*\n• Pix: R$ 6.841,37\n• Cartão de crédito: 18x de R$ 431,72\n• Cartão de crédito: 12x de R$ 588,71\n• Boleto bancário: 13x de R$ 572,02\n\nO valor é válido até sexta-feira, 30/10; a próxima turma começa em 02/02/2027, com matrículas geralmente até 28/01.\n\n*Quer que eu explique os próximos passos da matrícula?*"
     ],
     "lacunas": [],
     "uso": {
       "modelo": "gpt-6-luna",
       "tokens_entrada": 15155,
       "tokens_cache": 15152,
-      "tokens_saida": 948
+      "tokens_saida": 795
     },
-    "custoUsd": 0.00062582,
+    "custoUsd": 0.0005493200000000001,
     "etapa": "apresentacao_curso_preco",
     "cursos": [
       "MBA em Gestão de Projetos e Processos com IA: Scrum, PMBOK e Metodologias Ágeis"

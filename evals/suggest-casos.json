@@ -68,10 +68,14 @@
       { "autor": "lead", "texto": "Agradeço" }
     ],
     "deve": [
-      { "re": "gradua[çc][ãa]o|Faculdade|bacharel|tecn[óo]logo", "desc": "fala da graduação" }
+      { "re": "gradua[çc][ãa]o|Faculdade|bacharel|tecn[óo]logo", "desc": "fala da graduação" },
+      { "re": "Introdu[çc][ãa]o [àa] Programa[çc][ãa]o com Python", "desc": "grade: 1º bloco" },
+      { "re": "Model Lifecycle", "desc": "grade: bloco de Machine Learning" },
+      { "re": "Observabilidade e Otimiza[çc][ãa]o de Agentes", "desc": "grade: último bloco" }
     ],
     "nao_deve": [
-      { "re": "Scikit", "desc": "volta para a grade do MBA" }
+      { "re": "Scikit", "desc": "volta para a grade do MBA" },
+      { "re": "R\\$\\s?\\d", "desc": "empilha valores junto da grade" }
     ]
   },
   {

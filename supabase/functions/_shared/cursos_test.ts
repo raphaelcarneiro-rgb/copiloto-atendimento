@@ -206,6 +206,76 @@ test("grade: página sem o formato esperado devolve vazio (cai no texto dos trec
   assert.deepEqual(extrairDisciplinasDePagina(["Matriz curricular\n\nFundamentos do Processamento de Dados\n\nIntrodução à Visualização de Dados e SQL:"]), []);
 });
 
+test("grade da graduação (print 9): blocos, disciplinas com e sem ':', sobreposição e título diferente do projeto", async () => {
+  const { extrairGradeGraduacao } = await import("./cursos.ts");
+  // formato real da página de Engenharia de Inteligência Artificial (2 trechos que se sobrepõem)
+  const trecho0 = [
+    "ADMISSÃO E VALORES", "Matriz curricular", "Ciência da Computação",
+    "Velocidade e Qualidade com Estruturas de Dados e Algoritmos:", "Avaliar a velocidade de algoritmos introdutórios usando a notação Big O",
+    "Sistemas Operacionais com Linux e Python:", "Operar o sistema operacional Linux utilizando a linha de comando",
+    "Estruturas de Dados e Algoritmos Avançados:", "Utilizar as estruturas de dados heaps e tries",
+    "Programação Distribuída com Redes usando Linux e Python:", "Conectar em rede computadores com Linux",
+    "Projeto de Bloco: Ciência da Computação:", "Analisar o desempenho de algoritmos de ordenação",
+    "Machine Learning", // título do bloco na página != nome do projeto
+    "Inteligência Artificial: Model Lifecycle", "Explicar os conceitos básicos de Machine Learning",
+    "Dados para Machine Learning: Feature Engineering", "Manipular dados numéricos para algoritmos",
+  ].join("\n\n");
+  const trecho1 = [
+    "Dados para Machine Learning: Feature Engineering", "Manipular dados numéricos para algoritmos",
+    "Inteligência Artificial: Classificação", "Desenvolver modelos usando Árvores de Decisão",
+    "Inteligência Artificial: Clusterização", "Desenvolver modelos usando K-Médias",
+    "Projeto de Bloco: Inteligência Artificial e Machine Learning", "Desenvolver todas as etapas de um modelo simples",
+    "ADMISSÃO E VALORES", "Duração:", "4 anos",
+  ].join("\n\n");
+  const blocos = extrairGradeGraduacao([trecho0, trecho1]);
+  assert.deepEqual(blocos.map((b) => b.bloco), ["Ciência da Computação", "Inteligência Artificial e Machine Learning"]);
+  assert.deepEqual(blocos[1].disciplinas, [
+    "Inteligência Artificial: Model Lifecycle",
+    "Dados para Machine Learning: Feature Engineering",
+    "Inteligência Artificial: Classificação",
+    "Inteligência Artificial: Clusterização",
+    "Projeto de Bloco: Inteligência Artificial e Machine Learning",
+  ]);
+  assert.equal(blocos[0].disciplinas.length, 5);
+  assert.ok(!blocos.flatMap((b) => b.disciplinas).includes("Machine Learning"), "título do bloco não é disciplina");
+});
+
+test("grade da graduação: título grudado na competência e linha em caixa alta (Design de Animação)", async () => {
+  const { extrairGradeGraduacao } = await import("./cursos.ts");
+  const trecho = [
+    "Disciplinas e competências", "Fundamentos da Indústria Criativa", "DISCIPLINAS REGULARES",
+    "Design, Estética e Cultura Explicar como referências históricas, culturais e sociais influenciam soluções de design",
+    "Aplicar princípios do design em composições gráficas",
+    "Comunicação Audiovisual Explicar o conceito de comunicação e a teoria crítica da indústria cultural",
+    "Elementos do Design Compreender os elementos do design que compõem a linguagem visual",
+    "Princípios da Animação Analisar criticamente estilos, linguagens e contextos da animação",
+    "Projeto de Bloco: Introdução à Indústria Criativa Identificar problemas reais relacionados às questões étnico-raciais",
+    "Série em Animação 2D",
+    "Técnicas de Animação 2D", "Animar personagens com os princípios da animação",
+    "Compor cenas narrativas em animação 2D", // competência com verbo em "-por", não é disciplina
+    "Projeto de Bloco: Série em Animação 2D",
+  ].join("\n\n");
+  const blocos = extrairGradeGraduacao([trecho]);
+  assert.equal(blocos.length, 2);
+  assert.deepEqual(blocos[1].disciplinas, ["Técnicas de Animação 2D", "Projeto de Bloco: Série em Animação 2D"]);
+  assert.equal(blocos[0].bloco, "Introdução à Indústria Criativa");
+  assert.deepEqual(blocos[0].disciplinas, [
+    "Design, Estética e Cultura",
+    "Comunicação Audiovisual",
+    "Elementos do Design",
+    "Princípios da Animação",
+    "Projeto de Bloco: Introdução à Indústria Criativa",
+  ]);
+});
+
+test("grade da graduação: página de MBA (bullets, sem Projeto de Bloco) não vira grade de graduação", async () => {
+  const { extrairGradeGraduacao } = await import("./cursos.ts");
+  assert.deepEqual(
+    extrairGradeGraduacao(["Disciplinas e competências\n\nSQL Avançado\n\n• Otimizar a performance\n\nDbt\n\n• Construir pipelines\n\nSpark\n\n• Processar dados"]),
+    [],
+  );
+});
+
 test("print 13: empresa atual citada pelo lead ('agora sou funcionário da empresa Certsys')", async () => {
   const { extrairEmpresaCitadaPeloLead } = await import("./cursos.ts");
   assert.equal(

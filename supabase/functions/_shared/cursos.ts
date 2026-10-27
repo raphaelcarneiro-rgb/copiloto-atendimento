@@ -334,6 +334,154 @@ export function extrairDisciplinasDePagina(trechosEmOrdem: string[]): string[] {
   return titulos.length >= 3 ? titulos : [];
 }
 
+export interface BlocoGrade {
+  bloco: string;
+  disciplinas: string[];
+}
+
+/** Competência começa com verbo no infinitivo ("Configurar", "Desenvolver"); título de disciplina não. */
+function comecaComVerbo(linha: string): boolean {
+  const primeira = normalizar(linha).split(" ")[0] ?? "";
+  return /^([a-z]{2,}(ar|er|ir)|[a-z]*por)$/.test(primeira);
+}
+
+/**
+ * Título grudado na primeira competência, sem quebra de linha na página
+ * ("Comunicação Audiovisual Explicar o conceito de..."): corta no primeiro verbo no
+ * infinitivo com maiúscula que inicia uma frase (4+ palavras) — "Windows Server: ..." e
+ * "Contêineres Docker" não são cortados.
+ */
+function cortarNoVerbo(linha: string): string {
+  const palavras = linha.split(/\s+/);
+  const corte = palavras.findIndex(
+    (p, i) => i > 0 && /^[A-ZÀ-Ý][a-zà-ÿ]+$/.test(p) && comecaComVerbo(p) && palavras.length - i >= 4,
+  );
+  return corte > 0 ? palavras.slice(0, corte).join(" ") : linha;
+}
+
+/**
+ * Grade da GRADUAÇÃO por blocos ("Matriz curricular" ou "Disciplinas e competências",
+ * sem bullets): cada bloco tem um título, ~4 disciplinas (com ou sem ":" no fim) seguidas
+ * das competências (frases que começam com verbo) e fecha com "Projeto de Bloco: <bloco>".
+ * Os nomes dos blocos vêm dessas linhas de projeto, então o título do bloco nunca é
+ * confundido com disciplina. Sem isso o modelo via a matriz espalhada em trechos
+ * sobrepostos e recusava listar a grade (print 9; eval de 2026-10-27).
+ * Devolve [] quando a página não tem esse formato.
+ */
+export function extrairGradeGraduacao(trechosEmOrdem: string[]): BlocoGrade[] {
+  const texto = trechosEmOrdem.join("\n\n");
+  const inicio = texto.search(/Matriz curricular|Disciplinas e compet[eê]ncias/i);
+  if (inicio === -1) return [];
+  const linhas: string[] = [];
+  for (const bruta of texto.slice(inicio).split(/\n+/).slice(1)) {
+    const l = bruta.trim();
+    if (!l || l === "\u200d") continue;
+    if (/^(ADMISS[ÃA]O E VALORES|Sobre a gradua[çc][ãa]o|Dura[çc][ãa]o:?|Pr[óo]xima turma:?)$/i.test(l)) break;
+    linhas.push(l);
+  }
+
+  const semDoisPontos = (s: string) => s.replace(/\s*:\s*$/, "").trim();
+  // "Projeto de Bloco: Introdução à Indústria Criativa Identificar problemas reais..." (sem quebra
+  // de linha na página): o nome do bloco termina antes do primeiro verbo no infinitivo.
+  const nomeDoProjeto = (bruto: string) => cortarNoVerbo(semDoisPontos(bruto));
+  const PROJETO = /^Projeto de Bloco:\s*(.+)$/i;
+  const nomesDosBlocos = new Map<string, string>();
+  for (const l of linhas) {
+    const m = l.match(PROJETO);
+    if (m) {
+      const nome = nomeDoProjeto(m[1]);
+      if (!nomesDosBlocos.has(normalizar(nome))) nomesDosBlocos.set(normalizar(nome), nome);
+    }
+  }
+  if (nomesDosBlocos.size === 0) return [];
+
+  // Bloco "provisório": o título na página nem sempre é igual ao nome do projeto ("Machine
+  // Learning" x "Projeto de Bloco: Inteligência Artificial e Machine Learning"); o bloco
+  // recebe o nome oficial quando o "Projeto de Bloco" dele aparece.
+  // `cabecalho` = título do bloco como aparece na página (normalizado), para reconhecer a
+  // repetição dele na sobreposição entre trechos e não tratá-lo como disciplina.
+  type BlocoTrab = BlocoGrade & { chave: string | null; cabecalho: string | null };
+  const blocos: BlocoTrab[] = [];
+  const porNome = new Map<string, BlocoTrab>();
+  const abrirBloco = (chave: string) => {
+    let b = porNome.get(chave);
+    if (!b) {
+      b = { bloco: nomesDosBlocos.get(chave) ?? chave, disciplinas: [], chave, cabecalho: chave };
+      porNome.set(chave, b);
+      blocos.push(b);
+    }
+    return b;
+  };
+  const adicionar = (b: BlocoGrade, titulo: string) => {
+    if (!b.disciplinas.some((d) => normalizar(d) === normalizar(titulo))) b.disciplinas.push(titulo);
+  };
+  const tituloDaLinha = (l: string) => (/:\s*$/.test(l) ? semDoisPontos(l) : cortarNoVerbo(l));
+  const pareceTitulo = (l: string) =>
+    // título com ":" no fim é sinal forte (até 180: "Extração e Manipulação de Dados (ETL) utilizando ... (ADF):")
+    tituloDaLinha(l).length <= (/:\s*$/.test(l) ? 180 : 120) &&
+    !comecaComVerbo(l) &&
+    (/:\s*$/.test(l) || !/[.;!?]$/.test(tituloDaLinha(l))) &&
+    l !== l.toUpperCase() && // "DISCIPLINAS REGULARES", "ADMISSÃO E VALORES"
+    !/^projeto de bloco:?$/i.test(l);
+
+  let atual: BlocoTrab | null = null;
+  let dentroDoProjeto = false; // depois de "Projeto de Bloco: X" vem só a descrição do projeto
+  for (const l of linhas) {
+    const projeto = l.match(PROJETO);
+    if (projeto) {
+      const chave = normalizar(nomeDoProjeto(projeto[1]));
+      const existente = porNome.get(chave);
+      if (atual && atual.chave === null && !existente) {
+        atual.chave = chave;
+        atual.bloco = nomesDosBlocos.get(chave) ?? atual.bloco;
+        porNome.set(chave, atual);
+      } else {
+        const destino = existente ?? abrirBloco(chave);
+        if (atual && atual.chave === null && atual !== destino) {
+          for (const d of atual.disciplinas) adicionar(destino, d);
+          blocos.splice(blocos.indexOf(atual), 1);
+        }
+        atual = destino;
+      }
+      adicionar(atual, `Projeto de Bloco: ${nomesDosBlocos.get(chave)}`);
+      dentroDoProjeto = true;
+      continue;
+    }
+    const chaveLinha = normalizar(semDoisPontos(l));
+    if (nomesDosBlocos.has(chaveLinha)) {
+      // título do bloco (pode repetir na sobreposição entre trechos)
+      atual = abrirBloco(chaveLinha);
+      dentroDoProjeto = false;
+      continue;
+    }
+    const jaVisto = blocos.find((b) => b.cabecalho === chaveLinha);
+    if (jaVisto) {
+      atual = jaVisto;
+      dentroDoProjeto = false;
+      continue;
+    }
+    if (!pareceTitulo(l)) continue;
+    if (dentroDoProjeto || !atual) {
+      // fim da descrição do projeto: uma linha curta que não é competência abre o próximo
+      // bloco, ainda sem nome oficial (o título da página nem sempre bate com o do projeto)
+      if (/:\s*$/.test(l) && atual?.chave === null) {
+        adicionar(atual, tituloDaLinha(l));
+        continue;
+      }
+      atual = { bloco: semDoisPontos(l), disciplinas: [], chave: null, cabecalho: chaveLinha };
+      blocos.push(atual);
+      dentroDoProjeto = false;
+      continue;
+    }
+    adicionar(atual, tituloDaLinha(l));
+  }
+
+  // provisório que nunca recebeu "Projeto de Bloco" é sobra (rodapé, lista solta) — fora
+  const validos = blocos.filter((b) => b.chave !== null && b.disciplinas.length > 0);
+  const total = validos.reduce((s, b) => s + b.disciplinas.length, 0);
+  return total >= 6 ? validos.map(({ bloco, disciplinas }) => ({ bloco, disciplinas })) : [];
+}
+
 // --- Empresa atual citada pelo lead ------------------------------------------
 
 /** Palavras que aparecem depois de "empresa"/"trabalho na" mas não são nome de empresa. */
