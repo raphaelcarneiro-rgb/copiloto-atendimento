@@ -225,6 +225,14 @@ Deno.serve(async (req: Request) => {
     cursos_forcados?: string[];
     /** O atendente mandou seguir mesmo sem saber qual curso (ignora a pergunta "qual curso?"). */
     ignorar_ambiguidade?: boolean;
+    /**
+     * Só para o eval de modelos (evals/suggest.mjs): troca o modelo de chat desta
+     * chamada. Precisa estar em `config.modelos.eval_permitidos`, senão 400 —
+     * a função é pública (verify_jwt off) e não pode virar porta para modelo caro.
+     */
+    modelo?: string;
+    /** Chamada de eval: não registra lacunas na curadoria e devolve os tokens gastos. */
+    eval?: boolean;
   };
   try {
     body = await req.json();
@@ -337,7 +345,7 @@ Deno.serve(async (req: Request) => {
     ] = await Promise.all([
       getConfig(db, "limiar_relevancia") as Promise<number>,
       getConfig(db, "limiar_dedup") as Promise<number>,
-      getConfig(db, "modelos") as Promise<{ chat: string }>,
+      getConfig(db, "modelos") as Promise<{ chat: string; eval_permitidos?: string[] }>,
       db
         .from("playbook")
         .select("etapa, ordem, objetivo, script, perguntas_chave")
@@ -352,6 +360,14 @@ Deno.serve(async (req: Request) => {
     const playbook = playbookResult.data ?? [];
     if (playbook.length === 0) throw new Error("tabela playbook está vazia — cadastre as etapas primeiro");
     const etapasValidas = playbook.map((p) => p.etapa);
+    const ehEval = body.eval === true;
+    let modeloChat = modelos.chat;
+    if (body.modelo && body.modelo !== modelos.chat) {
+      if (!(modelos.eval_permitidos ?? []).includes(body.modelo)) {
+        return jsonComCors({ error: `modelo '${body.modelo}' não está em config.modelos.eval_permitidos` }, { status: 400 });
+      }
+      modeloChat = body.modelo;
+    }
     const prompts: PromptsEditaveis = {
       tomGeral,
       aberturaResposta,
@@ -533,7 +549,7 @@ Deno.serve(async (req: Request) => {
       };
     } else {
       const chat = await chatJSON<SuggestLLMOutput>({
-        model: modelos.chat,
+        model: modeloChat,
         system: buildSystemPrompt(playbook, empresaConvenio, modo, prompts),
         user: buildUserPrompt(mensagens, chunks, empresaConvenio, modo, blocoEmpresa + blocoCursos + blocoPrecoOficial),
         schemaName: "suggest_response",
@@ -582,7 +598,7 @@ Deno.serve(async (req: Request) => {
     // RF15/RF16: cada lacuna reportada pelo LLM vira (ou reforça) uma
     // entrada em knowledge_gaps — mesmo mecanismo de dedup do `ask`.
     let lacunaRegistrada = false;
-    for (const lacuna of resultado.lacunas) {
+    for (const lacuna of ehEval ? [] : resultado.lacunas) {
       const { embeddings: lacunaEmbeddings } = await embedTexts([lacuna]);
       const r = await registrarLacuna(db, lacuna, lacunaEmbeddings[0], limiarDedup, chamador?.userId ?? null);
       if (r.registrada) lacunaRegistrada = true;
@@ -590,12 +606,13 @@ Deno.serve(async (req: Request) => {
 
     const usageLogId = await logUsage(db, {
       tipoChamada: "suggest",
-      modelo: modelos.chat,
+      modelo: modeloChat,
       userId: chamador?.userId ?? null,
       tokensEntrada: tokensPromptChat + tokensEmbeddingPergunta,
       tokensSaida: tokensCompletion,
       tokensCache,
-      threadHash: body.thread_hash ?? null,
+      // eval fica identificável nos relatórios de custo
+      threadHash: ehEval ? "eval-modelos" : body.thread_hash ?? null,
     });
 
     const sugestoesDetalhadas = resultado.sugestoes.map((s) => ({
@@ -623,6 +640,16 @@ Deno.serve(async (req: Request) => {
       usage_log_id: usageLogId,
       precisa_confirmar_curso: false,
       ...infoCursos,
+      ...(ehEval
+        ? {
+            eval: {
+              modelo: modeloChat,
+              tokens_entrada: tokensPromptChat,
+              tokens_cache: tokensCache,
+              tokens_saida: tokensCompletion,
+            },
+          }
+        : {}),
     });
   } catch (err) {
     const mensagem = err instanceof Error ? err.message : String(err);

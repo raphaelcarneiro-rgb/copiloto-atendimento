@@ -101,7 +101,7 @@ Como a [spec](spec.md) será construída. Mudanças de arquitetura atualizam est
 - Edge Functions usam a service role apenas no servidor (bypassa RLS por padrão) — por isso `relatorios`, `gaps`, `fontes` e `admin-config` verificam o papel explicitamente via `_shared/auth_context.ts::resolverChamador` antes de qualquer leitura/escrita sensível, em vez de confiar só na RLS. A chave da OpenAI fica em segredo das funções.
 
 ## Custo
-- **Modelos do MVP:** `gpt-5.6-luna` para chat e classificação (US$ 0,20 entrada / 0,02 cache / 0,25 escrita em cache / 1,20 saída por 1M tokens). `gpt-5.6-terra` fica como alternativa, se os evals exigirem. Embeddings: `text-embedding-3-small`.
+- **Modelos:** `gpt-6-luna` para chat e classificação desde 2026-10-27 (US$ 0,10 entrada / 0,01 cache / 0,125 escrita em cache / 0,50 saída por 1M tokens), escolhido pelo eval do `suggest` (`evals/suggest.mjs`: mesma qualidade do `gpt-5.6-luna`, ~48% mais barato por sugestão). `gpt-5.6-luna` fica em `config.modelos.chat_anterior` para voltar sem deploy. Embeddings: `text-embedding-3-small`.
 - **Estimativa:** uma sugestão com ~6k tokens de entrada e ~500 de saída custa ~US$ 0,0018 no luna, contra ~US$ 0,018 no terra. O teto de R$ 100 comporta dezenas de milhares de sugestões no luna e ~1 mil no terra.
 - `usage_logs.tokens_entrada` inclui os tokens lidos do cache (`tokens_cache`) e os gravados em cache (`tokens_cache_escrita`).
 - O trigger `usage_logs_custo` calcula `custo_usd` com `custo_estimado_usd()` (preço vigente na data; contexto longo quando `limite_contexto_curto_tokens` estiver definido) e `custo_brl` com a cotação de `config` no momento do registro.

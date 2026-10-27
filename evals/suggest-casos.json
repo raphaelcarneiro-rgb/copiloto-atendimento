@@ -1,0 +1,269 @@
+[
+  {
+    "id": "p8-antonio-sim-investimento",
+    "origem": "Print Antonio/Nexdom (2026-10-08): lead diz 'Sim' ao investimento oferecido pelo atendente",
+    "empresa_associada": "Nexdom",
+    "estado_lead": "MG",
+    "mensagens": [
+      { "autor": "lead", "texto": "Me passa a lista de todas as Pós e os preços já com os descontos aplicados da Nexdom" },
+      { "autor": "atendente", "texto": "Nós não temos uma tabela de preços compartilhável. Quer que eu te envie o investimento do MBA em Data Science (Ciência de Dados), agora?" },
+      { "autor": "lead", "texto": "Sim" }
+    ],
+    "deve": [
+      { "re": "R\\$\\s?\\d", "desc": "entrega valores (R$)" }
+    ],
+    "nao_deve": [
+      { "re": "quer que eu te (envie|informe|passe) (os )?(valores|investimento)", "desc": "repete a pergunta de valores já respondida" },
+      { "re": "at[ée]\\s+\\d{1,2}\\s*%", "desc": "cita teto de desconto" }
+    ]
+  },
+  {
+    "id": "p8-diogo-sim-convenio",
+    "origem": "Print 8 (2026-10-19): 'esse MBA' sem nome, lead aceita condições + benefício do convênio",
+    "empresa_associada": "Nexdom",
+    "estado_lead": "SP",
+    "mensagens": [
+      { "autor": "lead", "texto": "Tenho interesse no MBA em Engenharia de IA, Machine Learning e Deep Learning" },
+      { "autor": "atendente", "texto": "Perfeito! A Faculdade Infnet é especializada em tecnologia, com aulas ao vivo e professores do mercado." },
+      { "autor": "lead", "texto": "Já conheço" },
+      { "autor": "atendente", "texto": "Diogo, posso te apresentar as condições de investimento e o benefício do convênio da Nexdom para esse MBA?" },
+      { "autor": "lead", "texto": "sim" }
+    ],
+    "deve": [
+      { "re": "R\\$\\s?\\d", "desc": "entrega valores (R$)" },
+      { "re": "10\\s?%|convênio|convenio", "desc": "aplica o convênio Nexdom" }
+    ],
+    "nao_deve": [
+      { "re": "at[ée]\\s+\\d{1,2}\\s*%", "desc": "cita teto de desconto" },
+      { "re": "gostaria de (considerar|usar|aplicar) o (desconto do )?conv[êe]nio", "desc": "pergunta se o lead quer usar o convênio" }
+    ]
+  },
+  {
+    "id": "gabriel-estado-desconhecido",
+    "origem": "Print Gabriel/Nexdom (2026-10-08): pede valores com estado desconhecido",
+    "empresa_associada": "Nexdom",
+    "estado_lead": null,
+    "mensagens": [
+      { "autor": "atendente", "texto": "Gabriel, o MBA em Engenharia de IA, Machine Learning e Deep Learning tem aulas ao vivo, professores do mercado e projetos práticos em cada disciplina." },
+      { "autor": "lead", "texto": "Já conheço a Infnet. Quais são os valores?" }
+    ],
+    "deve": [
+      { "re": "cidade|estado|onde (você )?(mora|está)|localiza", "desc": "pergunta a localização" }
+    ],
+    "nao_deve": [
+      { "re": "R\\$\\s?\\d", "desc": "crava valor sem saber o estado" },
+      { "re": "gostaria de (considerar|usar|aplicar) o (desconto do )?conv[êe]nio", "desc": "pergunta se o lead quer usar o convênio" }
+    ]
+  },
+  {
+    "id": "p9-graduacao-antes",
+    "origem": "Print 9 (2026-10-19): graduação + MBA, lead pede a graduação antes",
+    "empresa_associada": null,
+    "estado_lead": "RJ",
+    "mensagens": [
+      { "autor": "atendente", "texto": "Você se interessou pelo MBA em Engenharia de IA, Machine Learning e Deep Learning e pela graduação em Engenharia de Inteligência Artificial, certo?" },
+      { "autor": "lead", "texto": "Bom dia! Isso mesmo.." },
+      { "autor": "atendente", "texto": "Moacir, veja as disciplinas do MBA em Engenharia de IA, Machine Learning e Deep Learning:\n• Fundamentos de Machine Learning com Scikit-Learn\nQuer que eu te envie os valores e as formas de pagamento?" },
+      { "autor": "lead", "texto": "Se puder dá graduação antes..." },
+      { "autor": "lead", "texto": "Agradeço" }
+    ],
+    "deve": [
+      { "re": "gradua[çc][ãa]o|Faculdade|bacharel|tecn[óo]logo", "desc": "fala da graduação" }
+    ],
+    "nao_deve": [
+      { "re": "Scikit", "desc": "volta para a grade do MBA" }
+    ]
+  },
+  {
+    "id": "p10-redes-sim-valores",
+    "origem": "Print 10 (2026-10-19): grade do MBA de Redes já mostrada, lead diz 'Sim.' aos valores",
+    "empresa_associada": null,
+    "estado_lead": "SP",
+    "mensagens": [
+      { "autor": "lead", "texto": "Quero saber sobre o MBA em redes" },
+      { "autor": "atendente", "texto": "Ossian, estas são as disciplinas do MBA em Engenharia de Redes de Computadores:\n• CCNA - Fundamentos, Protocolos, Computação e Roteamento\n• CCNA - Administração\n• Infraestrutura e Fundamentos de Cloud\n• Administração do Azure\n• LPIC-1 - Fundamentos e Administração\n• Gerenciamento de Serviços de TI com ITIL\n• Segurança de Redes\nQuer que eu te envie os valores e as formas de pagamento?" },
+      { "autor": "lead", "texto": "Sim." }
+    ],
+    "deve": [
+      { "re": "R\\$\\s?\\d", "desc": "entrega valores (R$)" }
+    ],
+    "nao_deve": [
+      { "re": "Gradua[çc][ãa]o em Redes|Faculdade EAD Live em Redes", "desc": "confunde com a graduação de Redes" },
+      { "re": "LPIC-1", "desc": "repete a grade já mostrada" }
+    ]
+  },
+  {
+    "id": "p11-grade-completa",
+    "origem": "Print 11 (2026-10-19): grade do MBA de Engenharia de Dados vinha com 2 de 8 disciplinas",
+    "empresa_associada": null,
+    "estado_lead": "SP",
+    "mensagens": [
+      { "autor": "atendente", "texto": "Olá! Sou da Faculdade Infnet, especializada em tecnologia, com aulas ao vivo e professores que atuam no mercado." },
+      { "autor": "lead", "texto": "Já conheço a Infnet" },
+      { "autor": "atendente", "texto": "Seu interesse seria no MBA em Engenharia de Dados: Big Data e IA, certo?" },
+      { "autor": "lead", "texto": "Isso. Quais são as disciplinas?" }
+    ],
+    "deve": [
+      { "re": "dbt", "desc": "disciplina dbt" },
+      { "re": "Spark", "desc": "disciplina Spark" },
+      { "re": "Kafka", "desc": "disciplina Kafka" },
+      { "re": "Ag[êe]ntic", "desc": "última disciplina (IA Generativa e Sistemas Agênticos)" }
+    ],
+    "nao_deve": [
+      { "re": "R\\$\\s?\\d", "desc": "empilha valores junto da grade" }
+    ]
+  },
+  {
+    "id": "p12-quando-comeca",
+    "origem": "Print 12 (2026-10-20): 'Quando o curso começa?' virava grade + valores",
+    "empresa_associada": null,
+    "estado_lead": "SP",
+    "mensagens": [
+      { "autor": "lead", "texto": "Tenho interesse no MBA em Inteligência Artificial e Automação de Processos" },
+      { "autor": "atendente", "texto": "Ótimo! Na Infnet as aulas são ao vivo, com professores do mercado, projetos práticos em cada disciplina e metodologia baseada em competências. Já conhecia a Faculdade Infnet?" },
+      { "autor": "lead", "texto": "Conheço sim. Quando o curso começa?" }
+    ],
+    "deve": [
+      { "re": "01/02(/2027)?|1[ºo°]? de fevereiro|fevereiro de 2027", "desc": "informa a data de início" }
+    ],
+    "nao_deve": [
+      { "re": "R\\$\\s?\\d", "desc": "joga valores sem o lead pedir" }
+    ]
+  },
+  {
+    "id": "data-antes-da-metodologia",
+    "origem": "Print 12 (controle): lead pergunta a data de cara, metodologia ainda não apresentada",
+    "empresa_associada": null,
+    "estado_lead": "SP",
+    "mensagens": [
+      { "autor": "lead", "texto": "Quando começa o MBA em Inteligência Artificial e Automação de Processos?" }
+    ],
+    "deve": [
+      { "re": "01/02(/2027)?|1[ºo°]? de fevereiro|fevereiro de 2027", "desc": "informa a data de início" },
+      { "re": "metodologia|diferencia", "desc": "oferece metodologia/diferenciais" }
+    ],
+    "nao_deve": [
+      { "re": "R\\$\\s?\\d", "desc": "joga valores sem o lead pedir" }
+    ]
+  },
+  {
+    "id": "p13-sim-metodologia",
+    "origem": "Print 13 (Raphael, 2026-10-20): 'sim' a diferenciais/metodologia virava tabela de valores; curso dispensado voltava",
+    "empresa_associada": null,
+    "estado_lead": "RJ",
+    "mensagens": [
+      { "autor": "lead", "texto": "3 amigos ficaria quanto?" },
+      { "autor": "lead", "texto": "oi" },
+      { "autor": "atendente", "texto": "O que despertou seu interesse no MBA Live em Engenharia de Cibersegurança?" },
+      { "autor": "lead", "texto": "não quero mais esse. Quero informações do novo mba de engenharia de contexto" },
+      { "autor": "atendente", "texto": "Raphael, entendido. O *MBA em Engenharia de Contexto e Agentes de IA* prepara profissionais para construir sistemas de IA em produção. *O que você gostaria de conhecer primeiro: a estrutura do curso ou o investimento?*" },
+      { "autor": "lead", "texto": "estrutura do curso" },
+      { "autor": "atendente", "texto": "Raphael, estas são as disciplinas do *MBA em Engenharia de Contexto e Agentes de IA*:\n• Context Engineering para Aplicações com IA\n*Quer conhecer os diferenciais e a metodologia da Infnet antes de falarmos sobre os valores?*" },
+      { "autor": "lead", "texto": "sim" }
+    ],
+    "deve": [
+      { "re": "ao vivo|metodologia|professor|projeto", "desc": "entrega diferenciais/metodologia" }
+    ],
+    "nao_deve": [
+      { "re": "R\\$\\s?\\d", "desc": "entrega valores no lugar da metodologia" },
+      { "re": "Cibersegur", "desc": "volta ao curso dispensado" }
+    ]
+  },
+  {
+    "id": "p13-empresa-nao-conveniada",
+    "origem": "Print 13 da equipe (2026-10-21): CRM Qintess, lead agora na Certsys (sem convênio)",
+    "empresa_associada": "Qintess",
+    "estado_lead": "SP",
+    "mensagens": [
+      { "autor": "lead", "texto": "Tenho interesse no MBA em Engenharia de Software com Java" },
+      { "autor": "atendente", "texto": "Ótimo! Vi aqui que você é da Qintess, que tem convênio com a Infnet. Você ainda é funcionário da empresa Qintess?" },
+      { "autor": "lead", "texto": "não agora sou funcionario da empresa Certsys" }
+    ],
+    "deve": [
+      { "re": "infnet\\.edu\\.br/empresas/convenio", "desc": "link do convênio para indicação" },
+      { "re": "\\bRH\\b|recursos humanos", "desc": "pede contato do RH" }
+    ],
+    "nao_deve": [
+      { "re": "benef[íi]cio educacional|reembolso|aux[íi]lio", "desc": "pergunta sobre benefício da empresa" },
+      { "re": "Qintess", "desc": "oferece o convênio da empresa antiga" },
+      { "re": "at[ée]\\s+\\d{1,2}\\s*%", "desc": "cita teto de desconto" }
+    ]
+  },
+  {
+    "id": "bolsa-nao-e-vestibular",
+    "origem": "Ajuste de 2026-10-02: pergunta de bolsa era respondida com vestibular/ENEM",
+    "empresa_associada": null,
+    "estado_lead": "RJ",
+    "mensagens": [
+      { "autor": "atendente", "texto": "Olá! Sou da Faculdade Infnet. Como posso te ajudar?" },
+      { "autor": "lead", "texto": "Vocês têm bolsa de estudo para a graduação em Engenharia de Software?" }
+    ],
+    "deve": [],
+    "nao_deve": [
+      { "re": "vestibular|ENEM", "desc": "responde bolsa com vestibular/ENEM" }
+    ]
+  },
+  {
+    "id": "objecao-adiamento",
+    "origem": "Ajuste de 2026-10-02: objeção de adiamento virava 'nada a sugerir'",
+    "empresa_associada": null,
+    "estado_lead": "SP",
+    "mensagens": [
+      { "autor": "lead", "texto": "Tenho interesse no MBA em Engenharia de Cloud Computing" },
+      { "autor": "atendente", "texto": "Perfeito! O MBA em Engenharia de Cloud Computing tem aulas ao vivo e começa em fevereiro. Quer que eu te envie os valores?" },
+      { "autor": "lead", "texto": "Não poderei realizar agora, obrigado pelas informações" }
+    ],
+    "min_sugestoes": 1,
+    "deve": [],
+    "nao_deve": []
+  },
+  {
+    "id": "conversa-nova-apresentacao",
+    "origem": "Ajuste de 2026-09-25: conversa nova começa com apresentação institucional, sem valores",
+    "empresa_associada": null,
+    "estado_lead": "SP",
+    "mensagens": [
+      { "autor": "lead", "texto": "Oi, tenho interesse no MBA em Engenharia de Cloud Computing" }
+    ],
+    "deve": [
+      { "re": "Infnet", "desc": "apresenta a Infnet" }
+    ],
+    "nao_deve": [
+      { "re": "R\\$\\s?\\d", "desc": "joga valores na primeira resposta" }
+    ]
+  },
+  {
+    "id": "sem-pagamento-estendido",
+    "origem": "Ajuste de 2026-09-25: 'pagamento estendido' não existe mais",
+    "empresa_associada": null,
+    "estado_lead": "SP",
+    "mensagens": [
+      { "autor": "lead", "texto": "Tenho interesse no MBA em Gestão de Projetos e Processos" },
+      { "autor": "atendente", "texto": "Ótimo! Já conhece a Faculdade Infnet? As aulas são ao vivo, com professores do mercado." },
+      { "autor": "lead", "texto": "Conheço sim. Dá pra estender o prazo de pagamento? Quero parcelar em mais vezes" }
+    ],
+    "deve": [],
+    "nao_deve": [
+      { "re": "pagamento estendido|plano estendido", "desc": "oferece pagamento estendido" }
+    ]
+  },
+  {
+    "id": "boleto-13x-pgl",
+    "origem": "Print 2026-10-08: preço do MBA de Gestão de Projetos saía sem boleto 13x",
+    "empresa_associada": "Nexdom",
+    "estado_lead": "SP",
+    "mensagens": [
+      { "autor": "lead", "texto": "Tenho interesse no MBA em Gestão de Projetos e Processos: Scrum, BPM, PMBOK e Metodologias Ágeis" },
+      { "autor": "atendente", "texto": "Ótimo! Na Infnet as aulas são ao vivo, com professores do mercado e metodologia baseada em projetos. Estas são as disciplinas do MBA em Gestão de Projetos e Processos:\n• Gerenciamento de Projetos com PMBOK\n• Scrum e Métodos Ágeis\n• Modelagem de Processos com BPM\nQuer que eu te envie os valores e as formas de pagamento?" },
+      { "autor": "lead", "texto": "Quero sim, os valores por favor" }
+    ],
+    "deve": [
+      { "re": "R\\$\\s?\\d", "desc": "entrega valores (R$)" },
+      { "re": "boleto", "desc": "inclui boleto" },
+      { "re": "13\\s?x|13 vezes|13 parcelas", "desc": "inclui 13x" }
+    ],
+    "nao_deve": [
+      { "re": "at[ée]\\s+\\d{1,2}\\s*%", "desc": "cita teto de desconto" }
+    ]
+  }
+]
