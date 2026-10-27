@@ -68,13 +68,30 @@
       { "autor": "lead", "texto": "Agradeço" }
     ],
     "deve": [
-      { "re": "gradua[çc][ãa]o|Faculdade|bacharel|tecn[óo]logo", "desc": "fala da graduação" },
       { "re": "Introdu[çc][ãa]o [àa] Programa[çc][ãa]o com Python", "desc": "grade: 1º bloco" },
       { "re": "Model Lifecycle", "desc": "grade: bloco de Machine Learning" },
       { "re": "Observabilidade e Otimiza[çc][ãa]o de Agentes", "desc": "grade: último bloco" }
     ],
     "nao_deve": [
       { "re": "Scikit", "desc": "volta para a grade do MBA" },
+      { "re": "R\\$\\s?\\d", "desc": "empilha valores junto da grade" }
+    ]
+  },
+  {
+    "id": "grad-eng-dados-grade",
+    "origem": "2026-10-27: pagina da graduacao de Engenharia de Dados com IA estava quebrada ('Redirecting...') e o curso ficava sem grade",
+    "empresa_associada": null,
+    "estado_lead": "SP",
+    "mensagens": [
+      { "autor": "atendente", "texto": "Olá! Sou da Faculdade Infnet, especializada em tecnologia, com aulas ao vivo todos os dias e professores do mercado." },
+      { "autor": "lead", "texto": "Já conheço. Quais são as disciplinas da graduação em Engenharia de Dados com IA?" }
+    ],
+    "deve": [
+      { "re": "Oracle 26ai", "desc": "grade: 1º bloco (Bancos de Dados com IA)" },
+      { "re": "Lakehouse com Databricks", "desc": "grade: bloco de Big Data" },
+      { "re": "Pentest Web", "desc": "grade: último bloco" }
+    ],
+    "nao_deve": [
       { "re": "R\\$\\s?\\d", "desc": "empilha valores junto da grade" }
     ]
   },

@@ -348,13 +348,19 @@ function comecaComVerbo(linha: string): boolean {
 /**
  * Título grudado na primeira competência, sem quebra de linha na página
  * ("Comunicação Audiovisual Explicar o conceito de..."): corta no primeiro verbo no
- * infinitivo com maiúscula que inicia uma frase (4+ palavras) — "Windows Server: ..." e
+ * infinitivo com maiúscula que inicia uma frase (4+ palavras, seguido de palavra minúscula:
+ * "Explicar o conceito") — "Windows Server: ...", "SQL Server 2025 e Azure SQL" e
  * "Contêineres Docker" não são cortados.
  */
 function cortarNoVerbo(linha: string): string {
   const palavras = linha.split(/\s+/);
   const corte = palavras.findIndex(
-    (p, i) => i > 0 && /^[A-ZÀ-Ý][a-zà-ÿ]+$/.test(p) && comecaComVerbo(p) && palavras.length - i >= 4,
+    (p, i) =>
+      i > 0 &&
+      /^[A-ZÀ-Ý][a-zà-ÿ]+$/.test(p) &&
+      comecaComVerbo(p) &&
+      palavras.length - i >= 4 &&
+      /^[a-zà-ÿ]/.test(palavras[i + 1] ?? ""),
   );
   return corte > 0 ? palavras.slice(0, corte).join(" ") : linha;
 }

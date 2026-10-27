@@ -268,6 +268,28 @@ test("grade da graduação: título grudado na competência e linha em caixa alt
   ]);
 });
 
+test("grade da graduação: nome de produto que parece verbo ('SQL Server 2025') não corta o título", async () => {
+  const { extrairGradeGraduacao } = await import("./cursos.ts");
+  const trecho = [
+    "Matriz curricular", "Engenharia de Bancos de Dados com IA",
+    "Administração, Vetores e Integração com IA no SQL Server 2025 e Azure SQL",
+    "Compreender a arquitetura interna do SQL Server 2025",
+    "Gestão e Vector DB no Oracle 26ai com IA", "Executar rotinas operacionais de backup",
+    "Windows Server: Administração, Segurança e Automação", "Gerenciar servidores Windows",
+    "Gestão e Orquestração de Contêineres Docker", "Implantar contêineres",
+    "Provisionamento, Agentes de IA e Multicloud com OCI", "Compreender a infraestrutura da OCI",
+    "Projeto de Bloco: Engenharia de Bancos de Dados com IA", "Elaborar modelos relacionais normalizados",
+  ].join("\n\n");
+  assert.deepEqual(extrairGradeGraduacao([trecho])[0].disciplinas, [
+    "Administração, Vetores e Integração com IA no SQL Server 2025 e Azure SQL",
+    "Gestão e Vector DB no Oracle 26ai com IA",
+    "Windows Server: Administração, Segurança e Automação",
+    "Gestão e Orquestração de Contêineres Docker",
+    "Provisionamento, Agentes de IA e Multicloud com OCI",
+    "Projeto de Bloco: Engenharia de Bancos de Dados com IA",
+  ]);
+});
+
 test("grade da graduação: página de MBA (bullets, sem Projeto de Bloco) não vira grade de graduação", async () => {
   const { extrairGradeGraduacao } = await import("./cursos.ts");
   assert.deepEqual(
